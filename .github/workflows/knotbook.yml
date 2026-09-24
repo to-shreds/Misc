@@ -1,0 +1,34 @@
+name: Knotbook
+on:
+  push:
+    paths:
+      - 'knots/**'
+      - 'knots.html'
+      - '.github/workflows/knotbook.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: knotbook-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests beautifulsoup4
+      - name: Verify publisher reference and embed inventory
+        run: python knots/tools/research.py
+      - name: Test guide when present
+        run: |
+          if [ -f knots/tools/test.mjs ]; then node knots/tools/test.mjs; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: knotbook-reference-verification
+          path: knots/research/
+          retention-days: 1
