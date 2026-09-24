@@ -12,8 +12,8 @@ def check(name, value):
 def node_name(page, kind):
     return page.evaluate("k=>FlowCore.walk(Flowcraft.snapshot().definition).find(r=>FlowCore.kind(r.a)===k)?.name",kind)
 def fill_recipient(page):
-    page.get_by_label(re.compile(r'^To')).fill('reader@example.com')
-    page.get_by_label('Subject',exact=False).press('Tab')
+    page.get_by_label('Who should receive the email?',exact=True).fill('reader@example.com')
+    page.get_by_label('What should the subject say?',exact=True).press('Tab')
 def choose_template(page, pattern):
     page.locator('#recipesTab').click()
     match=page.get_by_role('button',name=re.compile(pattern))
@@ -74,9 +74,9 @@ with sync_playwright() as pw:
     choose_template(page,'Only act when something matches')
     cond=node_name(page,'condition');page.locator(f'[data-node="{cond}"]').click()
     page.get_by_role('button',name='Set the rule',exact=True).click()
-    page.get_by_label('Left value source',exact=True).select_option("@triggerBody()?['subject']")
+    page.get_by_label('What should I check? source',exact=True).select_option("@triggerBody()?['subject']")
     page.locator('#conditionOperator').select_option('contains')
-    page.get_by_label('Right value',exact=True).fill('urgent')
+    page.get_by_label('Compare it with',exact=True).fill('urgent')
     page.locator('#applyCondition').click()
     check('condition helper emits typed native condition',page.evaluate("n=>FlowCore.locate(Flowcraft.snapshot(),n).a.expression",cond)=={'contains':["@triggerBody()?['subject']",'urgent']})
     # Schedule: friendly time picker, without needing JSON.
@@ -86,6 +86,7 @@ with sync_playwright() as pw:
     # Invalid JSON remains unapplied and blocks export.
     choose_template(page,'Turn a list into an email report')
     comp=node_name(page,'compose');page.locator(f'[data-node="{comp}"]').click()
+    page.locator('#advancedToggle').check()
     val=page.locator('#inspector textarea').first;val.fill('[not json');val.press('Tab')
     page.locator('#exportBtn').click();check('invalid draft JSON blocks export',page.locator('#downloadZip').is_disabled());page.locator('#closeModal').click()
     # Discard on navigation, then confirm the original data was not overwritten.
