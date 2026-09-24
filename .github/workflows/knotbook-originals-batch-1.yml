@@ -1,0 +1,51 @@
+name: Knotbook originals batch 1
+on:
+  push:
+    paths:
+      - '.github/workflows/knotbook-originals-batch-1.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  original-batch:
+    if: github.ref == 'refs/heads/knots-originals-batch-1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply inspected one-time source integration
+        run: python knots/tools/install_originals_v1.py
+      - name: Build and syntax-check
+        run: |
+          python knots/tools/build.py
+          python knots/tools/build.py --check
+          node --check knots/app.js
+          node --check knots/originals.js
+      - run: pip install playwright
+      - name: All 100 tutorials and existing functionality
+        run: python knots/tools/browser_test.py --online-pictures
+      - name: All 20 original animations and their controls
+        run: python knots/tools/originals_test.py
+      - name: Preserve the tested source and generated page on staging
+        run: |
+          git config user.name 'Knotbook build'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add knots.html knots/app.js knots/template.html knots/tools/build.py knots/tools/browser_test.py .github/workflows/knotbook.yml
+          if ! git diff --cached --quiet; then
+            git commit -m 'Integrate and verify first 20 original Knotbook animations'
+            git push origin HEAD:knots-originals-batch-1
+          fi
+          git rev-parse HEAD > knots/proof/tested-commit.txt
+          sha256sum knots.html knots/originals.js knots/originals.css knots/app.js knots/template.html > knots/proof/sha256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: knotbook-originals-batch-1-proof
+          path: |
+            knots/
+            knots.html
+            index.html
+          retention-days: 7
