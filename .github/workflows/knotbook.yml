@@ -23,9 +23,12 @@ jobs:
         run: |
           python knots/tools/build.py
           node --check knots/app.js
+          node --check knots/originals.js
       - run: pip install playwright
       - name: Browser checks and visual proof
-        run: python knots/tools/browser_test.py --online-pictures
+        run: |
+          python knots/tools/browser_test.py --online-pictures
+          python knots/tools/originals_test.py
       - name: Publish reviewed catalogs and generated page
         if: github.ref == 'refs/heads/main'
         run: |
