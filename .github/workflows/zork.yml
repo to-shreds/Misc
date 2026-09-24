@@ -1,0 +1,88 @@
+name: Zork build and test
+on:
+  push:
+    branches: [main]
+    paths: ['zork/**', 'scripts/**', 'tests/**', 'sources.lock.json', '.build/**', '.github/workflows/zork.yml', 'LICENSE']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: zork-build
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Materialize verified authored source on first publication
+        id: source
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path, PurePosixPath
+          import base64, hashlib, json, lzma, os
+          staged=Path('.build/zork-1.b64').exists()
+          if staged:
+              encoded=''.join(Path(f'.build/zork-{n}.b64').read_text().strip() for n in range(1,5))
+              data=base64.b64decode(encoded,validate=True)
+              assert hashlib.sha256(data).hexdigest()=='8c3e758b79e0f94c168e4248fe07b7e12b49f95cdeff573504062771bfa9a36c', 'Source transfer checksum mismatch'
+              files=json.loads(lzma.decompress(data))
+              for name,content in files.items():
+                  path=PurePosixPath(name)
+                  assert not path.is_absolute() and '..' not in path.parts and '.git' not in path.parts
+                  target=Path(name);target.parent.mkdir(parents=True,exist_ok=True);target.write_text(content,encoding='utf-8')
+              # Wait for the asynchronous File.arrayBuffer import, not merely its change event.
+              test=Path('tests/browser.py');text=test.read_text()
+              text=text.replace("  assert state(page)==saved_state;ok('portable Quetzal export and import')", "  expect(page.locator('#dialog')).not_to_be_visible()\n  assert state(page)==saved_state;ok('portable Quetzal export and import')")
+              test.write_text(text)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:output.write(f'bootstrap={str(staged).lower()}\n')
+          PY
+      - name: Fetch checksum-verified original game and unchanged interpreter
+        if: steps.source.outputs.bootstrap == 'true'
+        run: python scripts/vendor.py
+      - name: Build the self-contained offline edition
+        run: python scripts/standalone.py
+      - name: Original-engine regression tests
+        run: node --test tests/engine.cjs
+      - name: Publish readable source, original licensed assets and offline game
+        if: steps.source.outputs.bootstrap == 'true'
+        run: |
+          rm -f .build/zork-{1,2,3,4}.b64 .github/workflows/zork-vendor.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Publish Zork I GUI: unchanged original game, responsive controls, saves, offline build and tests'
+          git push origin HEAD:main
+      - name: Install browser testing dependencies
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Test desktop, phones, landscape, persistence and portable saves
+        run: python tests/browser.py
+      - name: Package the playable site
+        if: always()
+        run: |
+          mkdir -p dist
+          if [ -f zork.html ]; then cp -r zork dist/; cp zork.html index.html .nojekyll README.md LICENSE dist/; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zork-browser-results
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zork-playable
+          path: dist/
+          retention-days: 30
+          if-no-files-found: ignore
