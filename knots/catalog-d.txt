@@ -1,0 +1,311 @@
+@round-turn-two-half-hitches|Round Turn & Two Half Hitches|round-turn-two-half-hitches-knot|Hitch|1|Everyday,Camping,Boating|Round turn and two half hitches
+=Attach a line to a post with friction turns and a simple finish.
++Soft practice rope and a smooth post or ring.
+!Keep hands clear of loaded turns. Actual mooring or rigging needs suitable rope, an adequate object and the complete prescribed securing method.
+?The rope makes the round turn around the object, followed by two same-direction half hitches around the standing part.
+xReversing the second half hitch changes the finishing pattern.
+>Go around the object::Take the working end around the post and return it toward the standing part.
+>Add the round turn::Continue around once more, leaving two visible turns around the object to add friction.
+>Make the first half hitch::Wrap the tail around the standing part and tuck it through its own loop. Snug it near the post.
+>Repeat the same direction::Make another half hitch around the standing part, turning the same way as before.
+>Dress the finish::Slide the two half hitches together, keep the turns orderly and leave a generous tail for inspection.
+
+@running-bowline|Running Bowline|running-bowline-knot|Sliding loop|2|Boating,Camping|
+=A sliding eye formed by a small bowline around the standing part.
++Practice rope and an inanimate object; learn the Bowline first.
+!The outer loop tightens around its contents. Never put it around a person, limb or animal, and do not use this practice version for lifting.
+?The small bowline is fixed, but the standing rope slides through it to change the large eye.
+xTying an ordinary bowline without enclosing the standing part gives only a fixed eye.
+>Return around the object::Take a long working end around the practice object and bring it back across the standing part.
+>Plan the small eye::Arrange a small bowline eye that encircles the standing rope, leaving the larger loop around the object.
+>Begin the bowline::Make the small crossing loop, bring the tail up through it and around its standing section.
+>Complete the collar::Feed the tail back down through the small crossing loop, leaving it inside the bowline's eye.
+>Inspect the two loops::Dress the bowline, then gently pull the main standing rope to observe the larger loop sliding closed. Keep hands outside that loop.
+
+@san-diego-jam|San Diego Jam Knot|san-diego-jam-knot|Fishing attachment|2|Fishing|Reverse clinch
+=A coiled hook-eye connection with an upper-loop finishing tuck.
++Practice fishing line and a blunt ring.
+!Wrap count depends on line diameter. Keep coils adjacent and test the finished connection rather than relying on the knot's name.
+?The tag passes through the small eye-side opening, then back through the upper loop.
+xTightening before the upper-loop tuck is complete can leave an unfinished connection.
+>Thread and hold a loop::Pass the tag through the eye. Fold it back alongside the standing line and pinch a loop above the eye.
+>Wrap the doubled section::Wind the tag around both the standing line and its returning section several times, progressing toward the eye.
+>Use the eye-side opening::Pass the tag between the two line sections immediately beside the eye.
+>Return to the upper loop::Bring the tag back up and pass it through the loop held at the top of the wraps.
+>Set the coils::Moisten and ease the knot toward the eye. Keep the wraps from climbing over one another; inspect and test before trimming.
+
+@sheepshank|Sheepshank|sheepshank-knot|Rope shortening|2|Everyday,Camping|
+=A traditional way to shorten a rope temporarily without using its ends.
++Long soft practice rope, laid out on a table.
+!Unreliable when tension changes or the rope is slippery. Study the traditional form only; do not use it to bypass damaged rope or carry a critical load.
+?Two end bights are held by half-hitch loops on the standing parts, with a straight middle section between them.
+xAssuming it stays secure when slack ignores the chief weakness of this knot.
+>Lay an S shape::Fold the rope back on itself twice to make three parallel sections and a bight at each end.
+>Make the first half-hitch loop::Twist a small loop in the standing part beside one bight.
+>Capture the bight::Place that small loop over the adjacent bight and draw it gently around the folded section.
+>Repeat at the other end::Make the matching half-hitch loop on the other standing part and place it over the other bight.
+>Observe its limitation::Apply light, steady hand tension to see the shortening effect. Release the tension and notice how easily the arrangement can fall apart.
+
+@sheet-bend|Sheet Bend|sheet-bend-knot|Bend|1|Everyday,Camping,Boating|Weaver's knot
+=Join two ropes, using the thicker or stiffer one as a folded bight.
++Two contrasting practice ropes, preferably with slightly different diameters.
+!Can work loose with slippery material or intermittent load. Do not use as a critical rope join without appropriate instructions.
+?The thin tail and thick tail emerge on the same side; the thin tail is tucked under its own crossing.
+xOpposite-side tails create the less secure left-handed form.
+>Fold the thicker rope::Make a U-shaped bight in the thicker or stiffer rope and hold both legs together.
+>Thread the thinner end::Pass the thinner working end up through the bight.
+>Go behind both legs::Carry the thin end around the back of the thicker rope's tail and standing part, in that order.
+>Tuck beneath itself::Bring the thin end across the front and underneath its own earlier crossing, not back through the thick bight.
+>Check the exits::Keep both tails on the same side, then pull the standing parts to snug the bend while leaving generous tails.
+
+@shoelace-bow|Shoelace Bow|shoelace-bow-knot|Binding|1|Everyday|Standard shoelace knot
+=Tie the familiar quick-release bow used on shoes.
++A shoe or two different-coloured practice cords.
+!A bow that twists lengthwise may be based on a granny knot. Repeated loosening calls for checking the crossing directions and lace material.
+?A balanced bow lies across the shoe rather than twisting along it.
+xMaking both stages in the same handed direction forms a granny-style bow that often loosens.
+>Make the first half knot::Cross the right lace over the left, tuck it underneath and draw the laces comfortably snug.
+>Fold two loops::Make a bight in each lace, leaving enough tail beyond each loop.
+>Reverse the crossing::Cross the left-side loop over the right-side loop, reversing the direction of the first half knot.
+>Tuck one loop through::Feed that loop under and through the central opening, treating the folded loops as the two working ends.
+>Balance the bow::Pull the loops outward and adjust all four sections. Check that the bow lies across the shoe and releases by pulling a tail.
+
+@siberian-hitch|Siberian Hitch|siberian-hitch-knot|Quick release|2|Camping|Evenk hitch
+=A slipped figure-eight attachment for a light camp ridgeline.
++Soft practice rope and a smooth post; keep hand wraps loose.
+!A release tail can be snagged accidentally. Not for climbing or critical loads; never trap your hand in a tightening rope.
+?A slipped figure-eight structure surrounds the standing part and slides up against the post.
+xUsing only an overhand turn gives a different slipped hitch.
+>Return across your hand::Lay the standing rope across an open hand, take the working end around the post, then bring it back across your hand.
+>Go beneath the hand::Carry the working end below the hand while keeping the ropes loose.
+>Circle both ropes::Bring it over both rope sections, then back underneath both, creating the figure-eight route.
+>Pull a bight through::Fold the free tail and draw its bight through the loop held at your fingers. Remove your hand before tightening.
+>Slide and check::Snug the slipped eight, then draw it against the post. With the line unloaded, pull the free tail to rehearse the release.
+
+@slip-knot|Slip Knot|slip-knot|Quick release|1|Everyday,Decorative|Slipped overhand stopper
+=A temporary stopper made by tucking a folded tail through an overhand loop.
++One soft practice rope.
+!This is a quick-release stopper, not a reliable attachment. Its free tail can undo it with a pull.
+?The bight comes from the short working end, rather than the long standing section.
+xUsing a standing-part bight instead makes a different sliding-loop arrangement.
+>Make a loose loop::Cross the short working end over the standing part.
+>Fold the short end::Create a bight in that short end, leaving a free tail beyond the fold.
+>Put the fold through::Pass the bight through the original loop instead of passing the whole end through.
+>Snug around the bight::Draw the standing part to tighten the overhand structure around the folded section.
+>Practice the release::Pull the free tail to withdraw the bight and undo the stopper. Keep the knot unloaded while learning.
+
+@snell|Snell Knot|snell-knot|Fishing attachment|2|Fishing|Traditional snell
+=Fasten a leader along a hook shank with a series of close wraps.
++Practice line and a blunt hook-shaped substitute.
+!Protect sharp hook points. Hook-eye orientation matters; use the snelling method prescribed for the actual hook and rig.
+?The coils surround the shank and line neatly, with the leader leaving in the intended direction through the eye.
+xWrapping only the loose loop while missing the shank leaves the hook unsecured.
+>Pass through the eye::Take the tag through the hook eye and lay it along the shank.
+>Make a return loop::Bring a generous section back alongside the shank to create a loop below the eye.
+>Wrap through the loop::Use the loop-side working section to wind several turns around the shank and the line lying against it.
+>Hold the coils::Pinch the wrap stack so it cannot unwind while the remaining loop is drawn closed.
+>Seat against the eye::Moisten actual line and pull the standing section to settle the coils toward the eye. Check the exit direction and test before trimming.
+
+@square|Square Knot|square-knot|Binding|1|Everyday,Camping|Reef knot
+=Close a light bundle with two opposite-handed half knots.
++Two ends of one cord around a soft practice bundle.
+!A binding knot, not a dependable bend for joining loaded ropes. It can capsize or spill when the wrong ends are pulled.
+?Both tails lie beside their own standing parts, and the finished knot is flat and symmetrical.
+xRight-over-left twice makes a granny knot rather than a square knot.
+>Cross right over left::Take the end on your right over the end on your left.
+>Make the first half knot::Tuck it underneath and pull the ends gently apart around the bundle.
+>Reverse the crossing::Now take the end on your left over the end on your right.
+>Make the second half knot::Tuck it underneath to complete the opposite-handed second crossing.
+>Flatten and inspect::Snug all four sections. The knot should lie flat, with each tail next to its own standing part; do not use it to join load-bearing ropes.
+
+@stevedore|Stevedore Stopper|stevedore-stopper-knot|Stopper|2|Everyday,Boating|Stevedore knot
+=A bulkier stopper with extra turns beyond a figure eight.
++One soft practice rope with a long working end.
+!Check that the finished stopper is large enough for its opening. It may jam after a substantial load.
+?The extra wraps remain neatly arranged around the standing part rather than overlapping randomly.
+xOmitting the extra winding gives a smaller figure-eight stopper.
+>Make the first crossing::Cross the working end over the standing part to create a small loop.
+>Start the wrap::Carry the tail behind and around the standing part, as for a figure-eight stopper.
+>Continue winding::Make the additional turns shown in the demonstration, keeping the coils beside one another and the original loop open.
+>Return through the loop::Feed the working tip through the original opening after the winding section is complete.
+>Dress into a stopper::Pull the standing part and tail gradually, working out trapped slack so the wraps make a compact, bulky knot.
+
+@strangle|Strangle Knot|strangle-knot-using-end-method|Binding|2|Everyday,Boating|
+=A tight double-overhand binding around a pole or bundle.
++Soft cord and a rounded practice object.
+!Can grip so tightly it has to be cut. Never tie around a person, limb or animal.
+?The tail passes under both wrapping turns, making a double-overhand structure around the object.
+xAn incorrect tuck can leave only a half knot beside two loose turns.
+>Make the first turn::Pass the working end around the object and bring it across the first turn.
+>Wrap a second time::Continue around the object again, following the same general path beside the first wrap.
+>Keep a passage open::Hold the crossing loose enough to see both turns and the space beneath them.
+>Thread under both::Take the tail beneath both original turns in one pass, following the demonstrated rope path.
+>Tighten evenly::Pull the two ends outward while arranging the coils side by side. Inspect before pulling it too tight to undo.
+
+@surgeons-join|Surgeon's Join|surgeons-join-knot|Fishing join|1|Fishing|Double surgeon's knot
+=Join two fishing lines with a shared double-overhand knot.
++Two practice lines with sufficient overlap; one section must pass through the loop.
+!This is a fishing-line tutorial, not a medical procedure. Suitability depends on line materials and diameters.
+?Both lines make two passes through the same shared opening, with all four ends accessible for setting.
+xPassing just the tag tips while leaving a required line section outside the loop changes the join.
+>Overlap the ends::Lay the leader and tippet side by side with their ends pointing in opposite directions.
+>Make one shared loop::Treat both overlapping lines as a single doubled section and form an overhand opening.
+>Pass the doubled section through::Take both relevant ends through the loop, drawing the full shorter section through when necessary.
+>Repeat the pass::Take that same doubled section through the original opening a second time.
+>Set all four parts::Moisten, keep both lines aligned and tighten by pulling all four sections. Inspect and test before trimming the tags.
+
+@surgeons-loop|Surgeon's Loop|surgeons-loop-knot|Fishing loop|1|Fishing|Double overhand loop
+=Create a fixed loop by tying a double overhand in doubled line.
++Practice monofilament or a fine soft cord.
+!This fishing loop is not a medical or climbing technique. Avoid crossed strands while setting it.
+?The doubled tip passes through the same opening twice, leaving a fixed eye beyond the knot.
+xTwo separate knots in succession are not the same as two passes through one opening.
+>Double the line::Fold enough line to form the desired eye plus working room for the knot.
+>Make a doubled loop::Treat the folded section as a single strand and form an overhand crossing loop.
+>Pass the bight once::Push the doubled tip through that opening, leaving everything slack.
+>Pass the bight again::Take the same doubled tip through the same opening a second time.
+>Set evenly::Moisten actual fishing line, align the paired strands and pull the eye and both line ends to snug the knot before inspecting and trimming.
+
+@timber-hitch|Timber Hitch|timber-hitch-knot|Hitch|1|Camping,Boating|
+=Wrap a rope around a pole with a tail that twists around its own returning section.
++Practice rope and a small wooden dowel.
+!Needs continued tension and suitable friction. Real log handling or lifting requires additional controls and competent instruction.
+?The tail twists around the returning rope, not around the standing part, and those twists are trapped against the object.
+xTwisting around the wrong section or using too few turns can let the hitch slip.
+>Go around the timber::Pass the working end around the practice pole or bundle.
+>Circle the standing part::Take the tail around the long standing section once.
+>Turn back on itself::Wrap the tail around its own returning section, heading back toward the timber.
+>Add the turns::Make at least three turns for this small practice example, keeping them orderly. Actual material and diameter may require more.
+>Seat against the object::Pull the standing part gently so the twisted section is gripped against the timber. Observe how the hitch loosens when tension is removed.
+
+@trilene|Trilene Knot|trilene-knot|Fishing attachment|2|Fishing|
+=Attach line to an eye with a double pass and a coiled finish.
++Practice monofilament and a blunt ring.
+!The eye must accommodate two passes without damaging the line. Test the dressed knot with the actual line before fishing.
+?Two strands run through the eye, and the tag passes through the paired opening beside it.
+xThreading the tag through only one part of the eye-side double loop gives the wrong finish.
+>Pass through twice::Feed the tag through the eye twice, leaving a small double loop beside the eye.
+>Hold that opening::Pinch the double loop so it stays open while you make the wraps.
+>Wind the standing line::Make five or six adjacent wraps around the standing line.
+>Return through the double loop::Feed the tag through the original paired opening immediately beside the eye.
+>Set and inspect::Moisten, pull the coils together evenly and seat them against the eye. Leave a visible tag until the knot has been checked and tested.
+
+@truckers-hitch|Trucker's Hitch|truckers-hitch-knot|Tensioning system|3|Camping,Boating|Wagoner's hitch
+=Use a rope loop as a simple pulley to tension a light practice line.
++Long practice rope and two smooth, firmly fixed supports; learn the Directional Figure-Eight Loop first.
+!Mechanical advantage can overtighten or damage rope and objects. This is not vehicle cargo-securement instruction; use rated restraints and applicable rules for actual loads.
+?The pulley loop faces the working direction, the tail returns through it from the far support, and two half hitches lock the tension.
+xUsing an unsuitable or incorrectly oriented mid-rope loop can distort or release the system.
+>Secure the first side::Attach one end to a practice support using an appropriate hitch and leave a long working section toward the other support.
+>Make the pulley eye::Tie a Directional Figure-Eight Loop in the middle, oriented toward the working pull. Use that tutorial to check its full path.
+>Go around the far support::Take the working end around the second support and bring it back toward the pulley eye.
+>Return through the eye::Pass the tail through that eye and pull gently to take up slack. Keep fingers out of the moving loop.
+>Lock the tension::Hold the adjustment while tying two same-direction half hitches below the pulley eye around the adjacent loaded section. Inspect before releasing your hand hold.
+
+@tumble-hitch|Tumble Hitch|tumble-hitch-knot|Quick release|2|Camping|Tumblehitch
+=A quick-release hitch built from interlocking bights around a pole.
++Soft practice rope and a horizontal post.
+!The release tail must remain untouched. Never use for rappelling, personal support or any critical load.
+?The second bight travels behind the pole and through the first; the final tail bight locks the second.
+xConfusing it with the similar Highwayman's Hitch changes which bight carries the load.
+>Hold the first bight::Fold a section of rope and hold its bight at the front of the pole.
+>Pass the second behind::Take another bight behind the pole and push it through the first bight.
+>Circle the standing part::Bring the remaining working tail around the standing section in the demonstrated direction.
+>Add the release bight::Fold that tail and push its bight through the second bight to lock the arrangement.
+>Snug and rehearse::Dress the nested bights with a light pull. Unload completely, then pull the release tail to dismantle the hitch.
+
+@turks-head|Turk's Head|turks-head-knot|Decorative|3|Decorative|Woggle
+=Weave a decorative band around a dowel or scarf-slide form.
++Long soft cord and a removable smooth cylinder.
+!Decoration only. Keep any hand-held loops loose, and avoid heat-sealing near skin or while wearing the finished item.
+?A continuous over-under braid circles the form, with each later circuit following the first alongside it.
+xCrossing over a strand that should be an underpass interrupts the repeating braid.
+>Make the starting wraps::Wrap the cord around the cylinder, crossing the second pass over the first to begin the braid.
+>Weave the third pass::On the next circuit, take the working end alternately over and under the existing loops as demonstrated.
+>Turn the work as you go::Rotate the cylinder to keep each new crossing in view. Preserve the alternating pattern all the way around.
+>Follow the original path::When the end returns beside the starting strand, follow that strand around again, then once more, keeping the added passes parallel.
+>Dress gradually::Move slack around the entire weave in small amounts. Tuck the ends inside and remove the cylinder only after the band holds its shape.
+
+@sliding-double-fishermans|Sliding Double Fisherman's|sliding-double-fishermans-knot|Adjustable loop|3|Decorative,Specialist|Double fisherman's sling
+=Make a pair of adjustable eyes between two double-overhand barrels.
++One long soft practice cord, arranged on a table.
+!Do not turn this practice arrangement into a climbing sling or non-breakaway neckwear. Technical use needs specified materials and instruction.
+?Both barrel knots enclose the middle section of the Z-shaped layout, allowing the two eye sizes to be adjusted.
+xWrapping only one adjacent strand leaves out the central section that provides the adjustment.
+>Lay out a loose Z::Fold the rope back twice to make two end bights and three long, overlapping sections.
+>Wrap the first bight::Use one working end to make two turns around both legs of its adjacent bight.
+>Tuck through the barrel::Pass that end back under its two turns and snug them into a double-overhand barrel.
+>Repeat at the other end::Make the matching two-turn barrel around the other adjacent bight, again enclosing the central rope section.
+>Bring the knots together::Draw the rope sections until the barrels meet. Adjust the two eyes while slack, then dress and inspect both barrels.
+
+@uni|Uni Knot|uni-knot|Fishing attachment|1|Fishing|Duncan knot
+=A versatile eye attachment with coils formed inside a return loop.
++Practice fishing line and a blunt ring.
+!Turn count and setting technique depend on the line. A terminal Uni is not automatically the same as a Double Uni line-to-line join.
+?Several wraps surround both parallel line sections inside the original return loop.
+xWrapping just the standing part outside the loop changes the knot's structure.
+>Go through the eye::Pass the tag through the eye and lay it back beside the standing line.
+>Make a return loop::Curve the tag back toward the eye to create a loop alongside the two parallel line sections.
+>Wrap inside the loop::Take the tag around both parallel sections and through the loop several times, keeping the turns adjacent.
+>Close the barrel::Moisten and pull the tag to bring the wraps together into a compact barrel.
+>Slide to the eye::Pull the standing line to move the barrel down against the eye. Set, inspect and test before trimming the tag.
+
+@wall-knot|Wall Knot|wall-knot|Decorative|2|Decorative,Boating|Three-strand wall
+=Interlace three strands outward around a rope-end base.
++Three soft strands held together at their base.
+!This is a decorative building block, not a full load-bearing rope termination.
+?Every strand passes under its neighbour in a continuous cycle, with the final strand closing the first opening.
+xTaking the strands over their neighbours makes a Crown Knot instead.
+>Spread three strands::Hold the strand bases together and separate the tips evenly.
+>Pass the first underneath::Take strand one underneath its neighbour, leaving a small bend open at the base.
+>Repeat with the second::Bring strand two underneath strand three in the same circular direction.
+>Close with the third::Take strand three underneath the first strand and through the opening left by its initial bend.
+>Tighten a little at a time::Pull each tip in turn until the wall sits evenly at the base. Keep the three working ends available for the next decorative layer.
+
+@water-bowline|Water Bowline|water-bowline-knot|Fixed loop|3|Boating,Camping|
+=Build a bowline-like fixed eye through a pair of clove-hitch loops.
++Long soft practice rope; learn the Bowline and Clove Hitch first.
+!The extra turn does not remove every bowline limitation. Do not use for personal support or assume all rope materials behave alike.
+?The working end passes through both small starting loops on the outward and return paths, with a collar around the standing part.
+xPassing through only one starting loop omits the feature that distinguishes this bowline.
+>Make two small loops::Form two successive crossing loops in the standing section, arranged as a loose clove-hitch pair.
+>Keep them aligned::Hold the pair together without reversing either crossing, leaving room to pass the working end through both.
+>Bring the end through::Curve the working end to make the large eye and pass its tip up through both small loops.
+>Make the bowline collar::Take the tip around the standing part and return it down through both original openings.
+>Dress the whole knot::Adjust the eye, align the extra gripping turns and snug the collar while keeping the tail inside the large eye.
+
+@water-knot|Water Knot|water-knot|Webbing join|2|Specialist,Camping|Tape knot,Ring bend
+=Join flat webbing by retracing an overhand knot in reverse.
++Two contrasting lengths of flat practice webbing.
+!Can loosen through repeated cycling or snagging. Critical webbing systems require qualified instruction, adequate tails and repeated inspection.
+?The second strip follows the first strip's complete overhand path, lying flat with no folds or twists.
+xHiding a twist inside the knot makes the join harder to inspect and uneven to set.
+>Tie a loose overhand::Make an open overhand knot near the end of the first webbing strip, leaving a generous tail.
+>Introduce the other strip::Place the second strip's tail beside the first tail and begin retracing the knot in the opposite direction.
+>Follow each bend::Guide the second strip through every turn of the first, keeping their broad faces flat together.
+>Remove twists and gaps::Open the knot enough to smooth any folds before gradually drawing it smaller.
+>Set and inspect::Pull all four sections in turn. Confirm both tails remain clearly visible and plan to recheck them repeatedly in any approved use.
+
+@windsor|Windsor Necktie Knot|tie-a-windsor-necktie-knot|Necktie|2|Neckties|Full Windsor,Double Windsor
+=A broad, symmetrical triangular necktie knot.
++A sufficiently long fabric tie and a mirror.
+!Uses more tie length than a Four-in-Hand. Keep the finished collar comfortable rather than pulling it tight against the neck.
+?A shoulder turn on each side supports a smooth horizontal front band.
+xSkipping one shoulder produces an asymmetrical or half-Windsor-like knot.
+>Cross and build the first shoulder::Start face outward with a long wide end. Cross wide over narrow, then bring wide up through the neck opening and down to one side.
+>Go behind::Carry the wide end behind the narrow end to the other side.
+>Build the second shoulder::Bring the wide end up and down through the neck opening on that side, forming the matching turn.
+>Make the front band::Sweep the wide blade horizontally across the front, keeping a finger under this new band.
+>Finish through the band::Bring the wide blade up from behind through the neck opening, then down through the front band. Shape and gently centre the knot.
+
+@zeppelin-bend|Zeppelin Bend|zeppelin-bend-knot|Bend|3|Camping,Boating|Rosendahl bend
+=A symmetrical rope join built from two opposite-handed loops.
++Two similar ropes in different colours, laid on a table.
+!Correct crossing orientation is essential. Do not treat a similar-looking Ashley or Hunter's Bend as interchangeable.
+?The two tails pass through the shared centre from opposite sides, each completing its own overhand structure.
+xMaking both starting loops with the same crossing direction changes the bend.
+>Make a six and a nine::Shape one rope end into a loop with its tail crossing over; shape the other with its tail crossing under. Lay them as a loose 6 and 9.
+>Overlap the loops::Place the over-crossing loop on top of the under-crossing loop so the central openings line up.
+>Tuck the upper tail::Take the upper loop's tail around its outside and down through both central openings.
+>Tuck the lower tail::Take the lower loop's tail around its outside and up through both openings in the opposite direction.
+>Dress evenly::Pull the standing parts and tails a little at a time. Trace each rope's complete route before tightening the finished bend.
