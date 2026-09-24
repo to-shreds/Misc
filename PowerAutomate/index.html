@@ -13,23 +13,23 @@
 <a class="skip" href="#canvas">Skip to workflow</a>
 <header class="topbar">
   <div class="brand"><span class="brandmark" aria-hidden="true">F</span><div><strong>Flowcraft</strong><small>Power Automate made simpler</small></div></div>
-  <div class="projecthead"><input id="projectName" aria-label="Flow name" maxlength="120"><span id="saveState" class="save-state">This session only</span></div>
+  <div class="projecthead"><input id="projectName" aria-label="Automation name" maxlength="120"><span id="saveState" class="save-state">Not saved yet</span></div>
   <div class="topactions">
-    <button id="openBtn" class="quiet">Open</button>
-    <button id="saveBtn" class="quiet">Save</button>
-    <button id="exportBtn" class="primary">Export ZIP</button>
+    <button id="openBtn" class="quiet">Open saved flow</button>
+    <button id="saveBtn" class="quiet">Save my work</button>
+    <button id="exportBtn" class="primary">3. Download ZIP</button>
     <button id="menuBtn" class="quiet iconbtn" aria-label="More options" title="More options">•••</button>
   </div>
 </header>
 <div class="workspace">
   <aside class="library" aria-label="Templates and steps">
     <div class="lib-top">
-      <h2>Start here</h2>
-      <p>Choose a ready-made template, or add only the steps you need.</p>
+      <h2>1. What do you want to happen?</h2>
+      <p>Pick the closest idea. You can change every part later.</p>
     </div>
     <div class="tabs">
-      <button id="recipesTab" class="active" aria-pressed="true">Templates</button>
-      <button id="stepsTab" aria-pressed="false">Add step <span id="catalogCount" class="tab-count"></span></button>
+      <button id="recipesTab" class="active" aria-pressed="true">Start with an idea</button>
+      <button id="stepsTab" aria-pressed="false">Add one thing <span id="catalogCount" class="tab-count"></span></button>
     </div>
     <label class="searchbox"><span aria-hidden="true">⌕</span><input id="librarySearch" placeholder="Find a template…" aria-label="Search library"></label>
     <div id="libraryList" class="library-list"></div>
@@ -42,7 +42,7 @@
 
   <main id="canvas" class="canvas" tabindex="-1">
     <div class="canvas-head">
-      <div><h1>Your flow</h1><p class="canvas-sub">Click a step to change it.</p></div>
+      <div><h1>2. Put it together</h1><p class="canvas-sub">It runs from top to bottom. Click any box to change it.</p></div>
       <div class="canvas-tools">
         <button id="undoBtn" title="Undo" aria-label="Undo">↶</button>
         <button id="redoBtn" title="Redo" aria-label="Redo">↷</button>
@@ -52,7 +52,7 @@
     <div id="flowIntro" class="introstrip"></div>
     <div class="workflow-scroll">
       <div id="flowTree" class="flow-tree"></div>
-      <button id="addRoot" class="add-root">+ Add next step</button>
+      <button id="addRoot" class="add-root">+ Add what happens next</button>
       <div class="flow-end"><span></span>END</div>
     </div>
     <div id="checkBar" class="checkbar" aria-live="polite"></div>
