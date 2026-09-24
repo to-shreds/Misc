@@ -17,7 +17,24 @@ jobs:
         with:
           python-version: '3.12'
       - name: Apply inspected one-time source integration
-        run: python knots/tools/install_originals_v1.py
+        run: |
+          python knots/tools/install_originals_v1.py
+          git restore .github/workflows/knotbook.yml
+      - name: Clarify the leader roles and avoid repainting held frames
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('knots/originals.js');s=p.read_text()
+          if 'Gold: standing / Blue: tag' not in s:
+              s=s.replace("if(!compact){const a=ropes[0].p[0]", "if(!compact&&!def.leader){const a=ropes[0].p[0]")
+              s=s.replace("return s+'</svg>';}", "if(!compact&&def.leader)s+='<text x=\"24\" y=\"197\" fill=\"'+INK+'\" font-size=\"12\" font-family=\"system-ui\">Gold: standing / Blue: tag</text><text x=\"310\" y=\"429\" fill=\"'+INK+'\" font-size=\"12\" font-family=\"system-ui\">Gold: tag / Blue: leader</text>';\nreturn s+'</svg>';}")
+              s=s.replace("$('oa-stage').innerHTML=picture(k.id,a.stage,a.progress,a.mirror);", "const paintKey=a.stage+':'+a.progress.toFixed(3)+':'+a.mirror;if(a.paintKey!==paintKey){$('oa-stage').innerHTML=picture(k.id,a.stage,a.progress,a.mirror);a.paintKey=paintKey;}")
+              p.write_text(s)
+          p=Path('knots/tools/originals_test.py');s=p.read_text()
+          if 'Surgeon join labels' not in s:
+              s=s.replace("        svg=page.locator('#oa-stage').inner_html();", "        if id=='surgeons-join':check('Gold: standing / Blue: tag' in page.locator('#oa-stage').inner_text(),'Surgeon join labels the opposite-direction line roles')\n        svg=page.locator('#oa-stage').inner_html();")
+              p.write_text(s)
+          PY
       - name: Build and syntax-check
         run: |
           python knots/tools/build.py
@@ -33,7 +50,7 @@ jobs:
         run: |
           git config user.name 'Knotbook build'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add knots.html knots/app.js knots/template.html knots/tools/build.py knots/tools/browser_test.py .github/workflows/knotbook.yml
+          git add knots.html knots/app.js knots/template.html knots/originals.js knots/tools/build.py knots/tools/browser_test.py knots/tools/originals_test.py
           if ! git diff --cached --quiet; then
             git commit -m 'Integrate and verify first 20 original Knotbook animations'
             git push origin HEAD:knots-originals-batch-1
