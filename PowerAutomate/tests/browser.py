@@ -14,6 +14,13 @@ def node_name(page, kind):
 def fill_recipient(page):
     page.get_by_label(re.compile(r'^To')).fill('reader@example.com')
     page.get_by_label('Subject',exact=False).press('Tab')
+def choose_template(page, pattern):
+    page.locator('#recipesTab').click()
+    match=page.get_by_role('button',name=re.compile(pattern))
+    if match.count()==0:
+        page.get_by_role('button',name=re.compile(r'More templates')).click()
+        match=page.get_by_role('button',name=re.compile(pattern))
+    match.click()
 with sync_playwright() as pw:
     browser=pw.chromium.launch(executable_path='/usr/bin/chromium', headless=True, args=['--no-sandbox'])
     context=browser.new_context(accept_downloads=True,viewport={'width':1440,'height':1000})
@@ -64,7 +71,7 @@ with sync_playwright() as pw:
     page.locator('#undoBtn').click();check('undo restores empty loop input',page.evaluate("n=>FlowCore.locate(Flowcraft.snapshot(),n).a.foreach",loop)==[])
     page.locator('#redoBtn').click();check('redo restores selected reference',isinstance(page.evaluate("n=>FlowCore.locate(Flowcraft.snapshot(),n).a.foreach",loop),str))
     # Routing recipe, condition helper, and ordinary branch creation.
-    page.locator('#recipesTab').click();page.get_by_role('button',name=re.compile('Only when it matters')).click()
+    choose_template(page,'Only when it matters')
     cond=node_name(page,'condition');page.locator(f'[data-node="{cond}"]').click()
     page.get_by_role('button',name='Build condition',exact=True).click()
     page.get_by_label('Left value source',exact=True).select_option("@triggerBody()?['subject']")
@@ -73,11 +80,11 @@ with sync_playwright() as pw:
     page.locator('#applyCondition').click()
     check('condition helper emits typed native condition',page.evaluate("n=>FlowCore.locate(Flowcraft.snapshot(),n).a.expression",cond)=={'contains':["@triggerBody()?['subject']",'urgent']})
     # Schedule: friendly time picker, without needing JSON.
-    page.locator('#recipesTab').click();page.get_by_role('button',name=re.compile('Morning inbox digest')).click();page.locator('.node').first.click()
+    choose_template(page,'Morning inbox digest');page.locator('.node').first.click()
     page.locator('#scheduleAt').fill('09:35');page.locator('#scheduleAt').press('Tab')
     check('friendly schedule controls set hour and minute',page.evaluate('Object.values(Flowcraft.snapshot().definition.triggers)[0].recurrence.schedule')=={'hours':[9],'minutes':[35]})
     # Invalid JSON remains unapplied and blocks export.
-    page.locator('#recipesTab').click();page.get_by_role('button',name=re.compile('Filter a list → report')).click()
+    choose_template(page,'Filter a list → report')
     comp=node_name(page,'compose');page.locator(f'[data-node="{comp}"]').click()
     val=page.locator('#inspector textarea').first;val.fill('[not json');val.press('Tab')
     page.locator('#exportBtn').click();check('invalid draft JSON blocks export',page.locator('#downloadZip').is_disabled());page.locator('#closeModal').click()
@@ -95,7 +102,7 @@ with sync_playwright() as pw:
     check('no runtime requests from user data or controls',requests==[])
     check('no uncaught browser errors',errors==[])
     # Final desktop and mobile visual checks use a representative nested flow.
-    page.locator('#recipesTab').click();page.get_by_role('button',name=re.compile('Analyze each item')).click()
+    choose_template(page,'Analyze each item')
     page.locator('#flowTree').screenshot(path=str(ROOT/'tests/workflow.png'))
     page.screenshot(path=str(ROOT/'tests/desktop.png'),full_page=True)
     mobile=context.new_page()
