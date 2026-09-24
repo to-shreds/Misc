@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+"""Native animation coverage. --local uses set_content, not hosted-browser proof."""
+from __future__ import annotations
+import argparse,json,pathlib,shutil,hashlib
+from playwright.sync_api import sync_playwright,expect
+from build import ROOT,load
+ap=argparse.ArgumentParser();ap.add_argument('--local',action='store_true');args=ap.parse_args()
+html=(ROOT/'knots.html').read_text();out=ROOT/'knots/proof';out.mkdir(exist_ok=True)
+checks=[]
+def check(x,m):
+    assert x,m
+    checks.append(m)
+with sync_playwright() as p:
+    exe=shutil.which('chromium') or shutil.which('google-chrome')
+    b=p.chromium.launch(executable_path=exe,args=['--no-sandbox'])
+    c=b.new_context(viewport={'width':1440,'height':1050},reduced_motion='reduce')
+    requests=[]
+    def route(r):
+        requests.append(r.request.url)
+        if r.request.url.startswith('http://knotbook.test/'):
+            r.fulfill(status=200,content_type='text/html',body=html)
+        else:r.abort()
+    c.route('**/*',route);page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+    if args.local:page.set_content(html,wait_until='domcontentloaded')
+    else:page.goto('http://knotbook.test/knots.html',wait_until='domcontentloaded')
+    expect(page.locator('#grid .card')).to_have_count(100)
+    ids=page.evaluate('KnotOriginals.ids');check(len(ids)==len(set(ids))==20,'Exactly 20 native tutorials')
+    page.locator('#originals-only').click();expect(page.locator('#grid .card')).to_have_count(20)
+    check(page.locator('#grid .card-art img').count()==0,'All 20 native thumbnails are local SVG')
+    page.locator('#search').fill('stopper');check(page.locator('#grid .card').count()<20,'Native filter combines with search')
+    page.locator('#clear').click();expect(page.locator('#grid .card')).to_have_count(100)
+    page.evaluate('location.hash="originals"');expect(page.locator('#grid .card')).to_have_count(20)
+    check(True,'Direct original-batch route and reset filters work')
+    pictures=[]
+    for id in ids:
+        page.evaluate('(id)=>{location.hash="knot/"+id}',id)
+        expect(page.locator('#media')).to_have_attribute('data-animation',id)
+        expect(page.locator('#oa-stage svg')).to_have_count(1)
+        check(page.locator('iframe').count()==0,id+': no embedded video')
+        detail=page.evaluate('(id)=>KnotOriginals.inspect(id)',id)
+        check(detail['stages']==5 and all(len(cuts)==5 and cuts==sorted(cuts) and max(cuts)<n for cuts,n in zip(detail['cuts'],detail['points'])),id+': five valid ordered moves')
+        check(all(0<=x<=640 if i%2==0 else 0<=x<=440 for i,x in enumerate(detail['bounds'])),id+': geometry stays in view')
+        check(all(x['gap']>.01 for x in detail['crossings']),id+': crossing depths are explicit')
+        for step in range(5):
+            page.locator(f'#step-dots [data-step="{step}"]').click()
+            expect(page.locator('#media')).to_have_attribute('data-move',str(step))
+            check(page.locator('#oa-title').inner_text()!='',id+f': reader and move {step+1} synchronized')
+        svg=page.locator('#oa-stage').inner_html();pictures.append(hashlib.sha256(svg.encode()).hexdigest())
+        page.locator('#oa-prev').click();expect(page.locator('#step-position')).to_have_text('STEP 4 OF 5')
+        page.locator('#oa-next').click();expect(page.locator('#step-position')).to_have_text('STEP 5 OF 5')
+        check(True,id+': animation buttons update the written reader')
+        page.locator('#oa-mirror').click();expect(page.locator('#oa-mirror')).to_have_attribute('aria-pressed','true')
+        check('scale(-1 1)' in page.locator('#oa-stage').inner_html(),id+': whole-rope mirror')
+        page.locator('#oa-mirror').click()
+        page.locator('#oa-scrub').fill('350');expect(page.locator('#media')).to_have_attribute('data-move','1')
+        check(page.locator('#media').get_attribute('data-progress')=='0.750',id+': scrub to exact sequence position')
+        # Every diagram has real changing rope geometry, not only changing labels.
+        a=page.evaluate('(id)=>KnotOriginals.picture(id,1,.15)',id)
+        z=page.evaluate('(id)=>KnotOriginals.picture(id,1,.85)',id)
+        # Retracing starts with an existing knot but the second strand still moves.
+        check(a!=z,id+': intermediate animation frames differ')
+        page.locator('#oa-scrub').fill('1000')
+        page.locator('#oa-stage').screenshot(path=str(out/f'original-{id}.png'))
+    check(len(set(pictures))==20,'20 distinct final illustrations, no duplicate diagrams')
+    page.evaluate('location.hash="knot/overhand"');expect(page.locator('#media')).to_have_attribute('data-animation','overhand')
+    requests.clear()
+    page.locator('#oa-play').click();page.wait_for_timeout(450)
+    p1=float(page.locator('#media').get_attribute('data-progress'));check(0<p1<1,'Play advances rope geometry with time')
+    page.locator('#oa-play').click();p1=float(page.locator('#media').get_attribute('data-progress'));page.wait_for_timeout(150)
+    check(float(page.locator('#media').get_attribute('data-progress'))==p1,'Pause freezes the animation')
+    page.locator('#oa-speed').select_option('1.5');page.locator('#oa-replay').click();page.wait_for_timeout(300)
+    check('Pause' in page.locator('#oa-play').inner_text(),'Replay starts the current move')
+    page.locator('#oa-play').click()
+    page.locator('#oa-scrub').fill('799');page.locator('#oa-play').click();page.wait_for_timeout(1750)
+    expect(page.locator('#media')).to_have_attribute('data-move','4')
+    check(True,'Automatic progression advances the synchronized reader')
+    page.locator('#oa-play').click();page.locator('#oa-loop').check()
+    page.locator('#oa-scrub').fill('999');page.locator('#oa-play').click();page.wait_for_timeout(1700)
+    expect(page.locator('#media')).to_have_attribute('data-move','0')
+    check(True,'Repeat returns to the first move')
+    page.locator('#oa-play').click();check(not requests,'Native playback makes zero network requests')
+    page.locator('#oa-expand').click();expect(page.locator('#media')).to_have_class('media original-media oa-expanded')
+    page.keyboard.press('Escape');expect(page.locator('#media')).not_to_have_class('media original-media oa-expanded')
+    check(page.locator('#detail-view').is_visible(),'Escape closes large view without leaving the tutorial')
+    for width,height,label in [(1440,1050,'desktop'),(768,1024,'tablet'),(390,844,'phone'),(320,740,'small-phone')]:
+        page.set_viewport_size({'width':width,'height':height})
+        page.locator('#oa-scrub').fill('1000')
+        check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),label+': native reader fits viewport')
+        page.locator('#media').screenshot(path=str(out/f'original-player-{label}.png'))
+        page.locator('#oa-expand').click()
+        check(page.locator('#media').bounding_box()['width']<=width,label+': enlarged player fits viewport')
+        page.screenshot(path=str(out/f'original-large-{label}.png'))
+        page.locator('#oa-expand').click()
+    page.emulate_media(media='print')
+    check(page.locator('.oa-print figure:visible').count()==5,'Print shows all five original illustrations')
+    page.emulate_media(media='screen')
+    page.locator('#oa-play').click();page.evaluate('location.hash="knot/anchor-hitch"')
+    expect(page.locator('#play-video')).to_be_visible();check(page.locator('#oa-stage').count()==0,'Switching to an unconverted knot removes the native player')
+    check('original-media' not in (page.locator('#media').get_attribute('class') or ''),'External player does not inherit native sizing')
+    page.evaluate('location.hash="knot/bowline"');expect(page.locator('#oa-play')).to_be_visible()
+    page.locator('#oa-expand').click();page.evaluate('location.hash="basics"');expect(page.locator('#basics-view')).to_be_visible()
+    check('oa-no-scroll' not in (page.locator('body').get_attribute('class') or ''),'Navigating away clears expanded scroll lock')
+    check(not errors,'No JavaScript exceptions: '+repr(errors))
+    c.close();b.close()
+report={'passed':len(checks),'mode':'local set_content' if args.local else 'Chromium hosted-origin route','checks':checks,'accuracy_boundary':'Structural and browser tests do not establish real-world knot competence or certify safety. Diagrams are expanded rope-path schematics, not tightening simulations.'}
+(out/('originals-local.json' if args.local else 'originals-results.json')).write_text(json.dumps(report,indent=2))
+print('PASS:',len(checks),'native animation assertions;',report['mode'])
