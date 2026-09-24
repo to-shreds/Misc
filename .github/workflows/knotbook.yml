@@ -2,33 +2,50 @@ name: Knotbook
 on:
   push:
     paths:
-      - 'knots/tools/research.py'
-      - 'knots.html'
+      - 'knots/**'
       - '.github/workflows/knotbook.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: knotbook-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
-  verify:
+  build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install requests beautifulsoup4 yt-dlp
-      - name: Verify publisher reference and embed inventory
-        run: python knots/tools/research.py
-      - name: Test guide when present
+      - name: Apply initial editorial review
         run: |
-          if [ -f knots/tools/test.mjs ]; then node knots/tools/test.mjs; fi
+          if [ ! -f knots.html ]; then python knots/tools/finalize_catalog.py; fi
+      - name: Build 100-tutorial standalone guide
+        run: |
+          python knots/tools/build.py
+          node --check knots/app.js
+      - run: pip install playwright
+      - name: Browser checks and visual proof
+        run: python knots/tools/browser_test.py --online-pictures
+      - name: Publish reviewed catalogs and generated page
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'Knotbook build'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add knots.html knots/catalog-a.txt knots/catalog-b.txt knots/catalog-c.txt knots/catalog-d.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish tested Knotbook: 100 tutorials and demonstrations'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: knotbook-reference-verification
-          path: knots/research/
-          retention-days: 1
+          name: knotbook-build-and-browser-proof
+          path: |
+            knots/
+            knots.html
+            index.html
+          retention-days: 3
