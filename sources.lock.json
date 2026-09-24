@@ -1,0 +1,21 @@
+{
+  "interface": "1.0.0",
+  "story": {
+    "repository": "historicalsource/zork1",
+    "commit": "97b7b3d68c075dd9af7da499c3e9690ada3471fd",
+    "path": "COMPILED/zork1.z3",
+    "release": 119,
+    "serial": "880429",
+    "bytes": 86838,
+    "sha256": "37084966477dff679282de42974b2077156b1bd68fad92a65d4ea94d8eb64d79",
+    "git_blob": "e447402828441d44375b2b067befcd0ef02b37b7",
+    "license": "MIT, Copyright (c) 2025 Microsoft"
+  },
+  "interpreter": {
+    "repository": "curiousdannii/ifvms.js",
+    "commit": "6ac63e6b61144d4353a168df16c4ad5c22526f88",
+    "entry": "src/zvm.js",
+    "bundler": "esbuild@0.25.0",
+    "license": "MIT"
+  }
+}
