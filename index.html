@@ -1,1 +1,193 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=zork/"><title>Misc · Zork I</title><body><p><a href="zork/">Play Zork I</a></p><p><a href="zork.html" download>Save the offline single-file edition</a></p></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1513">
+<meta name="description" content="A collection of small projects and standalone pages from to-shreds/Misc.">
+<title>Misc</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0d1513;
+  --panel:#14201c;
+  --panel2:#192923;
+  --text:#ececdf;
+  --muted:#9eb0a3;
+  --line:#304338;
+  --accent:#d9b76d;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--text)}
+a{color:inherit}
+.shell{width:min(1060px,calc(100% - 32px));margin:0 auto;padding:clamp(42px,8vw,90px) 0 60px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-bottom:30px;border-bottom:1px solid var(--line)}
+.kicker{margin:0 0 10px;color:var(--accent);font-size:11px;font-weight:700;letter-spacing:2.2px;text-transform:uppercase}
+h1{margin:0;font:400 clamp(42px,8vw,76px)/.95 Georgia,"Times New Roman",serif;letter-spacing:-2px}
+.intro{max-width:540px;margin:15px 0 0;color:var(--muted);font-size:15px;line-height:1.6}
+.repo-link{flex:0 0 auto;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:10px 15px;color:var(--muted);font-size:12px}
+.repo-link:hover{border-color:var(--accent);color:var(--text)}
+section{margin-top:38px}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:15px}
+h2{margin:0;font-size:13px;font-weight:650;letter-spacing:1.1px;text-transform:uppercase}
+.section-note{color:var(--muted);font-size:11px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.card{display:block;position:relative;min-height:150px;padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--panel);text-decoration:none;transition:transform .15s,border-color .15s,background .15s}
+.card:hover{transform:translateY(-2px);border-color:var(--accent);background:var(--panel2)}
+.card .type{display:block;margin-bottom:30px;color:var(--accent);font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase}
+.card strong{display:block;font:400 27px/1.1 Georgia,"Times New Roman",serif}
+.card small{display:block;margin-top:8px;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+.card .arrow{position:absolute;right:20px;bottom:19px;color:var(--accent);font-size:20px}
+.files{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel)}
+.file-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:14px 17px;border-top:1px solid var(--line);text-decoration:none}
+.file-row:first-child{border-top:0}
+.file-row:hover{background:var(--panel2)}
+.file-main{min-width:0}
+.file-name{font-size:13px;overflow-wrap:anywhere}
+.file-meta{margin-top:3px;color:var(--muted);font-size:10px}
+.file-action{color:var(--muted);font-size:11px}
+.status{padding:22px;color:var(--muted);font-size:13px}
+footer{margin-top:38px;color:var(--muted);font-size:10px;line-height:1.6}
+@media(max-width:640px){
+  .shell{width:min(100% - 24px,1060px);padding-top:38px}
+  header{display:block}
+  .repo-link{display:inline-block;margin-top:22px}
+  .cards{grid-template-columns:1fr}
+  .card{min-height:132px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <header>
+    <div>
+      <p class="kicker">to-shreds / Misc</p>
+      <h1>Misc.</h1>
+      <p class="intro">Small projects, experiments, games, and standalone pages. New root-level HTML files appear here automatically.</p>
+    </div>
+    <a class="repo-link" href="https://github.com/to-shreds/Misc" target="_blank" rel="noopener">View repository ↗</a>
+  </header>
+
+  <section aria-labelledby="apps-title">
+    <div class="section-head">
+      <h2 id="apps-title">Apps &amp; pages</h2>
+      <span class="section-note" id="apps-count">Loading…</span>
+    </div>
+    <div class="cards" id="apps">
+      <a class="card" href="zork.html">
+        <span class="type">Game</span>
+        <strong>Zork I</strong>
+        <small>Original Zork I with a modern GUI</small>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+
+  <section aria-labelledby="files-title">
+    <div class="section-head">
+      <h2 id="files-title">Repository root</h2>
+      <span class="section-note" id="files-count">Loading…</span>
+    </div>
+    <div class="files" id="files">
+      <div class="status">Loading repository contents…</div>
+    </div>
+  </section>
+
+  <footer>
+    This page reads the public GitHub repository root when it loads. If GitHub's API is unavailable, the Zork link above still works.
+  </footer>
+</main>
+<script>
+(() => {
+  const API='https://api.github.com/repos/to-shreds/Misc/contents/';
+  const apps=document.getElementById('apps');
+  const files=document.getElementById('files');
+  const appsCount=document.getElementById('apps-count');
+  const filesCount=document.getElementById('files-count');
+
+  const titleFromName=name=>name
+    .replace(/\.html$/i,'')
+    .replace(/[-_]+/g,' ')
+    .replace(/\b\w/g,c=>c.toUpperCase());
+
+  const prettySize=n=>{
+    if(!Number.isFinite(n))return '';
+    if(n<1024)return n+' B';
+    if(n<1024*1024)return (n/1024).toFixed(n<10240?1:0)+' KB';
+    return (n/1024/1024).toFixed(1)+' MB';
+  };
+
+  const makeCard=item=>{
+    const a=document.createElement('a');
+    a.className='card';
+    a.href=item.name;
+    const type=document.createElement('span');
+    type.className='type';
+    type.textContent='Standalone page';
+    const strong=document.createElement('strong');
+    strong.textContent=item.name.toLowerCase()==='zork.html'?'Zork I':titleFromName(item.name);
+    const small=document.createElement('small');
+    small.textContent=item.name.toLowerCase()==='zork.html'?'Original Zork I with a modern GUI':item.name;
+    const arrow=document.createElement('span');
+    arrow.className='arrow';
+    arrow.setAttribute('aria-hidden','true');
+    arrow.textContent='→';
+    a.append(type,strong,small,arrow);
+    return a;
+  };
+
+  const makeRow=item=>{
+    const a=document.createElement('a');
+    a.className='file-row';
+    if(item.type==='dir'){
+      a.href='https://github.com/to-shreds/Misc/tree/main/'+encodeURIComponent(item.name);
+      a.target='_blank';
+      a.rel='noopener';
+    }else{
+      a.href=item.name;
+    }
+    const main=document.createElement('div');
+    main.className='file-main';
+    const name=document.createElement('div');
+    name.className='file-name';
+    name.textContent=(item.type==='dir'?'▣ ':'')+item.name;
+    const meta=document.createElement('div');
+    meta.className='file-meta';
+    meta.textContent=item.type==='dir'?'Folder':prettySize(item.size);
+    const action=document.createElement('span');
+    action.className='file-action';
+    action.textContent=item.type==='dir'?'GitHub ↗':'Open →';
+    main.append(name,meta);
+    a.append(main,action);
+    return a;
+  };
+
+  fetch(API,{headers:{Accept:'application/vnd.github+json'}})
+    .then(r=>{if(!r.ok)throw new Error('GitHub API '+r.status);return r.json();})
+    .then(items=>{
+      const visible=items
+        .filter(item=>item.name!=='index.html'&&item.name!=='.nojekyll')
+        .sort((a,b)=>a.type===b.type?a.name.localeCompare(b.name):a.type==='file'?-1:1);
+      const html=visible.filter(item=>item.type==='file'&&/\.html$/i.test(item.name));
+      apps.replaceChildren(...html.map(makeCard));
+      if(!html.length){
+        const empty=document.createElement('div');
+        empty.className='status';
+        empty.textContent='No standalone HTML pages found.';
+        apps.append(empty);
+      }
+      appsCount.textContent=html.length+' '+(html.length===1?'page':'pages');
+      files.replaceChildren(...visible.map(makeRow));
+      filesCount.textContent=visible.length+' '+(visible.length===1?'item':'items');
+    })
+    .catch(()=>{
+      appsCount.textContent='1 page';
+      filesCount.textContent='Unavailable';
+      files.innerHTML='<div class="status">Could not load the live repository listing. Open the repository link above to browse all files.</div>';
+    });
+})();
+</script>
+</body>
+</html>
