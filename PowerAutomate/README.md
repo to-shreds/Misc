@@ -1,6 +1,6 @@
 # Flowcraft
 
-A browser-only Power Automate builder focused on the common path: choose a template, click a step, fill in plain-language fields, and export a legacy flow ZIP. Technical expressions and JSON stay out of the way unless you explicitly open them.
+A browser-only Power Automate builder written for nontechnical users. The normal experience is: choose what you want to happen, read the boxes from top to bottom, answer plain-English questions, and download the ZIP. Power Automate terms such as variables, JSON, expressions, scopes, and connector details stay hidden unless the user deliberately opens technical options.
 
 ## Open it
 
@@ -12,13 +12,13 @@ This application generates configuration. It does not run the automation in your
 
 ## Included
 
-Version 1.1 uses a slate-blue and white interface with simpler copy, fewer always-visible technical controls, five common templates shown first, and the remaining templates behind a single **More templates** button. The three-step path is now: choose a template, edit steps, export ZIP.
+Version 1.2 uses a slate-blue and white interface and rewrites the normal workflow in everyday language. The page is explicitly numbered: **1. What do you want to happen? 2. Put it together. 3. Download ZIP.** Common actions read like “Send an email,” “Do this for every item,” and “Make a yes or no decision.” Less common and technical actions stay behind **Show more step types**.
 
 Nine recipes: a first email, email/AI/email, attachment saving, a scheduled inbox digest, filtered records, AI per item, conditional notification, try/catch with email, and a blank canvas.
 
 Twenty-nine step types cover data operations, five variable operations, loops and conditions, groups, waiting, termination, Outlook email and attachment operations, supported Outlook Graph requests, HTML conversion, Teams, OneDrive, SharePoint, a saved AI Builder prompt, HTTP requests, and HTTP responses. Four triggers cover a manual button, incoming Outlook email, a schedule, and an HTTP request.
 
-The reference picker shows preceding output values, initialized variables, and the current loop item. **Show technical settings** exposes expressions, raw action JSON, and run-after dependencies only when needed. One-click loop/collect and try/catch patterns generate multiple steps. The app also includes undo/redo, a JSON-schema starter, a sandboxed static email preview, project JSON save/load, optional browser persistence, and a review panel.
+The reference picker shows preceding output values, initialized variables, and the current loop item. **Need more options?** exposes expressions, raw action JSON, and run-after dependencies only when needed. Conditions use a plain rule builder instead of showing raw condition JSON, and common validation messages are translated into ordinary language. One-click loop/collect and try/catch patterns generate multiple steps. The app also includes undo/redo, a JSON-schema starter, a sandboxed static email preview, project JSON save/load, optional browser persistence, and a review panel.
 
 ## Export contract
 
