@@ -66,9 +66,10 @@ try:
   assert state(page)==saved_state;ok('portable Quetzal export and import')
   page.locator('#restore-button').click()
   page.locator('#dialog input[type=file]').set_input_files({'name':'broken.sav','mimeType':'application/octet-stream','buffer':b'not a save'})
+  expect(page.locator('#toast')).to_have_text('Choose a valid Zork I Quetzal save (.sav).')
   expect(page.locator('#dialog')).to_be_visible();page.locator('#close-dialog').click()
   assert state(page)==saved_state;ok('invalid import cannot replace current game')
-  page.locator('#settings-button').click();page.get_by_label('Theme',exact=True).select_option('paper');page.locator('#close-dialog').click()
+  page.locator('#settings-button').click();page.get_by_label(re.compile(r'^Theme')).select_option('paper');page.locator('#close-dialog').click()
   assert state(page)==saved_state;shot(page,'desktop-paper.png');ok('paper theme leaves game state unchanged')
   for cmd in ['north','east','open window','enter window','west']:
    command(page,cmd)
@@ -98,6 +99,11 @@ try:
   assert state(sp)['moves']==1
   assert not any('/zork/' in url for url in requested),requested
   ok('single-file build runs without separate game, script or stylesheet requests')
+  offline=browser.new_context(offline=True);op=offline.new_page();watch(op)
+  op.goto((ROOT/'zork.html').as_uri());ready(op);command(op,'open mailbox')
+  assert state(op)['moves']==1
+  op.reload();ready(op);assert state(op)['moves']==1
+  ok('standalone opens directly from disk with networking disabled and resumes after reload')
   assert not errors,errors
   ok('no uncaught browser errors')
   browser.close()
