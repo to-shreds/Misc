@@ -1,6 +1,6 @@
 # Flowcraft
 
-A browser-only, simplified Power Automate builder. Assemble compact steps and recipes, connect values with a picker, then download a legacy flow package to import into Power Automate.
+A browser-only Power Automate builder focused on the common path: choose a template, click a step, fill in plain-language fields, and export a legacy flow ZIP. Technical expressions and JSON stay out of the way unless you explicitly open them.
 
 ## Open it
 
@@ -12,11 +12,13 @@ This application generates configuration. It does not run the automation in your
 
 ## Included
 
+Version 1.1 uses a slate-blue and white interface with simpler copy, fewer always-visible technical controls, five common templates shown first, and the remaining templates behind a single **More templates** button. The three-step path is now: choose a template, edit steps, export ZIP.
+
 Nine recipes: a first email, email/AI/email, attachment saving, a scheduled inbox digest, filtered records, AI per item, conditional notification, try/catch with email, and a blank canvas.
 
 Twenty-nine step types cover data operations, five variable operations, loops and conditions, groups, waiting, termination, Outlook email and attachment operations, supported Outlook Graph requests, HTML conversion, Teams, OneDrive, SharePoint, a saved AI Builder prompt, HTTP requests, and HTTP responses. Four triggers cover a manual button, incoming Outlook email, a schedule, and an HTTP request.
 
-The reference picker shows preceding output values, initialized variables, and the current loop item. An advanced mode exposes expressions, raw action JSON, and run-after dependencies. One-click loop/collect and try/catch patterns generate multiple steps. The app also includes undo/redo, a JSON-schema starter, a sandboxed static email preview, project JSON save/load, optional browser persistence, and a review panel.
+The reference picker shows preceding output values, initialized variables, and the current loop item. **Show technical settings** exposes expressions, raw action JSON, and run-after dependencies only when needed. One-click loop/collect and try/catch patterns generate multiple steps. The app also includes undo/redo, a JSON-schema starter, a sandboxed static email preview, project JSON save/load, optional browser persistence, and a review panel.
 
 ## Export contract
 
