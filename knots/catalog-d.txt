@@ -1,3 +1,5 @@
+# Knotbook original companion instructions. Publisher reference: header slug.
+
 @round-turn-two-half-hitches|Round Turn & Two Half Hitches|round-turn-two-half-hitches-knot|Hitch|1|Everyday,Camping,Boating|Round turn and two half hitches
 =Attach a line to a post with friction turns and a simple finish.
 +Soft practice rope and a smooth post or ring.
@@ -124,11 +126,11 @@ xRight-over-left twice makes a granny knot rather than a square knot.
 !Check that the finished stopper is large enough for its opening. It may jam after a substantial load.
 ?The extra wraps remain neatly arranged around the standing part rather than overlapping randomly.
 xOmitting the extra winding gives a smaller figure-eight stopper.
->Make the first crossing::Cross the working end over the standing part to create a small loop.
->Start the wrap::Carry the tail behind and around the standing part, as for a figure-eight stopper.
->Continue winding::Make the additional turns shown in the demonstration, keeping the coils beside one another and the original loop open.
->Return through the loop::Feed the working tip through the original opening after the winding section is complete.
->Dress into a stopper::Pull the standing part and tail gradually, working out trapped slack so the wraps make a compact, bulky knot.
+>Fold a bight::Make a U-shaped fold near the rope end, leaving a long working tail.
+>Cross the standing part::Take the tail across the standing section to begin the winding.
+>Make two full turns::Continue around the standing section for two complete turns, keeping the turns beside one another.
+>Return through the bight::Pass the working tip down through the original folded opening after the two turns.
+>Dress the stopper::Snug the winding section, then pull the standing part to grip the tail. Inspect the compact stopper and leave the tail visible.
 
 @strangle|Strangle Knot|strangle-knot-using-end-method|Binding|2|Everyday,Boating|
 =A tight double-overhand binding around a pole or bundle.
@@ -309,3 +311,4 @@ xMaking both starting loops with the same crossing direction changes the bend.
 >Tuck the upper tail::Take the upper loop's tail around its outside and down through both central openings.
 >Tuck the lower tail::Take the lower loop's tail around its outside and up through both openings in the opposite direction.
 >Dress evenly::Pull the standing parts and tails a little at a time. Trace each rope's complete route before tightening the finished bend.
+

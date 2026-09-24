@@ -1,3 +1,5 @@
+# Knotbook original companion instructions. Publisher reference: header slug.
+
 @highwaymans-hitch|Highwayman's Hitch|highwaymans-hitch-knot|Quick release|2|Camping|Bank robber's knot
 =A historical quick-release hitch to study with an unloaded practice line.
 +Soft cord and a horizontal practice pole.
@@ -82,29 +84,29 @@ xSkipping the final outside-and-up tucks leaves a flat Carrick structure rather 
 >Repeat with the other tail::Bring the second tail around its side and up through the same centre, beside the first.
 >Shape the button::Ease slack around each turn in sequence. Tighten gradually until the flat layout becomes a round button with a fixed eye above it.
 
-@lightermans-hitch|Lighterman's Hitch|lightermans-hitch-knot|Hitch|2|Boating|
+@lightermans-hitch|Lighterman's Hitch|lightermans-hitch-knot|Hitch|2|Boating|Tugboat hitch
 =A sequence of turns used to secure a line around a bollard.
 +Practice rope and a smooth vertical post.
 !Real mooring loads, surges and bollard geometry need proper marine practice. Keep fingers out of loaded turns.
 ?Alternating bights cross around the standing part and settle neatly around the post.
 xPiling loose turns on top of each other makes inspection and release difficult.
->Take a base turn::Lead the rope around the post to create friction before arranging the remaining turns.
->Fold a bight::Make a bight in the working section beside the post.
->Cross the standing part::Take that bight across and around the standing part, then place it over the top of the post.
->Repeat on the other side::Make another bight and repeat the crossing from the opposite side, dropping it over the post.
->Build and dress::Continue alternating as shown, snugging each turn. Keep the finished pattern orderly and practice only with light hand tension.
+>Make the round turn::Pass the working rope around the bollard twice, keeping both initial turns at its base.
+>Make a folded section::Take a bight in the working section, leaving the standing part leading away from the bollard.
+>Pass under and over::Carry the bight under the standing part, then open it over the top of the bollard.
+>Add a turn and repeat::Make an additional turn around the bollard, then place another bight under the standing part and over the bollard as shown.
+>Continue and dress::Add further alternating turns as appropriate to the practice example. Snug every turn and keep hands clear of any loaded section.
 
 @marlinspike-hitch|Marlinspike Hitch|marlinspike-hitch-knot|Hitch|2|Camping,Boating|Marlinespike hitch
 =Insert a removable toggle into a temporary rope hitch.
 +Soft practice rope and a smooth, blunt wooden toggle.
 !A weak or poorly seated toggle can break or eject. This is not instruction for a hammock suspension or supporting a person.
-?The toggle lies in the demonstrated crossing, and removing it allows the temporary hitch to come apart.
+?The bight comes from the standing part, so a light pull on that part closes the hitch around the toggle.
 xInserting the toggle into the wrong opening can create a hitch that pulls straight out.
->Make a crossing loop::Lay a loop in the rope with the crossing easy to see.
->Fold the loop down::Move the loop over the standing part so the standing part appears across its centre.
->Position the toggle::Pass the blunt toggle over the loop's near side, under the standing part, and over the far side, following the demonstration.
->Seat the hitch::Draw the rope gently around the toggle while keeping it centred.
->Check and release::Inspect both sides before applying a light hand pull. Remove all tension before withdrawing the toggle.
+>Identify the standing part::Lay the rope on the table and mark the side that will be pulled. The bight must come from this side.
+>Make a crossing loop::Form a small loop in the rope and keep its opening loose.
+>Pull a standing-part bight through::Fold a section of the marked standing part and draw that fold through the crossing loop.
+>Insert the toggle::Pass the smooth toggle through the emerging bight, centring it so both ends extend well beyond the rope.
+>Seat and inspect::Apply only light hand tension to the standing part and verify that it tightens the grip. Unload completely before removing the toggle.
 
 @midshipmans-hitch|Midshipman's Hitch|midshipmans-hitch-knot|Friction hitch|2|Camping,Boating|Awning hitch with finishing half hitch
 =Adjust the tension of a light guyline using a gripping loop.
@@ -118,17 +120,17 @@ xLoosely stacking the inner turns without the wedging tuck can make a different 
 >Finish outside::Move the tail beyond the gripping turns and add a half hitch around the standing part in the same direction.
 >Adjust without load::Slide the dressed hitch when the line is slack, then lightly tension the standing line to check that it holds its position.
 
-@wall-and-crown|Wall and Crown Knot|wall-and-crown-knot|Decorative|2|Decorative,Boating|Three-strand wall and crown
-=Combine two three-strand patterns into a decorative rope-end button.
-+Three loose practice strands held together at their base.
-!Not a rated termination or a complete splice. Do not use a decorative button to carry a critical load.
-?A wall sits below a crown; each strand follows the same cyclic pattern without bypassing a neighbour.
-xTying both layers as crowns, or both as walls, produces a different structure.
->Spread the strands::Arrange three equal working strands around a shared base.
->Start the wall::Bring strand one underneath strand two, leaving its bend open. Bring strand two underneath strand three.
->Close the wall::Bring strand three underneath strand one and out through the opening left by the first bend. Snug evenly.
->Add the crown::Now take the first strand over its neighbour, then the second over the next. Feed the final strand through the opening left by the first.
->Dress both layers::Work slack out of the wall and then the crown in small, equal pulls until the two layers form a compact button.
+@square-lashing|Square Lashing|square-lashing-knot|Lashing|2|Camping|Square lashing knot
+=Bind two touching poles together at a right angle.
++Two small smooth practice sticks and a long soft cord.
+!Practice on a tabletop model. Real structures, platforms and ladders require competent design and inspection, not just a familiar knot.
+?Wrapping turns bind both sticks; perpendicular frapping turns squeeze those wraps together between the sticks.
+xContinuing around the poles instead of frapping between them misses the tightening stage.
+>Anchor the cord::Cross the sticks at a right angle and tie a Clove Hitch around one near the crossing. Twist the short tail alongside the working part.
+>Wrap the crossing::Lead the cord over and under the two sticks in a square path around their meeting point.
+>Add close wraps::Make three or four circuits, adding turns inside the previous ones on one stick and outside them on the other.
+>Frap between the sticks::Take three or four turns around the wrapping bundle between the sticks, pulling them snug to compress the wraps.
+>Secure the finish::Finish with two or three tight half hitches as shown. Inspect the model from all sides before trying a light hand movement.
 
 @monkeys-fist|Monkey's Fist|monkeys-fist-knot|Decorative|3|Decorative,Boating|Monkey fist
 =A decorative rope ball built from three perpendicular groups of wraps.
@@ -170,13 +172,13 @@ xWithdrawing the tube before the tag is threaded loses the passage through the c
 =Give a lure room to move on a small fixed loop.
 +Practice monofilament and a blunt lure-eye substitute.
 !The correct number of wraps depends on line diameter. Check the loop size before setting and test the finished connection.
-?The tag returns through the overhand opening on the same side used by its earlier pass.
+?The tag returns from the wrap stack through the overhand opening toward the lure, and the finished loop remains fixed.
 xTightening the initial overhand knot before completing the wraps blocks the finishing tuck.
->Make a loose overhand::Tie an overhand knot in the line, leaving a generous tag and keeping the knot open.
->Pass through the eye::Take the tag through the lure eye and back through the loose overhand opening.
->Wrap the standing line::Make several turns around the standing line, using the count appropriate to your line material and diameter.
->Return through the overhand::Bring the tag back through the overhand opening, entering from the same side as the previous pass.
->Set the eye size::Hold the desired lure loop while moistening and drawing the knot together. Inspect and test before trimming.
+>Make a loose overhand::Tie an open overhand knot near the line end, leaving a generous tag.
+>Go through the eye and back::Pass the tag through the lure eye and back through the loose overhand opening toward the standing line.
+>Make the wrap stack::Wrap the tag around the standing line about five times for the illustrated method. Actual line diameter may require a different count.
+>Return toward the lure::Bring the tag back from the wrap stack through the overhand opening toward the eye, following the displayed crossing.
+>Set the eye size::Adjust the lure loop while everything is loose. Moisten, dress and tighten the knot, then inspect and test before trimming.
 
 @orvis|Orvis Knot|orvis-knot|Fishing attachment|2|Fishing|
 =A small eye attachment with a doubled final tuck.
@@ -297,3 +299,4 @@ xLaying the second turn loosely beside the first, without the wedging tuck, chan
 >Wedge the next turn::Continue around over the first turn, then tuck this new turn between that first turn and the standing part.
 >Finish beyond the grip::Add a half hitch around the host rope beyond the wedged turns, following the same rotational direction.
 >Dress and observe::Snug the hitch neatly; the host rope may show a small bend. Test only with a light pull in the intended direction.
+
