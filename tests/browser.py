@@ -84,6 +84,11 @@ try:
    mobile=browser.new_context(viewport={'width':width,'height':height},is_mobile=True,has_touch=True)
    phone=mobile.new_page();watch(phone);phone.goto(BASE+'/zork/');ready(phone)
    if width<=680:
+    quick=phone.locator('.quick-move')
+    expect(quick).to_be_visible()
+    for direction in ['west','north','south','east']:
+     expect(quick.locator(f'[data-command="{direction}"]')).to_be_in_viewport()
+    command(phone,'look');expect(quick).to_be_visible()
     phone.locator('#items-panel').click();shot(phone,label+'-items.png')
    phone.get_by_role('button',name='Select small mailbox',exact=True).click()
    expect(phone.locator('#verbs').get_by_role('button',name='More actions…')).to_be_in_viewport()
