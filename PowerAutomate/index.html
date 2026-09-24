@@ -5,32 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; frame-src 'self' about:; object-src 'none'; base-uri 'none'; form-action 'none'">
-<meta name="description" content="A local-first, simplified Power Automate flow builder. Assemble recipes, edit steps and export a flow ZIP, all in your browser.">
-<title>Flowcraft · Power Automate, simplified</title>
+<meta name="description" content="A simpler, local-first Power Automate flow builder. Pick a template, edit plain-language steps, and export an importable flow ZIP.">
+<title>Flowcraft · Power Automate made simpler</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 <a class="skip" href="#canvas">Skip to workflow</a>
 <header class="topbar">
- <div class="brand"><span class="brandmark" aria-hidden="true">f.</span><div><strong>flowcraft</strong><small>Power Automate, simplified</small></div></div>
- <div class="projecthead"><input id="projectName" aria-label="Flow name" maxlength="120"><span id="saveState" class="save-state">This session only</span></div>
- <div class="topactions"><button id="menuBtn" class="quiet" aria-label="Help and privacy" title="Help and privacy">⋯</button><button id="openBtn" class="quiet">Open</button><button id="saveBtn" class="quiet">Save project</button><button id="exportBtn" class="primary">Export ZIP <span aria-hidden="true">↗</span></button></div>
+  <div class="brand"><span class="brandmark" aria-hidden="true">F</span><div><strong>Flowcraft</strong><small>Power Automate made simpler</small></div></div>
+  <div class="projecthead"><input id="projectName" aria-label="Flow name" maxlength="120"><span id="saveState" class="save-state">This session only</span></div>
+  <div class="topactions">
+    <button id="openBtn" class="quiet">Open</button>
+    <button id="saveBtn" class="quiet">Save</button>
+    <button id="exportBtn" class="primary">Export ZIP</button>
+    <button id="menuBtn" class="quiet iconbtn" aria-label="More options" title="More options">•••</button>
+  </div>
 </header>
 <div class="workspace">
- <aside class="library" aria-label="Recipe and step library">
-  <div class="lib-top"><span class="eyebrow">BUILD SOMETHING USEFUL</span><h2>A little less clicking.</h2><p>Pick a recipe. Make it yours.</p></div>
-  <div class="tabs"><button id="recipesTab" class="active" aria-pressed="true">Recipes</button><button id="stepsTab" aria-pressed="false">Steps <span id="catalogCount"></span></button></div>
-  <label class="searchbox"><span aria-hidden="true">⌕</span><input id="librarySearch" placeholder="Find a recipe…" aria-label="Search library"></label>
-  <div id="libraryList" class="library-list"></div>
-  <div class="libraryfoot"><button id="helpBtn">How it works <span aria-hidden="true">↗</span></button><button id="privacyBtn">Local data &amp; privacy <span aria-hidden="true">⌁</span></button><p>v1.0 · No account. No backend.<br>Independent tool, not a Microsoft product.</p></div>
- </aside>
- <main id="canvas" class="canvas" tabindex="-1">
-  <div class="canvas-head"><div><span class="eyebrow">YOUR WORKFLOW</span><h1>Make the logic easy.</h1></div><div class="canvas-tools"><button id="undoBtn" title="Undo" aria-label="Undo">↶</button><button id="redoBtn" title="Redo" aria-label="Redo">↷</button><button id="inspectBtn">{ } JSON</button></div></div>
-  <div id="flowIntro" class="introstrip"></div>
-  <div class="workflow-scroll"><div id="flowTree" class="flow-tree"></div><button id="addRoot" class="add-root">+ Add a step</button><div class="flow-end"><span></span>END OF FLOW</div></div>
-  <div id="checkBar" class="checkbar" aria-live="polite"></div>
- </main>
- <aside id="inspector" class="inspector" aria-label="Step settings"></aside>
+  <aside class="library" aria-label="Templates and steps">
+    <div class="lib-top">
+      <h2>Start here</h2>
+      <p>Choose a ready-made template, or add only the steps you need.</p>
+    </div>
+    <div class="tabs">
+      <button id="recipesTab" class="active" aria-pressed="true">Templates</button>
+      <button id="stepsTab" aria-pressed="false">Add step</button>
+    </div>
+    <label class="searchbox"><span aria-hidden="true">⌕</span><input id="librarySearch" placeholder="Find a template…" aria-label="Search library"></label>
+    <div id="libraryList" class="library-list"></div>
+    <div class="libraryfoot">
+      <button id="helpBtn">How it works <span aria-hidden="true">›</span></button>
+      <button id="privacyBtn">Privacy <span aria-hidden="true">›</span></button>
+      <p>Runs entirely in your browser.<br>Independent tool, not a Microsoft product.</p>
+    </div>
+  </aside>
+
+  <main id="canvas" class="canvas" tabindex="-1">
+    <div class="canvas-head">
+      <div><h1>Your flow</h1><p class="canvas-sub">Click a step to change it.</p></div>
+      <div class="canvas-tools">
+        <button id="undoBtn" title="Undo" aria-label="Undo">↶</button>
+        <button id="redoBtn" title="Redo" aria-label="Redo">↷</button>
+        <button id="inspectBtn" class="technical" tabindex="-1" aria-hidden="true">{ } JSON</button>
+      </div>
+    </div>
+    <div id="flowIntro" class="introstrip"></div>
+    <div class="workflow-scroll">
+      <div id="flowTree" class="flow-tree"></div>
+      <button id="addRoot" class="add-root">+ Add next step</button>
+      <div class="flow-end"><span></span>END</div>
+    </div>
+    <div id="checkBar" class="checkbar" aria-live="polite"></div>
+  </main>
+
+  <aside id="inspector" class="inspector" aria-label="Step settings"></aside>
 </div>
 <input id="openFile" type="file" accept=".zip,.json" hidden>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
