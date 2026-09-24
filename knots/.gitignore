@@ -1,0 +1,5 @@
+# Developer-only outputs, not application assets.
+research/
+proof/
+__pycache__/
+*.pyc
