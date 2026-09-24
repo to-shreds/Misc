@@ -1,0 +1,7 @@
+standalone.html
+__pycache__/
+tests/*.zip
+tests/*.png
+tests/*.flowcraft.json
+tests/*results*
+tests/browser-run.txt
