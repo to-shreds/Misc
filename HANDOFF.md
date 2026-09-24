@@ -1,7 +1,7 @@
 # Zork I GUI handoff
 
 ## User requirement
-Make a modern version of Zork; publish to `to-shreds/Misc`; remain perfectly faithful except for adding a GUI. We explicitly chose **Zork I**, not the original mainframe Dungeon or the whole trilogy. Repo was empty before this work. Version 1.0.0.
+Make a modern version of Zork; publish to `to-shreds/Misc`; remain perfectly faithful except for adding a GUI. We explicitly chose **Zork I**, not the original mainframe Dungeon or the whole trilogy. Repo was empty before this work. Version 1.0.1.
 
 ## Architectural non-negotiables
 Run the **unmodified** `zork/data/zork1.z3`, release 119 / 880429. SHA-256 `37084966477dff679282de42974b2077156b1bd68fad92a65d4ea94d8eb64d79`. The original game is MIT-licensed by Microsoft. The bundled MIT `ifvms.js` VM is also upstream-unmodified. Provenance in sources.lock.json.
@@ -20,6 +20,12 @@ No rewritten story, AI narration, approximate puzzles, changed routes, automatic
 
 ## Persistence
 Namespace `misc-zork119-v1:`. `slots` contains native Quetzal bytes plus presentation history/known nouns. `resume` contains a Quetzal memory+stack image at a line-input suspension point, read_data, io, VM RNG seed if seeded, and presentation history. `notes`, `preferences` separate. Native story saves and reload snapshots are deliberately different mechanisms. A reload must not perform LOOK/INVENTORY or advance a turn. Invalid imports are tested in a disposable VM before touching the live interpreter. Manual slots survive new game; reload-state does not. Storage failure falls back to portable save export.
+
+## Latest benchmark: 1.0.1 persistent movement controls
+
+Mobile now has a compact five-button movement strip in the always-visible command area: West, North, Look, South, East. The full Move panel remains available for diagonals, Up/Down, In/Out and the original compass. On wider layouts, the full movement section is sticky at the top of the sidebar so it cannot scroll out of view. These controls only submit the same original parser commands as before.
+
+The split source and root standalone `zork.html` are synchronized. Browser regression coverage now asserts that the mobile quick-move control and all four cardinal arrows are visible in the viewport without sending a hidden game command. Static source verification passed after the change. The full Playwright/browser suite has not been rerun in this environment, so do not claim a new end-to-end browser pass for 1.0.1.
 
 ## Testing and continuation
 Start with `node --test tests/engine.cjs`, then `python tests/browser.py`. CI artifacts include actual HTTP-browser results and screenshots. The whole 350-point adventure has **not** been exhaustively playtested; do not claim it has. See TESTING.md. Local visual development also used Chromium with in-memory assets because the development container disallows URL navigation; those visual checks alone are not a hosted deployment test.
