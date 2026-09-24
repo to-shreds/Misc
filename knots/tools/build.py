@@ -66,10 +66,10 @@ def load() -> list[dict]:
 
 def build(check: bool=False) -> None:
     knots=load()
-    data={'version':'1.0.0','publisher':'Animated Knots by Grog','knots':knots}
+    data={'version':'1.1.0','publisher':'Animated Knots by Grog','knots':knots}
     encoded=json.dumps(data,ensure_ascii=False,separators=(',',':')).replace('<','\\u003c').replace('\u2028','\\u2028').replace('\u2029','\\u2029')
     html=(SRC/'template.html').read_text(encoding='utf-8')
-    for marker,content in {'/*__STYLE__*/':(SRC/'style.css').read_text(encoding='utf-8'),'/*__DATA__*/':encoded,'/*__APP__*/':(SRC/'app.js').read_text(encoding='utf-8')}.items():
+    for marker,content in {'/*__STYLE__*/':(SRC/'style.css').read_text(encoding='utf-8')+'\n'+(SRC/'originals.css').read_text(encoding='utf-8'),'/*__DATA__*/':encoded,'/*__APP__*/':(SRC/'originals.js').read_text(encoding='utf-8')+'\n'+(SRC/'app.js').read_text(encoding='utf-8')}.items():
         assert html.count(marker)==1,f'Missing or duplicated build marker {marker}'
         html=html.replace(marker,content)
     assert '/*__' not in html,'Unresolved build markers'

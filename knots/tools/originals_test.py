@@ -45,6 +45,7 @@ with sync_playwright() as p:
             page.locator(f'#step-dots [data-step="{step}"]').click()
             expect(page.locator('#media')).to_have_attribute('data-move',str(step))
             check(page.locator('#oa-title').inner_text()!='',id+f': reader and move {step+1} synchronized')
+        if id=='surgeons-join':check('Gold: standing / Blue: tag' in page.locator('#oa-stage').inner_text(),'Surgeon join labels the opposite-direction line roles')
         svg=page.locator('#oa-stage').inner_html();pictures.append(hashlib.sha256(svg.encode()).hexdigest())
         page.locator('#oa-prev').click();expect(page.locator('#step-position')).to_have_text('STEP 4 OF 5')
         page.locator('#oa-next').click();expect(page.locator('#step-position')).to_have_text('STEP 5 OF 5')
