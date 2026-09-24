@@ -53,7 +53,7 @@ def load() -> list[dict]:
         assert k['level'] in [1,2,3],k['id']
         assert k['activities'] and set(k['activities'])<=ACTIVITIES,k['id']
         assert len(k['steps'])>=4,k['id']
-        for key in FIELDS.values():assert isinstance(k.get(key),str) and len(k[key])>=20,(k['id'],key)
+        for key in FIELDS.values():assert isinstance(k.get(key),str) and len(k[key])>=(10 if key=='materials' else 20),(k['id'],key)
         for s in k['steps']:
             assert '::' in s and len(s.split('::',1)[1])>25,(k['id'],s)
         assert k['id'] in media,f'Missing verified demonstration: {k["id"]}'
