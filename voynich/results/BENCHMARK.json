@@ -1,0 +1,78 @@
+{
+  "project": "voynich-decipherment",
+  "benchmark_date": "2026-09-26",
+  "project_status": "IN PROGRESS",
+  "semantic_result": "No verified decipherment, plaintext language, or word meaning established.",
+  "main_source": {
+    "file": "ZL3b-n.txt",
+    "sha256": "bf5b6d4ac1e3a51b1847a9c388318d609020441ccd56984c901c32b09beccafc",
+    "loci": 5385,
+    "page_identifiers_not_physical_leaves": 227,
+    "paragraph_page_identifiers": 207,
+    "retained_paragraph_groups": 33935,
+    "distinct_retained_spellings": 6532,
+    "excluded_paragraph_candidates": 1134,
+    "complete_paragraph_test_pool": 5735
+  },
+  "candidate_configurations": 232,
+  "configuration_counts": {
+    "ordinary_substitution": 64,
+    "unregularized_learned_unit_substitution": 24,
+    "emission_profile_learned_unit_substitution": 24,
+    "alternative_preprocessing": 48,
+    "letter_substitution_plus_within_word_anagrams": 16,
+    "whole_group_to_letter": 8,
+    "celsus_pliny_domain_sensitivity": 32,
+    "bounded_latin_letter_chunk_expansion": 16
+  },
+  "known_cipher_calibrations": 30,
+  "ordinary_calibrations_with_exact_normalized_test_letter_recovery": 8,
+  "all_calibrations_exact_under_respective_metric": 26,
+  "minimum_calibration_accuracy_under_respective_metric": 0.9939572105177201,
+  "scrambled_comparisons": 24,
+  "q_context_sensitivity_runs": 6,
+  "q_context_zl_split_gaps": {
+    "eligible_test_cases": 1524,
+    "test_leaves": 15,
+    "baseline_accuracy": 0.6751968503937008,
+    "context_accuracy": 0.7637795275590551,
+    "baseline_logloss_bits": 0.8487792650103051,
+    "context_logloss_bits": 0.7289486931669238,
+    "bits_saved": 0.11983057184338139,
+    "leaf_bootstrap_95_interval": [0.08400387454779228, 0.14520559240028252],
+    "bootstrap_draws": 3000,
+    "interpretation_limit": "Contextual predictability does not establish q's meaning, pronunciation, or silence."
+  },
+  "verification": {
+    "tests_run": 11,
+    "final_failures": 0,
+    "final_errors": 0,
+    "successful": true,
+    "initial_helper_fix": "Whole-group retained-test-count field-name mismatch corrected; scientific results unchanged."
+  },
+  "artifacts_delivered_in_conversation_not_uploaded_as_binaries_here": [
+    {
+      "file": "Voynich_Round_2_Full.zip",
+      "bytes": 40546895,
+      "sha256": "17e4b2dfba8c201160da1aa2d3bf4a8116819ccbca6107371b1f97360ecde103"
+    },
+    {
+      "file": "Voynich_Round_2_Code_and_Results.zip",
+      "bytes": 656431,
+      "sha256": "66499e7103a89ffc111bed636595227b72989de9eb9083b253f83f096fb4168c"
+    },
+    {
+      "file": "Voynich_Round_2_Report.md",
+      "sha256": "50ef9023d065aceabd9fcafdf54e5c0631fdd204dafc775b9ad118c904b6eaad"
+    }
+  ],
+  "limitations": [
+    "Most key searches used approximately 2500 training groups and up to 1500 test groups, not the entire corpus.",
+    "A/B and bath/starred groups overlap; these are not independent replications.",
+    "Test pages were withheld from key fitting but reused for exploratory hypothesis screening.",
+    "Scores across reference languages and unitizations are not comparable language probabilities.",
+    "Three transliterations concern one manuscript; RF combines ZL and GC.",
+    "The matrix is not exhaustive and failed searches do not prove that a cipher family is impossible."
+  ],
+  "next_action": "Develop and calibrate a constrained contextual forward encoder, then require independent semantic confirmation of any candidate."
+}
