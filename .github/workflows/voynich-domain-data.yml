@@ -1,0 +1,42 @@
+name: Voynich domain controls
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/voynich-domain-data.yml'
+permissions:
+  contents: read
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Collect pinned classical medical and botanical Latin
+        run: |
+          mkdir -p domain-data
+          python3 - <<'PY'
+          import urllib.request, pathlib, hashlib, json
+          root=pathlib.Path('domain-data')
+          base='https://raw.githubusercontent.com/lrozanova/voynich-units/66f8adaadc120f93e8a4c906685ba66a9d3ab847/'
+          paths=['DATA_SOURCES.md']
+          paths += ['latin/celsus.de_medicina.part.'+str(n)+'.tess' for n in range(1,6)]
+          paths += ['herbal/pliny_the_elder.naturalis_historia.part.'+str(n)+'.books_'+books+'.tess' for n,books in [(4,'16-20'),(5,'21-25'),(6,'26-30')]]
+          manifest=[]
+          for p in paths:
+              url=base+p
+              with urllib.request.urlopen(url,timeout=60) as response: raw=response.read()
+              dest=root/p;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(raw)
+              manifest.append({'path':p,'url':url,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()})
+          url='https://raw.githubusercontent.com/cltk/lat_text_tesserae/master/LICENSE.md'
+          with urllib.request.urlopen(url,timeout=60) as response: raw=response.read()
+          (root/'TESSERAE_LICENSE.md').write_bytes(raw)
+          manifest.append({'path':'TESSERAE_LICENSE.md','url':url,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()})
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps(manifest,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: voynich-domain-data
+          path: domain-data/
+          retention-days: 7
+          if-no-files-found: error
