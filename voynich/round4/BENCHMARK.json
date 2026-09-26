@@ -1,0 +1,94 @@
+{
+  "project": "voynich-decipherment",
+  "date": "2026-09-26",
+  "status": "IN PROGRESS",
+  "semantic_result": "No verified continuous plaintext, source-language identification or word meaning established.",
+  "model": "Boundary-free injective unit mapping to single letters or eight reference-selected greedy bigrams; raw or fixed composite source units; independent reference-only word segmentation.",
+  "primary": {
+    "actual_manuscript_fits": 32,
+    "negative_control_fits": 64,
+    "frozen_key_confirmation_evaluations": 96,
+    "positive_controls": 16,
+    "exact_final_positive_controls": 16,
+    "character_weighted_unit_evaluations": 90384,
+    "initial_failed_control": "Ancient Hebrew, eight abbreviations, permutation 1: 0.07120465741155396 weighted recovery. Initial results preserved. All searches increased from six to eighteen starts before manuscript fitting.",
+    "effective_restarts": 18,
+    "proposals_per_restart": 18000,
+    "calibration_limit": "Reference target abbreviation inventory and source units supplied; not discovery of an arbitrary unknown writing system. Evaluation text repeats across variants.",
+    "known_text_boundary_f1": {
+      "Latin-Pliny": 0.9378378378378378,
+      "Italian-Old": 0.9298085688240656,
+      "German-GSD": 0.9405405405405406,
+      "Ancient_Hebrew-PTNK": 0.864815657715066
+    },
+    "eight_abbreviation_all_samples_canonical": {
+      "real": {"passed":0,"total":16},
+      "word_shuffle": {"passed":0,"total":16},
+      "positional_markov": {"passed":1,"total":16}
+    },
+    "word_order_unadjusted_rank_p_below_05": {
+      "real": {"passed":4,"total":32},
+      "word_shuffle": {"passed":5,"total":32},
+      "positional_markov": {"passed":1,"total":32}
+    }
+  },
+  "strict_post_primary_extension": {
+    "actual_manuscript_refits": 16,
+    "negative_control_refits": 32,
+    "valid_fitted_keys": 48,
+    "milp_repairs": 46,
+    "already_feasible_without_milp": 2,
+    "milp_repairs_returning_verified_optimal_repair_objective": 46,
+    "all_training_runs_canonical": 48,
+    "all_three_samples_canonical": {
+      "real": {"passed":3,"total":16},
+      "word_shuffle": {"passed":5,"total":16},
+      "positional_markov": {"passed":6,"total":16}
+    },
+    "word_order_unadjusted_rank_p_below_05": {
+      "real": {"passed":3,"total":16},
+      "word_shuffle": {"passed":3,"total":16},
+      "positional_markov": {"passed":0,"total":16}
+    },
+    "both_all_samples_canonical_and_word_order_rank_p_below_05": {"real":1,"word_shuffle":1,"positional_markov":0},
+    "manuscript_all_samples_canonical_reference_configurations": ["A/Ancient_Hebrew-PTNK/raw","A/Italian-Old/composite","A/German-GSD/raw"],
+    "scope": "Exploratory post-primary train-only refit of all abbreviation configurations, not independent confirmation. Assignment repair minimizes weighted key changes; feasible swaps are a bounded local search. No global language-score optimum claimed.",
+    "control_regressions": "Eight previously recovered abbreviation controls remain exact; these start from recovered primary keys and are not new blind MILP calibrations."
+  },
+  "verification": {
+    "primary_tests": 16,
+    "strict_tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "all_144_confirmation_scores_and_outputs_independently_recalculated": true,
+    "full_primary_fresh_recomputation_executed": true,
+    "fresh_primary_keys_scientific_scores_predictions_shuffle_vectors_exactly_equal": true,
+    "second_complete_strict_fit_recomputation_claimed": false,
+    "final_zip_independently_extracted_and_all_24_tests_passed": true,
+    "final_zip_manifest_members_checked": 556,
+    "retained_parent_input_vendor_files_byte_compared": 83,
+    "earlier_archives_preserved": true
+  },
+  "publication": {
+    "strict_module_git_blob": "e45e35637dfa0b4ff531e837b1a0a28ebf1a7d1e",
+    "strict_module_sha256": "5874b50139382f0d95b7bdb5360697c8e564f45d4757ab89113183bc4c18683c",
+    "strict_module_readback_matches_tested_source": true,
+    "base_decoder_sha256_in_package": "e91ec2bef9e9d9dfb0493a2633ab10479523c4ba5db6b4b0d8c21ab22b82d333",
+    "base_decoder_repository_upload": "Blocked; full tested file remains in conversation package.",
+    "full_runnable_package_uploaded_to_repository": false
+  },
+  "artifacts_delivered_in_conversation": [
+    {"file":"Voynich_Round_4_Full.zip","bytes":28123330,"sha256":"28fb4555fa59645bb096d4fd76bad9bdbefac9931170a95734512e5d9a2f0df0","members":557},
+    {"file":"Voynich_Round_4_Report.md","bytes":19103,"sha256":"5ba6317544bd2f7803452e82b9e1937f0251f776d031e8dae86fd2945b7b9fe5"}
+  ],
+  "limits": [
+    "No verified reading or word meaning; mechanically consistent candidates are not translations.",
+    "No previously unseen study-wide data; exact Round 3 samples and null realizations reused.",
+    "One null realization per construction/sample; correlated configurations and unadjusted descriptive ranks.",
+    "The source-unit and target-abbreviation inventories are assumed or reference-derived, not recovered historically.",
+    "Spaces are information-losing; dictionary segmentation does not prove original word divisions.",
+    "Unsupported units split the stream; whole-manuscript coverage is not claimed.",
+    "Cross-language numerical scores are not language probabilities; absolute negative word-order gain also occurs for genuine reference text."
+  ],
+  "next_action": "Jointly infer constrained source segmentation and target expansions, first calibrating recovery with hidden source-unit inventories, then require exact forward consistency and independent semantic or cross-label predictions."
+}
