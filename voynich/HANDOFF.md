@@ -1,57 +1,55 @@
-# Voynich decipherment research handoff
+# Voynich decipherment handoff
 
 ## Objective and state
 
-Recover a reproducible decoding rule yielding continuous, independently testable plaintext. **IN PROGRESS: no verified decipherment, source-language identification or word meaning has been established.** Round 3's bounded contextual experiment is finished and verified; the decipherment objective is not complete.
+Recover consistent decoding rules that yield continuous, independently testable plaintext. **IN PROGRESS. No verified decipherment, source-language identification or word meaning has been established.** Round 4's bounded abbreviation/boundary experiment and constrained extension are complete and verified; the larger objective is not complete.
 
-## Controlling records
+## Controlling sources
 
-- Latest substantive summary: `to-shreds/Misc/voynich/round3/REPORT.md`.
-- Latest compact numerical record: `voynich/round3/BENCHMARK.json`.
-- Tested core contextual solver: `voynich/round3/code/contextual.py`; SHA-256 `7392b987b0a56738a8990ca254297aafe71e4a7e06b4a13a2ddf5fee2ec1ac68`, Git blob `f7b69989e61dcb65080a5b09387ed2c99c9ac31a`. Publication readback matches the tested file.
-- These substantive files are present through Misc commit `9ba1690b54283efa55ab28f4732e42e9805ed33a`.
-- `to-shreds/ProjectStatus/projects/voynich-decipherment/STATUS.md` controls readiness/next steps.
-- Prior Round 2 records remain at `voynich/REPORT.md` and `voynich/results/BENCHMARK.json`; do not overwrite them.
+- Latest durable benchmark: `to-shreds/Misc/voynich/round4/REPORT.md`.
+- Compact numerical record: `voynich/round4/BENCHMARK.json`.
+- Tested constrained search module: `voynich/round4/code/strict.py`.
+- These substantive records are present through Misc commit `b2d0b640e8ed252880c46c15ef60e5dd8cbee7ad`.
+- `to-shreds/ProjectStatus/projects/voynich-decipherment/STATUS.md` controls readiness and next steps.
+- Complete runnable code, datasets and candidate outputs are in the delivered Round 4 archive. The repository contains a summary and one core module, not the entire installation. The base-decoder publication was blocked; its actual tested file is included in the ZIP. Do not claim full repository upload.
 
-The repository contains the benchmark and core solver, not the complete runnable package or binary archives. The core module imports vendor modules that are in the full package. Retrieve the named conversation/Library archive through Files before asking Jon for manual re-upload. Do not assume old sandbox paths exist in a new session.
+Use Files to retrieve named conversation/Library artifacts before requesting manual re-upload. Do not assume old sandbox paths persist. Current conversation attachments with backing files mount automatically for container tools.
 
-## Current deliverables
+## Current complete artifacts
 
-Delivered in the conversation:
+- `Voynich_Round_4_Full.zip`: 28,123,330 bytes; SHA-256 `28fb4555fa59645bb096d4fd76bad9bdbefac9931170a95734512e5d9a2f0df0`.
+- `Voynich_Round_4_Report.md`: 19,103 bytes; SHA-256 `5ba6317544bd2f7803452e82b9e1937f0251f776d031e8dae86fd2945b7b9fe5`.
 
-- `Voynich_Round_3_Full.zip`, 26,033,071 bytes; SHA-256 `13d4e32ad3951507347b4a2cc001569cd3942ac20ec47055e23511ba12d80482`.
-- `Voynich_Round_3_Report.md`, 15,123 bytes; SHA-256 `8eeac7dad94ac307353a2f8392294a21ae3506c6661c5730735006d2eaf18a8d`.
+The ZIP has 557 files: 11 new Python scripts, two retained vendor modules, all needed reference/transcription data and licenses, initial failed calibrations, protocols/amendments, frozen keys, complete output and verification records. Rebuildable caches and earlier full archives are omitted. The published strict module has SHA-256 `5874b50139382f0d95b7bdb5360697c8e564f45d4757ab89113183bc4c18683c`, Git blob `e45e35637dfa0b4ff531e837b1a0a28ebf1a7d1e`, verified by publication readback. Package-only base engine SHA-256 is `e91ec2bef9e9d9dfb0493a2633ab10479523c4ba5db6b4b0d8c21ab22b82d333`.
 
-The full package has 333 files, including 10 new Python modules, three unchanged vendor modules, all needed reference/transcription data and licenses, frozen protocols, 48 fit bundles, all 144 full confirmation outputs, calibration results and verification logs. Rebuildable caches are omitted. Original Round 1/2 archives are not duplicated inside it.
+## What Round 4 completed
 
-Retained Round 2 full archive: `Voynich_Round_2_Full.zip`, SHA-256 `17e4b2dfba8c201160da1aa2d3bf4a8116819ccbca6107371b1f97360ecde103`, 40,546,895 bytes. Its source/results-only archive has SHA-256 `66499e7103a89ffc111bed636595227b72989de9eb9083b253f83f096fb4168c`, 656,431 bytes. Both were rechecked unchanged, as was the original first-stage audit.
+Ignored apparent spaces within clear uninterrupted runs; tested injective raw/composite source units mapped to letters or eight reference-selected greedy bigrams, with zero bigrams as baseline. Word divisions are inferred separately. This is a static bounded expansion model, not arbitrary contextual shorthand. Unsupported source units break the stream and are reported.
 
-## Completed Round 3 benchmark
+Sixteen known ciphers were tested. One initial Hebrew control recovered only 7.1205%; increasing every search from six to eighteen starts before manuscript fitting yielded exact letter-stream recovery in all sixteen. Initial failures and code were preserved. Correct-letter boundary F1 ranged from 86.48% to 94.05%, so exact letters do not establish original spaces. Inventories were supplied in these controls, not discovered.
 
-Two invertible alphabet permutations may differ at at most four source positions. An observable previous-ending trigger or group-initial position chooses the alphabet. Apparent spaces and one-letter-per-assumed-unit length are fixed. Static substitution is the baseline. Four reference languages, raw/composite units, and separate A/B samples produced 48 manuscript fits and 96 negative-control fits. These are configurations, not independent cipher families.
+The primary matrix executed 32 manuscript and 64 negative-control fits. None of sixteen actual eight-abbreviation keys obeyed its forward rule on all training/development/confirmation samples, despite four passing confirmation alone. A post-primary train-only constrained extension refitted all 48 abbreviation configurations. Forty-six needed MILP repair; two were already feasible. All 48 constrained keys obey training. All-sample consistency holds for 3/16 manuscript, 5/16 shuffled and 6/16 generated keys. None was established as a translation.
 
-Eight known contextual ciphers were calibrated, with all three model alternatives fitted to each. The initial German group-initial control was below the 99% gate at 98.2936%; legal three-cycle polishing corrected the search barrier before any manuscript fitting. All eight final controls recovered every evaluated character. Initial source, controls and amendment are preserved.
-
-Keys were frozen before confirmation. The prospective reserve had 1,609 clear groups across five numbered leaves before rare-unit exclusions. Context improved on static in 13/16 manuscript configurations, 16/16 shuffled-group configurations and 13/16 positional-Markov configurations. This does not distinguish genuine decryption from improved text resemblance. No output was validated as continuous source-language text.
-
-The q check found `chedy qokeey qokeedy` at f111v.5 and `chedy qokeey okeedy` at f111v.38. This survives all three transliterations and both gap treatments. Under those readings/boundaries and without exceptions, q is not a deterministic optional prefix based only on the previous two written groups and current q-stripped group. The f39v example is weaker because merging an uncertain ZL gap removes its matched context.
-
-The weak visual-anchor pilot tested 10 tentative published drawing correspondences, retained seven clear labels and found no exact target-page matches. This is not a whole-manuscript image alignment, a botanical identification or semantic confirmation.
+A secondary word-order test gives unadjusted p below .05 for 4/32 primary actual configurations versus 5/32 shuffled and 1/32 generated; strict counts are 3/16, 3/16 and 0/16. One strict actual and one shuffled candidate pass both checks. These statistics are exploratory, correlated and not evidence of a language identification.
 
 ## Verification and reproduction
 
-The final 16-test suite passed, including independent recalculation of all 144 confirmation scores/outputs, all eight known-cipher recoveries, key constraints, forward/reverse operation, optimization scores, input hashes and derivations, split separation, null construction, q sensitivity and anchor exclusions. All 66 retained input/vendor files were byte-compared with the verified Round 2 archive. The final ZIP was independently extracted to a separate directory and its 16-test suite also passed.
+Primary 16-test and strict eight-test suites pass without errors or failures, including independent recalculation of all 144 confirmation scores and outputs. The final ZIP was separately extracted; all 556 manifest-listed member hashes and all 24 tests passed there. ZIP integrity, final hashes and unchanged prior archives were rechecked. All 83 retained input/vendor files were compared to the verified Round 3 archive.
 
-Run `python code/reproduce.py --verify-only` within the full package. `python code/reproduce.py --recompute ../Voynich_Round_3_Recomputed` builds a new execution in a destination that must not already exist. Its overwrite guard was tested; a second complete fresh fit recomputation was not executed or claimed.
+The whole primary pipeline was ACTUALLY recomputed in a new directory: 16 controls, four boundary tests, 96 fitted keys, 96 outputs and 96 word-order diagnostics. All compared scientific fields matched exactly. Runtime metadata and dependent hashes/timestamps were excluded. This does not include a second complete strict-extension fitting run.
+
+Within the complete package, run `python code/reproduce_all.py --verify-only` or `python code/reproduce_all.py --recompute ../Voynich_Round_4_Recomputed --workers 2`. Destination must not exist; overwrite guards were tested. The lower-level `reproduce.py` covers only primary work. Tested environment: Python 3.13.5, NumPy 2.3.5, Numba 0.65.1, SciPy 1.17.0. No network or service keys are needed for reproduction from the full ZIP.
 
 ## Do not break or overclaim
 
-No reserve here is previously untouched study-wide: all manuscript pages were available in Round 2. Fixed-key confirmation is not independent evidence. Do not rank languages by numerical scores across different language models or unitizations. One realization of each null construction is not a significance distribution. Related transliterations are not independent manuscripts.
+Preserve prior rounds and all original data, licenses, uncertainty exclusions, failed controls and frozen keys. Do not alter `Misc/HANDOFF.md`, which belongs to Zork. Source-unit assumptions and reference-trained abbreviations are not recovered pronunciations or historical abbreviations. Spaces are information-losing; dictionary segmentation is not semantic validation. No pages are pristine study-wide: exact Round 3 samples and null realizations were reused. The strict extension is explicitly post-primary, not fresh confirmation.
 
-Do not infer that q is silent or meaning-bearing, that similar residual strings mean the same thing, or that local correlation identifies encryption. The q contradiction applies only to the specified deterministic visible-local padding rule. Preserve uncertain-gap sensitivity, original data/licenses, adjacency-breaking exclusions, initial failed controls, frozen keys, and all candidate outputs.
-
-Do not call the two-state, length-preserving model a general variable-length contextual transducer. Do not claim any decoded word, plant name or coherent passage. Do not overwrite root `Misc/HANDOFF.md`, which belongs to Zork, or modify unrelated applications.
+Assignment optimality concerns minimum weighted changes from a preferred key, not globally optimal language decoding. A local feasible swap search is not exhaustive. Related transliterations and reused configurations are not independent replications. Negative absolute word-order gain also occurs on genuine reference prose. Do not promote isolated words, mechanical consistency or unadjusted permutation statistics into a translation.
 
 ## Next action
 
-Develop a constrained variable-length unit/abbreviation or boundary model with explicit forward rules and limited ambiguity. First demonstrate known-plaintext recovery and retain both nonsense controls. This is a next hypothesis, not evidence that abbreviations are the solution. Independent semantic predictions and continuous verified plaintext remain required and unachieved.
+Jointly infer a small, explicitly constrained source segmentation and target expansion inventory. First demonstrate recovery when the source-unit inventory is hidden, rather than supplied as in Round 4. Preserve exact forward checks and matched nulls; require independent semantic or cross-label predictions. A larger score alone is not a result. This model and independent semantic confirmation remain unimplemented or unestablished.
+
+## Earlier artifacts retained
+
+Round 3 remains at `voynich/round3/`; its full archive has SHA-256 `13d4e32ad3951507347b4a2cc001569cd3942ac20ec47055e23511ba12d80482`, 26,033,071 bytes. Round 2 remains at `voynich/REPORT.md` and `voynich/results/BENCHMARK.json`; full archive SHA-256 `17e4b2dfba8c201160da1aa2d3bf4a8116819ccbca6107371b1f97360ecde103`, 40,546,895 bytes. Original first-stage members were byte-checked against the verified Round 2 copy. None of those prior archives or reports was overwritten.
