@@ -1,0 +1,70 @@
+{
+  "project": "voynich-decipherment",
+  "benchmark_date": "2026-09-26",
+  "state": "IN PROGRESS",
+  "semantic_result": "No verified continuous plaintext, source-language identification, or word meaning established.",
+  "model": "Two bijective alphabets differing at no more than four source positions; observable previous-ending or group-initial state; fixed apparent spaces; length-preserving source-unit-to-letter mapping.",
+  "counts": {
+    "known_contextual_ciphers": 8,
+    "final_positive_model_comparisons": 24,
+    "actual_manuscript_model_fits": 48,
+    "negative_control_model_fits": 96,
+    "frozen_key_confirmation_evaluations": 144,
+    "fit_bundles": 48,
+    "known_character_evaluations": 45192,
+    "known_true_family_character_accuracy": 1.0,
+    "confirmation_groups_before_alphabet_exclusions": 1609,
+    "confirmation_numbered_leaves": 5
+  },
+  "calibration_amendment": "Initial German group-initial recovery was 98.2936%, below the 99% gate. Legal two-/three-cycle polishing was added before manuscript fitting. All initial controls and the amendment were retained; all eight final controls were exact on evaluated characters.",
+  "confirmation_comparisons": {
+    "actual_manuscript": {"configurations":16,"selected_context_beats_static":13},
+    "word_shuffle": {"configurations":16,"selected_context_beats_static":16},
+    "positional_markov": {"configurations":16,"selected_context_beats_static":13}
+  },
+  "robust_q_counterexample": {
+    "prefixed_locus":"f111v.5",
+    "prefixed_text":"chedy qokeey qokeedy",
+    "unprefixed_locus":"f111v.38",
+    "unprefixed_text":"chedy qokeey okeedy",
+    "sensitivity":"Present in ZL, IT and RF under both split and merged uncertain gaps.",
+    "conditional_inference":"Under those readings/boundaries and without exceptions, q is not a deterministic optional prefix based solely on the previous two written groups and current q-stripped group, with fixed rules throughout the folio.",
+    "weaker_example":"The f39v example disappears when ZL's uncertain or,aiin gap is merged; do not present it as equally robust."
+  },
+  "ordinary_reference_bits_saved": {
+    "Latin-Pliny":-0.00217967263602669,
+    "Italian-Old":0.04489795229751943,
+    "German-GSD":0.016369556270609487,
+    "Ancient_Hebrew-PTNK":0.05395586601525415
+  },
+  "visual_anchor_pilot":{"tentative_published_proposals":10,"evaluable_clear_labels":7,"exact_target_matches":0},
+  "verification":{
+    "tests_run":16,
+    "failures":0,
+    "errors":0,
+    "successful":true,
+    "all_144_confirmation_scores_independently_recalculated":true,
+    "copied_input_vendor_files_byte_compared_to_round2_archive":66,
+    "separately_extracted_final_zip_verification":"16 tests passed; no errors or failures.",
+    "full_second_fresh_fit_recomputation_claimed":false
+  },
+  "core_source":{
+    "path":"voynich/round3/code/contextual.py",
+    "sha256":"7392b987b0a56738a8990ca254297aafe71e4a7e06b4a13a2ddf5fee2ec1ac68",
+    "git_blob_sha1":"f7b69989e61dcb65080a5b09387ed2c99c9ac31a",
+    "publication_readback_matches_tested_file":true
+  },
+  "artifacts_in_conversation_not_binary_uploads_here":[
+    {"file":"Voynich_Round_3_Full.zip","bytes":26033071,"sha256":"13d4e32ad3951507347b4a2cc001569cd3942ac20ec47055e23511ba12d80482"},
+    {"file":"Voynich_Round_3_Report.md","bytes":15123,"sha256":"8eeac7dad94ac307353a2f8392294a21ae3506c6661c5730735006d2eaf18a8d"}
+  ],
+  "limitations":[
+    "No manuscript page is claimed previously unseen study-wide; reserve is prospective for this round only.",
+    "Configuration counts are not independent experiments or cipher families; one null realization per construction/sample was used.",
+    "Language scores across different reference models or unitizations do not identify a source language.",
+    "Three transliterations concern the same manuscript and are related.",
+    "Visual proposals are tentative and not independently established botanical identities.",
+    "Variable-length encoding, alternative boundaries, hidden-state rules and independent semantic confirmation remain unimplemented or unestablished."
+  ],
+  "next_action":"Develop a constrained variable-length unit/abbreviation or boundary model with explicit forward rules; calibrate known-text recovery and preserve nonsense controls before interpreting any manuscript candidate."
+}
