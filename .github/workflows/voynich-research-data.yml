@@ -1,0 +1,93 @@
+name: Voynich public research data
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/voynich-research-data.yml'
+permissions:
+  contents: read
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Collect and hash public research sources
+        shell: bash
+        run: |
+          mkdir -p research-data
+          python3 - <<'PY'
+          import concurrent.futures, gzip, hashlib, json, pathlib, urllib.request, urllib.error
+          out = pathlib.Path('research-data')
+          manifest = []
+          def fetch(url):
+              req = urllib.request.Request(url, headers={'User-Agent':'VoynichResearch/1.0 (public corpus analysis)'})
+              with urllib.request.urlopen(req, timeout=90) as r:
+                  return r.read()
+          for name in ['ZL3b-n.txt','IT2a-n.txt','RF1b-er.txt']:
+              url = 'https://www.voynich.nu/data/' + name
+              raw = fetch(url)
+              assert raw.startswith(b'#=IVTFF'), (name, raw[:80])
+              (out/name).write_bytes(raw)
+              manifest.append({'name':name,'url':url,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
+          corpora = [
+              ('Latin-ITTB','la_ittb'),
+              ('Latin-UDante','la_udante'),
+              ('Italian-Old','it_old'),
+              ('Ancient_Hebrew-PTNK','hbo_ptnk'),
+              ('German-GSD','de_gsd'),
+              ('Old_French-PROFITEROLE','fro_profiterole'),
+              ('Arabic-PADT','ar_padt'),
+              ('English-EWT','en_ewt')
+          ]
+          def collect(spec):
+              name, prefix = spec
+              root = out/name
+              root.mkdir()
+              records = []
+              base = 'https://raw.githubusercontent.com/UniversalDependencies/UD_' + name + '/r2.17/'
+              for filename in ['README.md','LICENSE.txt'] + [prefix+'-ud-'+s+'.conllu' for s in ['train','dev','test']]:
+                  url = base + filename
+                  try:
+                      raw = fetch(url)
+                  except urllib.error.HTTPError as e:
+                      if e.code == 404:
+                          records.append({'name':name+'/'+filename,'url':url,'status':'not present in release'})
+                          continue
+                      raise
+                  entry = {'name':name+'/'+filename,'url':url,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
+                  if filename.endswith('.conllu'):
+                      (root/(filename+'.gz')).write_bytes(gzip.compress(raw,mtime=0))
+                      sentences = []
+                      tokens, skip_to = [], -1
+                      for line in raw.decode('utf-8').splitlines()+['']:
+                          if not line.strip():
+                              if tokens: sentences.append(tokens)
+                              tokens, skip_to = [], -1
+                              continue
+                          if line.startswith('#'): continue
+                          fields = line.split('\t')
+                          idx = fields[0]
+                          if '-' in idx:
+                              lo,hi = map(int,idx.split('-'))
+                              tokens.append(fields[1]); skip_to = hi
+                          elif idx.isdigit() and int(idx)>skip_to:
+                              tokens.append(fields[1])
+                      target = filename.replace('.conllu','.sentences.json')
+                      (root/target).write_text(json.dumps(sentences,ensure_ascii=False),encoding='utf-8')
+                      entry.update(sentences=len(sentences),surface_tokens=sum(map(len,sentences)),surface_file=name+'/'+target)
+                  else:
+                      (root/filename).write_bytes(raw)
+                  records.append(entry)
+              assert any('surface_file' in r for r in records), name
+              return records
+          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+              for records in pool.map(collect,corpora): manifest.extend(records)
+          (out/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
+          print(json.dumps([r for r in manifest if 'surface_file' in r or r['name'].endswith('-n.txt')],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: voynich-public-data
+          path: research-data/
+          retention-days: 7
+          if-no-files-found: error
