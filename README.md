@@ -1,5 +1,11 @@
 # Misc
 
+## DAZN / NHL UK
+
+The durable handoff for the spoiler-safe Sabres replay Android project is in **[DAZN/](DAZN/)**.
+
+Start with **[DAZN/HANDOFF.md](DAZN/HANDOFF.md)** and **[DAZN/STATUS.md](DAZN/STATUS.md)**. The project is currently blocked at protected player position preparation on the real phone. Historical build reports are preserved under DAZN/history/.
+
 ## Zork I: The Great Underground Empire, modern interface
 
 **The original game, not a remake of its rules.** This runs the unmodified Infocom Zork I release 119 / serial 880429 in the MIT-licensed ifvms.js Z-machine. The modern interface only handles presentation, input and browser storage.
