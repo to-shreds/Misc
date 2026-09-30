@@ -10,7 +10,7 @@ The public Misc repository does not contain the private signing key. The latest 
 
 Version 3.1 reached "Prepare beginning." Tapping it produced "Unexpected position change." Nothing has ever successfully played in the protected DAZN player.
 
-This is materially different from the prior failures. Do not go back to catalog search, login, or Nord automation unless new evidence points there.
+This is materially different from the prior failures. Do not go back to catalogue search, login, or Nord automation unless new evidence points there.
 
 ## Preserve these completed decisions
 
@@ -49,6 +49,27 @@ The current guard also:
 
 The phone result is consistent with a race or normal DAZN player seek that occurs after step 7, but that is a hypothesis, not a conclusion.
 
+## Re-test the safety invariant, not just the threshold
+
+The current implementation implicitly treats almost any position movement during or immediately after preparation as a safety violation.
+
+That premise itself should be challenged.
+
+While the remote page is fully opaque and all media is muted, a DAZN-internal seek is not automatically a spoiler. The real safety requirement is that nothing becomes visible or audible until the final player state has been driven to, and independently verified at, the requested beginning or resume position.
+
+Work should therefore consider whether the guard should stop trying to prevent every provider currentTime write during covered preparation. A safer and more compatible design may be:
+
+- keep the player completely covered and muted throughout preparation;
+- allow DAZN to perform its normal internal initialization/seeks;
+- repeatedly reassert the requested target if necessary;
+- require the timeline and source to remain the selected game;
+- require a stable seekable range containing the requested target;
+- verify one or more decoded frames at the target after DAZN settles;
+- only then mark Ready;
+- after Ready, any unapproved position/source change before or during exposed playback remains fail-closed.
+
+Do not implement this as a blind sleep or a broad "ignore seeks for N seconds" rule. Use explicit state and final-state verification.
+
 ## Highest-information next test
 
 Instrument the event order before changing tolerances or disabling protections.
@@ -70,7 +91,7 @@ Use a fixed, spoiler-safe diagnostic event vocabulary such as:
 
 Do not include position values, duration values, page titles, HTML, URLs, query strings, cookies, tokens, scores, results, or current game state.
 
-A likely repair, if diagnostics prove a delayed event from the app's own seek, is a bounded seek-generation or settling-state model rather than a simple boolean internalSeek. If diagnostics prove DAZN legitimately self-seeks after the app's seek, model and authorize only the specific provider transition needed during preparation. Do not merely add a broad time window that ignores all seeks.
+A likely repair, if diagnostics prove a delayed event from the app's own seek, is a bounded seek-generation or settling-state model rather than a simple boolean internalSeek. If diagnostics prove DAZN legitimately self-seeks after the app's seek, model and authorize only the covered preparation transition needed to reach a final verified target. Do not merely add a broad time window that ignores all seeks.
 
 ## Test discipline
 
