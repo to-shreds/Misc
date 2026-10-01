@@ -17,7 +17,7 @@ The new target is:
 
 For implementation, tell Codex:
 
-`Read to-shreds/Misc/DAZN/CODEX_FIREFOX_HANDOFF.md and execute it.`
+`Clone https://github.com/to-shreds/Misc.git, read CODEX.md, and execute it.`
 
 That one file contains the controlling architecture, repository layout, implementation order, player state-machine design, testing requirements, Android-launcher boundary, distribution plan, and no-spoiler constraints.
 
