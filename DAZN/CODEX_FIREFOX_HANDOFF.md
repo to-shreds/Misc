@@ -1,5 +1,15 @@
 # CODEX HANDOFF: Firefox-first DAZN / NHL UK rebuild
 
+## Bootstrap
+
+This file is intended to be read from a clone of:
+
+`https://github.com/to-shreds/Misc.git`
+
+If you are in a fresh Codex workspace and the repository is not present, clone that repository first.
+
+The Firefox rebuild does **not** require the private legacy 3.1 archive to begin. Everything required for the initial Firefox extension implementation is documented in this repository. Treat the private archive as optional reference material only for later legacy-code reuse or Android signing continuity. Do not stop the Firefox work merely because that archive is unavailable.
+
 This file is the controlling implementation handoff for the next architecture.
 
 If you are Codex, read this file first, then read:
