@@ -1,0 +1,1438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HTML Toolbox v12 (Mobile)</title>
+<style>
+:root{
+  --bg:#0b0f17; --panel:#111827; --panel2:#0f172a; --text:#e5e7eb; --muted:#9ca3af;
+  --line:#22304a; --accent:#60a5fa; --danger:#fb7185; --ok:#34d399; --warn:#fbbf24;
+  --shadow: 0 10px 28px rgba(0,0,0,.35);
+  --r:16px; --pad:14px; --tap:44px; --max:1100px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:linear-gradient(180deg,#070a12,#0b1222 55%, #060914);color:var(--text);font:15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+a{color:var(--accent)}
+.wrap{max-width:var(--max);margin:0 auto;padding:calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 86px)}
+header{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:linear-gradient(180deg,rgba(11,15,23,.92),rgba(11,15,23,.62));border-bottom:1px solid var(--line)}
+.head{max-width:var(--max);margin:0 auto;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:10px;align-items:center;min-width:0}
+.logo{width:36px;height:36px;border-radius:12px;background:radial-gradient(circle at 30% 30%,#93c5fd,#1d4ed8);box-shadow:var(--shadow)}
+.title{min-width:0}
+.title h1{margin:0;font-size:16px;letter-spacing:.2px}
+.title p{margin:0;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:64vw}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(17,24,39,.65);color:var(--muted);font-size:12px}
+.dot{width:8px;height:8px;border-radius:999px;background:var(--warn)}
+.dot.ok{background:var(--ok)} .dot.bad{background:var(--danger)}
+.grid{display:grid;gap:12px}
+.card{background:linear-gradient(180deg,rgba(17,24,39,.92),rgba(15,23,42,.9));border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.cardHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px var(--pad);border-bottom:1px solid var(--line)}
+.cardHead .left{display:flex;align-items:center;gap:10px;min-width:0}
+.cardHead h2{margin:0;font-size:14px}
+.cardHead .sub{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60vw}
+.cardBody{padding:var(--pad)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.col{flex:1 1 220px;min-width:0}
+.btn{height:var(--tap);padding:0 14px;border-radius:14px;border:1px solid var(--line);background:rgba(2,6,23,.35);color:var(--text);font-weight:700;letter-spacing:.1px;display:inline-flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;user-select:none}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:rgba(96,165,250,.18);border-color:rgba(96,165,250,.45)}
+.btn.danger{background:rgba(251,113,133,.14);border-color:rgba(251,113,133,.45)}
+.btn.icon{width:var(--tap);padding:0}
+.btn.small{height:38px;border-radius:12px;padding:0 12px;font-size:13px}
+.input,textarea,select{width:100%;height:var(--tap);padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(2,6,23,.28);color:var(--text);outline:none}
+textarea{height:120px;resize:vertical;min-height:90px}
+.help{color:var(--muted);font-size:12px;margin-top:8px}
+details{border:1px solid var(--line);border-radius:14px;background:rgba(2,6,23,.18);overflow:hidden}
+summary{list-style:none;cursor:pointer;padding:12px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+summary::-webkit-details-marker{display:none}
+summary .sleft{display:flex;align-items:center;gap:10px;min-width:0}
+summary .stitle{font-weight:900}
+summary .sdesc{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55vw}
+.detailBody{padding:12px;border-top:1px solid var(--line)}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;font-size:11px;border:1px solid var(--line);color:var(--muted)}
+.tag.ok{color:#bbf7d0;border-color:rgba(52,211,153,.35)}
+.tag.warn{color:#fde68a;border-color:rgba(251,191,36,.35)}
+.tag.bad{color:#fecdd3;border-color:rgba(251,113,133,.35)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:12px;color:#cbd5e1}
+.list{display:grid;gap:10px}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;background:rgba(11,15,23,.9);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:8px 10px calc(env(safe-area-inset-bottom) + 8px)}
+.tabsInner{max-width:var(--max);margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tabBtn{height:46px;border-radius:14px;border:1px solid var(--line);background:rgba(2,6,23,.22);color:var(--muted);font-weight:800;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer}
+.tabBtn.active{background:rgba(96,165,250,.16);border-color:rgba(96,165,250,.45);color:var(--text)}
+.ico{font-size:14px;line-height:1}
+.view{display:none}
+.view.active{display:block}
+.toastWrap{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top) + 8px);z-index:80;pointer-events:none}
+.toast{max-width:min(600px,calc(100vw - 22px));margin:0 auto;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(17,24,39,.92);box-shadow:var(--shadow);pointer-events:none;display:none}
+.toast.show{display:block}
+.toast.good{border-color:rgba(52,211,153,.45)}
+.toast.bad{border-color:rgba(251,113,133,.55)}
+.modalBack{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:90;padding:14px}
+.modal{max-width:min(720px,calc(100vw - 28px));margin:10vh auto;background:linear-gradient(180deg,rgba(17,24,39,.98),rgba(15,23,42,.98));border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.modalHead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
+.modalHead h3{margin:0;font-size:14px}
+.modalBody{padding:14px}
+.modalBody p{margin:0 0 10px;color:var(--muted)}
+
+.th{cursor:pointer; user-select:none}
+.th:active{transform:translateY(1px)}
+tbody tr{border-bottom:1px solid rgba(34,48,74,.55)}
+tbody td{padding:10px; vertical-align:top; font-size:12px}
+tbody td .mono{font-size:12px}
+.actionRow{display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="head">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+              <div class="hr"></div>
+              <pre class="mono" id="assetDebug" style="white-space:pre-wrap;">(debug hidden)</pre>
+      <div class="title">
+        <h1>HTML Toolbox</h1>
+        <p id="statusLine">Web = load site + extract assets. HTML = edit the loaded HTML.</p>
+      </div>
+    </div>
+    <div class="chip" id="chip"><span class="dot" id="chipDot"></span><span id="chipText">No site loaded</span></div>
+  </div>
+</header>
+
+<div class="toastWrap"><div class="toast" id="toast"></div></div>
+
+<div class="wrap">
+  <div class="grid">
+
+    <!-- WEB VIEW -->
+    <div class="card view active" id="viewWeb">
+      <div class="cardHead">
+        <div class="left">
+          <div>
+            <h2>Web</h2>
+            <div class="sub" id="webSub">Load a site → list assets → export what you can.</div>
+          </div>
+        </div>
+        <button class="btn icon" id="helpWeb" aria-label="Help">?</button>
+      </div>
+      <div class="cardBody">
+        <div class="list">
+          <details open id="webLoadDetails">
+            <summary>
+              <div class="sleft">
+                <div class="stitle">Load website</div>
+                <div class="sdesc">This creates a “capture” automatically. No separate JSON step.</div>
+              </div>
+              <div class="tag ok">start here</div>
+            </summary>
+            <div class="detailBody">
+              <div class="row" style="flex-wrap:nowrap">
+                <input class="input" id="webUrl" placeholder="Paste website URL…">
+                <button class="btn primary" id="btnWebLoad">Load</button>
+                <button class="btn icon" id="helpWebLoad" aria-label="Help">?</button>
+              </div>
+              <div class="row" style="margin-top:10px">
+                <select class="input" id="webMode" style="max-width:280px">
+                  <option value="direct">Direct (often blocked)</option>
+                  <option value="jina">Proxy: r.jina.ai (usually works)</option>
+                  <option value="allorigins">Proxy: allorigins (fallback)</option>
+                </select>
+                <label class="tag"><input type="checkbox" id="webDeep" style="width:18px;height:18px;margin-right:6px" checked>Deep-scan for URLs inside scripts (best-effort)</label>
+              </div>
+              <div class="help">If Direct fails, switch to a proxy mode. Once loaded, the tools below work immediately.</div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sleft">
+                <div class="stitle">Assets</div>
+                <div class="sdesc">Scripts, styles, images, iframes, plus URL hints found in code.</div>
+              </div>
+              <div class="tag ok">works after load</div>
+            </summary>
+            <div class="detailBody">
+              <div class="row">
+                <button class="btn primary" id="btnAssetsList">List assets</button>
+                <button class="btn" id="btnAssetsDebug">Debug scan</button>
+                <button class="btn" id="btnAssetsCopy">Copy list</button>
+                <button class="btn" id="btnAssetsZip">Download same-origin ZIP</button>
+                <button class="btn icon" id="helpAssets" aria-label="Help">?</button>
+              </div>
+              <div class="help">Same-origin ZIP means “hosted on the same domain as the page.” Cross-origin downloads are often blocked by CORS.</div>
+              <div class="hr"></div>
+              
+              <div class="row" style="align-items:stretch">
+                <div class="col"><input class="input" id="assetFilter" placeholder="Filter (type or URL)…"></div>
+                <select class="input" id="assetTypeFilter" style="max-width:220px">
+                  <option value="">All types</option>
+                  <option value="script">script</option>
+                  <option value="style">style</option>
+                  <option value="img">img</option>
+                  <option value="iframe">iframe</option>
+                  <option value="src">src</option>
+                  <option value="href">href</option>
+                  <option value="hint">hint</option>
+                  <option value="md">md</option>
+                  <option value="mdimg">mdimg</option>
+                  <option value="url">url</option>
+                  <option value="asset">asset</option>
+                </select>
+              </div>
+              <div class="help">Tap column headers to sort. Filter updates live.</div>
+              <div class="hr"></div>
+              <div style="overflow:auto; border:1px solid var(--line); border-radius:14px;">
+                <table id="assetTable" style="width:100%; border-collapse:collapse; min-width:520px;">
+                  <thead>
+                    <tr style="background:rgba(2,6,23,.28);">
+                      <th class="th" data-sort="type" style="text-align:left; padding:10px; font-size:12px; position:sticky; top:0; background:rgba(2,6,23,.55); border-bottom:1px solid var(--line);">Type</th>
+                      <th class="th" data-sort="url" style="text-align:left; padding:10px; font-size:12px; position:sticky; top:0; background:rgba(2,6,23,.55); border-bottom:1px solid var(--line);">URL</th>
+                      <th style="text-align:right; padding:10px; font-size:12px; position:sticky; top:0; background:rgba(2,6,23,.55); border-bottom:1px solid var(--line);">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="assetTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sleft">
+                <div class="stitle">Tables</div>
+                <div class="sdesc">If the site renders an actual &lt;table&gt;, export it to CSV.</div>
+              </div>
+              <div class="tag warn">depends on site</div>
+            </summary>
+            <div class="detailBody">
+              <div class="row">
+                <button class="btn primary" id="btnTablesList">List tables</button>
+                <button class="btn" id="btnTablesLargest">Export largest → CSV</button>
+                <button class="btn icon" id="helpTables" aria-label="Help">?</button>
+              </div>
+              <div class="help">Some “spreadsheet” sites use div-grids instead of tables; in that case you’ll see 0 tables here.</div>
+              <div class="hr"></div>
+              <div id="tableList" class="list"></div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sleft">
+                <div class="stitle">Send to HTML editor</div>
+                <div class="sdesc">Open the fetched HTML in the HTML tab for comment cleanup / regex / rewrites.</div>
+              </div>
+              <div class="tag ok">optional</div>
+            </summary>
+            <div class="detailBody">
+              <div class="row">
+                <button class="btn primary" id="btnSendToHtml">Open in HTML tab</button>
+                <button class="btn icon" id="helpSend" aria-label="Help">?</button>
+              </div>
+              <div class="help">This doesn’t fetch again. It just moves the already-loaded HTML into the editor.</div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sleft">
+                <div class="stitle">Workspace metadata</div>
+                <div class="sdesc">What we loaded, from where, and basic stats.</div>
+              </div>
+              <div class="tag">collapsed</div>
+            </summary>
+            <div class="detailBody">
+              <pre class="mono" id="metaOut">{}</pre>
+            </div>
+          </details>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- HTML EDITOR -->
+    <div class="card view" id="viewHtml">
+      <div class="cardHead">
+        <div class="left">
+          <div>
+            <h2>HTML</h2>
+            <div class="sub" id="htmlSub">Load an HTML file, paste HTML, or send from Web.</div>
+          </div>
+        </div>
+        <button class="btn icon" id="helpHtml" aria-label="Help">?</button>
+      </div>
+      <div class="cardBody">
+        <div class="list">
+          <details>
+            <summary>
+              <div class="sleft">
+                <div class="stitle">Load HTML</div>
+                <div class="sdesc">File or paste. (URL loading lives in Web tab now.)</div>
+              </div>
+              <div class="tag ok">simple</div>
+            </summary>
+            <div class="detailBody">
+              <div class="row">
+                <input class="input" type="file" id="htmlFile" accept=".html,.htm,text/html">
+                <button class="btn primary" id="btnHtmlPaste">Load pasted HTML</button>
+                <button class="btn icon" id="helpHtmlLoad" aria-label="Help">?</button>
+              </div>
+              <textarea id="htmlPaste" placeholder="Paste HTML here…"></textarea>
+              <div class="row" style="margin-top:10px">
+                <button class="btn danger" id="btnClear">Clear workspace</button>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sleft">
+                <div class="stitle">Comments (HTML + script)</div>
+                <div class="sdesc">Find, edit, remove. Includes // and /* */ inside &lt;script&gt; blocks.</div>
+              </div>
+              <div class="tag ok">core</div>
+            </summary>
+            <div class="detailBody">
+              <div class="row">
+                <button class="btn primary" id="btnScanComments">Scan</button>
+                <button class="btn" id="btnRemoveSelected">Remove selected</button>
+                <button class="btn" id="btnRemoveAllComments">Remove ALL</button>
+                <button class="btn icon" id="helpComments" aria-label="Help">?</button>
+              </div>
+              <div class="hr"></div>
+              <div id="commentList" class="list"></div>
+              <div class="hr"></div>
+              <div class="row">
+                <button class="btn primary" id="btnDownloadHtml">Download updated HTML</button>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sleft">
+                <div class="stitle">Regex Find/Replace</div>
+                <div class="sdesc">Power search + replace across the loaded HTML text.</div>
+              </div>
+              <div class="tag ok">power</div>
+            </summary>
+            <div class="detailBody">
+              <div class="row">
+                <div class="col"><input class="input" id="frFind" placeholder="Find (regex or /pattern/gi)"></div>
+                <div class="col"><input class="input" id="frReplace" placeholder="Replace"></div>
+              </div>
+              <div class="row" style="margin-top:10px">
+                <button class="btn" id="btnFrPreview">Preview</button>
+                <button class="btn primary" id="btnFrApply">Replace all</button>
+                <button class="btn icon" id="helpFR" aria-label="Help">?</button>
+              </div>
+              <div class="hr"></div>
+              <pre class="mono" id="frOut">No preview yet.</pre>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZIP -->
+    <div class="card view" id="viewZip">
+      <div class="cardHead">
+        <div class="left">
+          <div><h2>ZIP</h2><div class="sub">Sanitize filenames and rezip.</div></div>
+        </div>
+        <button class="btn icon" id="helpZip" aria-label="Help">?</button>
+      </div>
+      <div class="cardBody">
+        <details>
+          <summary><div class="sleft"><div class="stitle">Sanitize + Rezip</div><div class="sdesc">Upload ZIP → download clean ZIP.</div></div><div class="tag ok">core</div></summary>
+          <div class="detailBody">
+            <input class="input" type="file" id="zipFile" accept=".zip,application/zip">
+            <div class="row" style="margin-top:10px">
+              <button class="btn primary" id="btnZipAnalyze">Analyze</button>
+              <button class="btn" id="btnZipSanitize">Sanitize + Download</button>
+              <button class="btn icon" id="helpZipSan" aria-label="Help">?</button>
+            </div>
+            <div class="hr"></div>
+            <pre class="mono" id="zipOut">Load a .zip file to begin.</pre>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Images -->
+    <div class="card view" id="viewImg">
+      <div class="cardHead">
+        <div class="left"><div><h2>Images</h2><div class="sub">Preview + convert (local).</div></div></div>
+        <button class="btn icon" id="helpImg" aria-label="Help">?</button>
+      </div>
+      <div class="cardBody">
+        <details>
+          <summary><div class="sleft"><div class="stitle">Preview + Convert</div><div class="sdesc">Load image → export PNG/JPEG/WebP.</div></div><div class="tag ok">easy</div></summary>
+          <div class="detailBody">
+            <input class="input" type="file" id="imgFile" accept="image/*">
+            <div class="row" style="margin-top:10px">
+              <button class="btn primary" id="btnImgPreview">Preview</button>
+              <button class="btn" id="btnImgToPng">PNG</button>
+              <button class="btn" id="btnImgToJpg">JPEG</button>
+              <button class="btn" id="btnImgToWebp">WebP</button>
+              <button class="btn icon" id="helpImgConv" aria-label="Help">?</button>
+            </div>
+            <div class="hr"></div>
+            <div id="imgStage"></div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- PDF / Word placeholders kept minimal to reduce cognitive load -->
+    <div class="card view" id="viewMore">
+      <div class="cardHead">
+        <div class="left"><div><h2>More</h2><div class="sub">PDF/Word tools can live here later. Keeping v12 focused.</div></div></div>
+        <button class="btn icon" id="helpMore" aria-label="Help">?</button>
+      </div>
+      <div class="cardBody">
+        <div class="help">You told me to make this simpler. So v12 focuses on the workflow you care about: <b>load website → list assets → export.</b></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<nav class="tabs" role="navigation" aria-label="Tool tabs">
+  <div class="tabsInner">
+    <button class="tabBtn active" data-tab="Web"><div class="ico">🌐</div><div>Web</div></button>
+    <button class="tabBtn" data-tab="Html"><div class="ico">🧩</div><div>HTML</div></button>
+    <button class="tabBtn" data-tab="Zip"><div class="ico">🗜️</div><div>ZIP</div></button>
+    <button class="tabBtn" data-tab="Img"><div class="ico">🖼️</div><div>Images</div></button>
+    <button class="tabBtn" data-tab="More"><div class="ico">➕</div><div>More</div></button>
+  </div>
+</nav>
+
+<div class="modalBack" id="modalBack" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal">
+    <div class="modalHead">
+      <h3 id="modalTitle">Help</h3>
+      <button class="btn icon" id="modalClose" aria-label="Close">✕</button>
+    </div>
+    <div class="modalBody" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  const state = {
+    web: { url:'', mode:'direct', html:'', contentType:'', loaded:false, assets:[], tables:[] },
+    html: { text:'', name:'updated.html', scanned:[] },
+    zipFile: null,
+    imgFile: null
+  };
+
+  // Toast
+  let toastTimer=null;
+  function toast(msg, ok=true){
+    const el=$('#toast');
+    el.textContent=msg;
+    el.classList.remove('good','bad','show');
+    el.classList.add('show', ok?'good':'bad');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>el.classList.remove('show'), 2200);
+  }
+
+  // Chip + status
+  function setChip(text, status='warn'){
+    $('#chipText').textContent=text;
+    const dot=$('#chipDot');
+    dot.classList.remove('ok','bad');
+    if(status==='ok') dot.classList.add('ok');
+    if(status==='bad') dot.classList.add('bad');
+  }
+  function setStatusLine(t){ $('#statusLine').textContent=t; }
+
+  // Modal help
+  const modalBack=$('#modalBack');
+  function showHelp(title, bodyHtml){
+    $('#modalTitle').textContent=title;
+    $('#modalBody').innerHTML=bodyHtml;
+    modalBack.style.display='block';
+    modalBack.setAttribute('aria-hidden','false');
+  }
+  function hideHelp(){ modalBack.style.display='none'; modalBack.setAttribute('aria-hidden','true'); }
+  $('#modalClose').addEventListener('click', hideHelp);
+  modalBack.addEventListener('click', (e)=>{ if(e.target===modalBack) hideHelp(); });
+
+  const HELP = {
+    web: ['Web tab', `<p>This is the only place you load a URL.</p>
+      <p>After loading, you can immediately list assets and export tables (if the site uses real <span class="mono">&lt;table&gt;</span> elements).</p>`],
+    webLoad: ['Load website', `<p><b>Direct</b> often fails from GitHub Pages because of CORS.</p>
+      <p>Try <b>Proxy: r.jina.ai</b> first; it often works for reading the HTML.</p>`],
+    assets: ['Assets', `<p>“List assets” scans the loaded HTML for:</p>
+      <p class="mono">• &lt;script src&gt;<br>• &lt;link rel=stylesheet href&gt;<br>• &lt;img src&gt;<br>• &lt;iframe src&gt;<br>• URLs mentioned in inline scripts/styles (deep scan option)</p>
+      <p>“Same-origin ZIP” tries to download assets hosted on the same domain as the page.</p>`],
+    tables: ['Tables', `<p>If the page renders an actual <span class="mono">&lt;table&gt;</span>, you can export it to CSV.</p>
+      <p>If it uses a div-based grid, you’ll see 0 tables (that’s normal).</p>`],
+    send: ['Send to HTML', `<p>This copies the already-loaded website HTML into the HTML editor tab, so you can remove comments or do regex rewrites.</p>`],
+    html: ['HTML tab', `<p>HTML editing tools only. No URL loading here.</p>`],
+    comments: ['Comments', `<p>Find/remove:</p><p class="mono">• &lt;!-- HTML comments --&gt;<br>• // and /* */ inside &lt;script&gt; blocks (best-effort)</p>`],
+    zip: ['ZIP', `<p>Sanitize filenames and rebuild a clean ZIP. Uses JSZip via CDN if needed.</p>`],
+    img: ['Images', `<p>Local preview + conversion via Canvas.</p>`],
+    more: ['More', `<p>Kept minimal on purpose. Once Web + HTML workflow feels right, we can add PDF/Word back without making this a mess.</p>`]
+  };
+  function bindHelp(id, key){
+    const el=$('#'+id);
+    if(!el) return;
+    el.addEventListener('click', ()=>showHelp(HELP[key][0], HELP[key][1]));
+  }
+  bindHelp('helpWeb','web');
+  bindHelp('helpWebLoad','webLoad');
+  bindHelp('helpAssets','assets');
+  bindHelp('helpTables','tables');
+  bindHelp('helpSend','send');
+  bindHelp('helpHtml','html');
+  bindHelp('helpHtmlLoad','html');
+  bindHelp('helpComments','comments');
+  bindHelp('helpZip','zip');
+  bindHelp('helpZipSan','zip');
+  bindHelp('helpImg','img');
+  bindHelp('helpImgConv','img');
+  bindHelp('helpMore','more');
+
+  // Tabs
+  const viewMap = {Web:'#viewWeb', Html:'#viewHtml', Zip:'#viewZip', Img:'#viewImg', More:'#viewMore'};
+  function activateTab(name){
+    $$('.tabBtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+    Object.entries(viewMap).forEach(([k, sel])=> $(sel).classList.toggle('active', k===name));
+  }
+  $$('.tabBtn').forEach(b=>b.addEventListener('click', ()=>activateTab(b.dataset.tab)));
+
+  // Utilities
+  function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  function htmlEntityDecode(s){
+    // Fast-ish decode for common entities; helps when proxies return escaped HTML.
+    return String(s||'')
+      .replace(/&lt;/g,'<')
+      .replace(/&gt;/g,'>')
+      .replace(/&amp;/g,'&')
+      .replace(/&quot;/g,'"')
+      .replace(/&#39;/g,"'")
+      .replace(/&apos;/g,"'");
+  }
+  function normalizeHtmlForScan(html){
+    const s = String(html||'');
+    // If it looks like the HTML is escaped (lots of &lt;), decode before scanning.
+    const lt = (s.match(/</g)||[]).length;
+    const entLt = (s.match(/&lt;/g)||[]).length;
+    if(entLt > lt * 2 && entLt > 20) return htmlEntityDecode(s);
+    return s;
+  }
+
+  function jsUnescape(s){
+    // Minimal unescape for URLs found inside JSON / JS strings.
+    return String(s||'')
+      .replace(/\u002F/gi,'/')
+      .replace(/\u003A/gi,':')
+      .replace(/\u0026/gi,'&')
+      .replace(/\u003D/gi,'=')
+      .replace(/\\//g,'/')
+      .replace(/\\/g,'\\');
+  }
+  function downloadText(text, filename, mime='text/plain'){
+    const blob=new Blob([text],{type:mime});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  }
+  function downloadBlob(blob, filename){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  }
+
+  function updateMeta(){
+    const m = {
+      web: { url: state.web.url, mode: state.web.mode, loaded: state.web.loaded, assets: state.web.assets.length, tables: state.web.tables.length, contentType: state.web.contentType },
+      html: { loaded: !!state.html.text, bytes: state.html.text.length, name: state.html.name },
+      ts: new Date().toISOString()
+    };
+    $('#metaOut').textContent = JSON.stringify(m, null, 2);
+  }
+
+  // WEB: load url (direct/proxy)
+  function buildFetchUrl(url, mode){
+    if(mode==='direct') return url;
+    if(mode==='jina'){
+      const clean = url.replace(/^https?:\/\//i, (m)=>m.toLowerCase());
+      return 'https://r.jina.ai/' + clean;
+    }
+    if(mode==='allorigins'){
+      return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+    }
+    return url;
+  }
+
+  async function webLoad(){
+    const url = ($('#webUrl').value||'').trim();
+    if(!url){ toast('Paste a URL first.', false); $('#webUrl').focus(); return; }
+
+    const userMode = $('#webMode').value || 'direct';
+    const deep = !!$('#webDeep').checked;
+
+    state.web.url = url;
+    state.web.mode = userMode;
+    state.web.loaded = false;
+    state.web.html = '';
+    state.web.assets = [];
+    state.web.tables = [];
+    $('#tableList').innerHTML = '';
+    const tbody = $('#assetTbody'); if(tbody) tbody.innerHTML = '';
+
+    setChip('Loading…','warn');
+    setStatusLine('Loading website…');
+
+    // Simple auto fallback. (No fancy per-mode status; that caused issues.)
+    const modesToTry = (userMode === 'direct') ? ['direct','jina','allorigins'] : [userMode,'jina','allorigins','direct'];
+
+    for(const mode of modesToTry){
+      try{
+        const fetchUrl = buildFetchUrl(url, mode);
+        const res = await fetch(fetchUrl, {credentials:'omit'});
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+
+        const ct = res.headers.get('content-type') || '';
+        const txt = await res.text();
+        const nhtml = normalizeHtmlForScan(txt);
+
+        state.web.html = nhtml;
+        state.web.contentType = ct;
+        state.web.loaded = true;
+        state.web.mode = mode;
+
+        $('#webSub').textContent = `${url} (${mode})`;
+        setChip('Site loaded','ok');
+        setStatusLine(`Loaded ${url} (${mode}). Now: List assets.`);
+
+        if(mode==='jina'){
+          const lt=(nhtml.match(/</g)||[]).length;
+          if(lt===0 && /Markdown Content:/i.test(nhtml)){
+            setStatusLine(`Loaded via jina (markdown view). Assets will come from URLs in the text.`);
+          }
+        }
+
+        try{
+          state.web.assets = discoverAssetsFromHtml(nhtml, url, deep).slice(0, 5000);
+        }catch(e){
+          state.web.assets = [];
+          toast('Asset scan crashed: ' + (e?.message || e), false);
+        }
+
+        const d = $('#webLoadDetails'); if(d) d.open = false;
+        toast(mode==='direct' ? 'Loaded (direct).' : `Loaded via ${mode}.`, true);
+        updateMeta();
+        return;
+      }catch(e){
+        // try next mode
+      }
+    }
+
+    state.web.loaded = false;
+    setChip('Load failed','bad');
+    setStatusLine('Load failed (direct + proxies).');
+    toast('Load failed (direct + proxies).', false);
+    updateMeta();
+  }
+
+  $('#btnWebLoad').addEventListener('click', webLoad);
+
+  // Asset discovery
+  function absUrl(base, ref){
+    try{
+      if(!ref) return '';
+      ref = String(ref).trim();
+      if(!ref || ref.startsWith('data:') || ref.startsWith('javascript:') || ref.startsWith('mailto:') || ref.startsWith('tel:')) return '';
+      if(ref.startsWith('//')){
+        const b=new URL(base);
+        return b.protocol + ref;
+      }
+      return new URL(ref, base).href;
+    }catch(e){ return ''; }
+  }
+  function discoverAssetsFromHtml(html, baseUrl, deep){
+    // Run multiple passes because proxies sometimes escape/wrap content.
+    const passes = [];
+    passes.push(String(html||''));
+    passes.push(normalizeHtmlForScan(html));
+    try{
+      const doc0 = new DOMParser().parseFromString(String(html||''), 'text/html');
+      const pre0 = doc0.querySelector('pre');
+      if(pre0 && pre0.textContent) passes.push(pre0.textContent);
+    }catch(_){}
+    try{
+      const doc1 = new DOMParser().parseFromString(normalizeHtmlForScan(html), 'text/html');
+      const pre1 = doc1.querySelector('pre');
+      if(pre1 && pre1.textContent) passes.push(pre1.textContent);
+    }catch(_){}
+
+    const assets = [];
+    const add = (type, raw) => {
+      const u = absUrl(baseUrl, jsUnescape(raw));
+      if(u) assets.push({type, url:u, raw});
+    };
+
+    // Special case: some proxies (e.g., r.jina.ai) return a Markdown "reader view" (no '<' chars).
+    // In that case, extract URLs from Markdown link syntax + plain URLs.
+    // Special case: some proxies (e.g., r.jina.ai) return a Markdown/reader view (no '<' chars).
+    // In that case, extract URLs from Markdown link syntax + plain URLs.
+    const rawInput = String(html||'');
+    const lt0 = (rawInput.match(/</g)||[]).length === 0;
+    const looksLikeMarkdownView =
+      lt0 && (/(Markdown Content:|URL Source:|Title:)/i.test(rawInput));
+
+    const addRawUrl = (type, rawUrl) => {
+      const u = jsUnescape(String(rawUrl||'').trim());
+      if(!u) return;
+      // Do NOT run through absUrl here; these are already absolute in the reader view.
+      if(/^https?:\/\/?/i.test(u)) assets.push({type, url: u, raw: u});
+      else assets.push({type, url: absUrl(baseUrl, u) || u, raw: u});
+    };
+
+    const markdownScan = (txt) => {
+      const s = String(txt||'');
+
+      // [text](url)
+      const mdLink = /\[[^\]]*\]\((https?:\/\/[^\)\s]+)\)/g;
+      mdLink.lastIndex = 0;
+      let m;
+      while((m = mdLink.exec(s)) !== null){ addRawUrl('md', m[1]); if(m[1].length===0) mdLink.lastIndex++; }
+
+      // ![alt](url)
+      const mdImg = /!\[[^\]]*\]\((https?:\/\/[^\)\s]+)\)/g;
+      mdImg.lastIndex = 0;
+      while((m = mdImg.exec(s)) !== null){ addRawUrl('mdimg', m[1]); if(m[1].length===0) mdImg.lastIndex++; }
+
+      // Plain URLs
+      const plain = /https?:\/\/[^\s"'<>]+/g;
+      plain.lastIndex = 0;
+      while((m = plain.exec(s)) !== null){ addRawUrl('url', m[0]); if(m[0].length===0) plain.lastIndex++; }
+    };
+
+    if(looksLikeMarkdownView){
+      for(const p of passes){ markdownScan(p); }
+    }
+
+
+    const domScan = (txt) => {
+      try{
+        const doc = new DOMParser().parseFromString(txt, 'text/html');
+        doc.querySelectorAll('script[src]').forEach(el=>add('script', el.getAttribute('src')));
+        doc.querySelectorAll('link[href]').forEach(el=>{
+          const rel = (el.getAttribute('rel')||'').toLowerCase();
+          if(rel.includes('stylesheet')) add('style', el.getAttribute('href'));
+          else if(rel.includes('preload') || rel.includes('modulepreload')) add('preload', el.getAttribute('href'));
+          else add('link', el.getAttribute('href'));
+        });
+        doc.querySelectorAll('img[src]').forEach(el=>add('img', el.getAttribute('src')));
+        doc.querySelectorAll('source[src]').forEach(el=>add('source', el.getAttribute('src')));
+        doc.querySelectorAll('video[src],audio[src]').forEach(el=>add(el.tagName.toLowerCase(), el.getAttribute('src')));
+        doc.querySelectorAll('iframe[src]').forEach(el=>add('iframe', el.getAttribute('src')));
+        doc.querySelectorAll('[srcset]').forEach(el=>{
+          const ss = el.getAttribute('srcset') || '';
+          ss.split(',').map(s=>s.trim().split(' ')[0]).filter(Boolean).forEach(u=>add('srcset', u));
+        });
+      }catch(_){}
+    };
+
+    const regexScan = (txt) => {
+      // Generic src/href attributes
+      const attrRe = /\b(src|href)\s*=\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s>]+))/gi;
+      let m;
+      while((m = attrRe.exec(txt)) !== null){
+        const attr = (m[1]||'').toLowerCase();
+        const raw = (m[2]||m[3]||m[4]||'').trim();
+        add(attr==='src'?'src':'href', raw);
+      }
+      // CSS url(...)
+      const cssUrl = /url\(\s*(?:\"([^\"]+)\"|'([^']+)'|([^\)\s]+))\s*\)/gi;
+      let cu; while((cu = cssUrl.exec(txt)) !== null){
+        const raw = (cu[1]||cu[2]||cu[3]||'').trim();
+        add('cssurl', raw);
+      }
+      // Common JSON keys containing URLs
+      const jsonUrl = /"(?:src|href|url|uri|file|path)"\s*:\s*"([^"]+)"/gi;
+      let ju; while((ju = jsonUrl.exec(txt)) !== null){
+        add('json', (ju[1]||'').trim());
+      }
+    };
+
+    // First do DOM+regex scans on each pass
+    for(const p of passes){
+      const t = String(p||'');
+      if(!t || t.length < 10) continue;
+      domScan(t);
+      regexScan(t);
+    }
+
+    // Deep scan for URL-ish strings (always if deep==true, or if we found nothing)
+    const needDeep = deep || assets.length === 0;
+    if(needDeep){
+      const urlish = /(?:(https?:\/\/)[^\s"'<>\\)]+|\/\/[^\s"'<>\\)]+|\/[^ \s"'<>\\)]+|\.\.\/[^ \s"'<>\\)]+|\.\/[^ \s"'<>\\)]+)/g;
+      for(const p of passes){
+        const t = String(p||'');
+        if(!t || t.length < 10) continue;
+        urlish.lastIndex = 0;
+        let mm; while((mm = urlish.exec(t)) !== null){
+          add('hint', mm[0]);
+          if(mm[0].length===0) urlish.lastIndex++;
+        }
+      }
+    }
+
+    // De-dupe
+    const seen = new Set();
+    const out = [];
+    for(const a of assets){
+      const k = a.url;
+      if(!k || seen.has(k)) continue;
+      seen.add(k);
+      out.push(a);
+    }
+    return out;
+  }
+
+
+  function extractUrlsAnyText(text, baseUrl){
+    const s = String(text||'');
+    const out = [];
+    const seen = new Set();
+    const add = (type,u)=>{
+      const url = String(u||'').trim();
+      if(!url) return;
+      const abs = (/^https?:\/\//i.test(url) ? url : (absUrl(baseUrl, url) || ''));
+      const key = abs || url;
+      if(!key || seen.has(key)) return;
+      seen.add(key);
+      out.push({type, url: key, raw: url});
+    };
+    // Markdown links
+    const md = /\[[^\]]*\]\((https?:\/\/[^\)\s]+)\)/g; md.lastIndex=0;
+    let m; while((m=md.exec(s))!==null){ add('md', m[1]); if(m[1].length===0) md.lastIndex++; }
+    // Plain urls
+    const plain = /https?:\/\/[^\s"'<>]+/g; plain.lastIndex=0;
+    while((m=plain.exec(s))!==null){ add('url', m[0]); if(m[0].length===0) plain.lastIndex++; }
+    return out;
+  }
+function detectTypeFromUrl(u){
+    const path = (u||'').split('?')[0].split('#')[0].toLowerCase();
+    const ext = (path.match(/\.([a-z0-9]{1,8})$/)||[])[1] || '';
+    if(!ext) return '';
+    return ext;
+  }
+
+  let assetSort = {key:'type', dir:1};
+
+  function filteredAssets(){
+    const q = ($('#assetFilter')?.value || '').trim().toLowerCase();
+    const tf = ($('#assetTypeFilter')?.value || '').trim().toLowerCase();
+    return (state.web.assets||[]).filter(a=>{
+      if(tf && (String(a.type||'').toLowerCase()!==tf)) return false;
+      if(!q) return true;
+      return String(a.url||'').toLowerCase().includes(q) || String(a.type||'').toLowerCase().includes(q);
+    });
+  }
+
+  function sortAssets(list){
+    const key = assetSort.key;
+    const dir = assetSort.dir;
+    const norm = (v)=>String(v||'').toLowerCase();
+    return list.slice().sort((a,b)=>{
+      const av = key==='type' ? norm(a.type) : norm(a.url);
+      const bv = key==='type' ? norm(b.type) : norm(b.url);
+      if(av<bv) return -1*dir;
+      if(av>bv) return  1*dir;
+      return 0;
+    });
+  }
+
+  function renderAssetTable(){
+    const tbody = $('#assetTbody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    const list = sortAssets(filteredAssets());
+    if(!list.length){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="3" class="mono" style="padding:12px; color: var(--muted);">No assets to display.</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+    const max = Math.min(list.length, 500);
+    for(let i=0;i<max;i++){
+      const a = list[i];
+      const tr = document.createElement('tr');
+      const ext = detectTypeFromUrl(a.url);
+      const typeLabel = a.type + (ext ? ` • .${ext}` : '');
+      tr.innerHTML = `
+        <td><span class="tag ${a.type==='script'?'warn':(a.type==='style'?'ok':'')}">${escapeHtml(typeLabel)}</span></td>
+        <td><div class="mono" style="word-break:break-word">${escapeHtml(a.url||'')}</div></td>
+        <td>
+          <div class="actionRow">
+            <button class="btn small" data-open>View</button>
+            <button class="btn small" data-dl>Download</button>
+          </div>
+        </td>`;
+      tr.querySelector('[data-open]').addEventListener('click', ()=> window.open(a.url,'_blank'));
+      tr.querySelector('[data-dl]').addEventListener('click', async ()=>{
+        try{
+          const res = await fetch(a.url, {credentials:'omit'});
+          if(!res.ok) throw new Error('HTTP '+res.status);
+          const blob = await res.blob();
+          let name = 'asset';
+          try{
+            const u = new URL(a.url);
+            name = (u.pathname.split('/').pop() || 'asset');
+          }catch(_){}
+          downloadBlob(blob, name);
+          toast('Downloaded '+name, true);
+        }catch(e){
+          toast('Download blocked (CORS) or failed.', false);
+        }
+      });
+      tbody.appendChild(tr);
+    }
+    if(list.length > max){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="3" class="mono" style="padding:12px; color: var(--muted);">Showing first ${max} of ${list.length}. Narrow your filter to see more.</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // Wire sort headers
+  $$('#assetTable .th').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.sort;
+      if(assetSort.key === key) assetSort.dir *= -1;
+      else assetSort = {key, dir: 1};
+      renderAssetTable();
+    });
+  });
+
+  // Live filter
+  $('#assetFilter')?.addEventListener('input', ()=> renderAssetTable());
+  $('#assetTypeFilter')?.addEventListener('change', ()=> renderAssetTable());
+
+  $('#btnAssetsList').addEventListener('click', ()=>{
+    if(!state.web.loaded){ toast('Load a site first.', false); return; }
+
+    // If assets are empty, do a last-resort extraction from whatever text we have (HTML or markdown view).
+    if(!Array.isArray(state.web.assets) || state.web.assets.length===0){
+      const recovered = extractUrlsAnyText(state.web.html, state.web.url);
+      if(recovered.length){
+        state.web.assets = recovered;
+        toast(`Recovered ${recovered.length} URLs from the loaded content.`, true);
+      }else{
+        toast('No assets found in the loaded content.', false);
+      }
+    }
+
+    renderAssetTable();
+    const d = $('#webLoadDetails'); if(d) d.open = false;
+    updateMeta();
+  });
+
+  $('#btnAssetsCopy').addEventListener('click', async ()=>{
+    if(!state.web.loaded){ toast('Load a site first.', false); return; }
+    const list = filteredAssets().map(a=>a.url).join('\n');
+    try{
+      await navigator.clipboard.writeText(list);
+      toast('Copied asset URLs.', true);
+    }catch(e){
+      downloadText(list, 'assets.txt', 'text/plain');
+      toast('Clipboard blocked; downloaded assets.txt.', false);
+    }
+  });
+  $('#btnAssetsDebug')?.addEventListener('click', ()=>{
+    if(!state.web.loaded){ toast('Load a site first.', false); return; }
+    const html = String(state.web.html||'');
+    const snippet = html.slice(0, 1200);
+    const stats = {
+      mode: state.web.mode,
+      url: state.web.url,
+      bytes: html.length,
+      ltCount: (html.match(/</g)||[]).length,
+      srcCount: (html.match(/\bsrc\s*=/gi)||[]).length,
+      hrefCount: (html.match(/\bhref\s*=/gi)||[]).length,
+      scriptTag: (html.match(/<script\b/gi)||[]).length,
+      linkTag: (html.match(/<link\b/gi)||[]).length,
+      imgTag: (html.match(/<img\b/gi)||[]).length,
+      iframeTag: (html.match(/<iframe\b/gi)||[]).length
+    };
+    const out = 'Scan debug\n' + JSON.stringify(stats, null, 2) + '\n\nFirst 1200 chars:\n' + snippet;
+    const el = $('#assetDebug');
+    if(el) el.textContent = out;
+    toast('Debug info updated below.', true);
+  });
+
+
+  // Same-origin ZIP (JSZip via CDN)
+  async function ensureJsZip(){
+    if(window.JSZip) return true;
+    const url='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+    return new Promise((resolve)=>{
+      const s=document.createElement('script');
+      s.src=url;
+      s.onload=()=>resolve(!!window.JSZip);
+      s.onerror=()=>resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+  function originOf(u){ try{return (new URL(u)).origin}catch(e){return ''} }
+
+  $('#btnAssetsZip').addEventListener('click', async ()=>{
+    if(!state.web.loaded){ toast('Load a site first.', false); return; }    const ok = await ensureJsZip();
+    if(!ok){ toast('JSZip failed to load (CDN blocked).', false); return; }
+    const pageOrigin = originOf(state.web.url);
+    const same = state.web.assets.filter(a => originOf(a.url) === pageOrigin);
+    if(!same.length){ toast('No same-origin assets found.', false); return; }
+    toast('Downloading same-origin assets…', true);
+    const zip = new JSZip();
+    let added=0, failed=0;
+    for(const a of same.slice(0, 120)){
+      try{
+        const res = await fetch(a.url, {credentials:'omit'});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const blob = await res.blob();
+        const u=new URL(a.url);
+        const name=(u.pathname.split('/').filter(Boolean).join('/')) || ('asset_'+added);
+        zip.file(name, blob);
+        added++;
+      }catch(e){ failed++; }
+    }
+    const zblob = await zip.generateAsync({type:'blob'});
+    downloadBlob(zblob, 'same_origin_assets.zip');
+    toast(`ZIP ready. Added ${added}, failed ${failed}.`, true);
+  });
+
+  // Tables from loaded HTML
+  function parseHtmlToDoc(html){
+    html = normalizeHtmlForScan(html);
+    const p=new DOMParser();
+    return p.parseFromString(html, 'text/html');
+  }
+  function tableToCsv(table){
+    const rows = Array.from(table.querySelectorAll('tr'));
+    const lines = rows.map(tr=>{
+      const cells = Array.from(tr.querySelectorAll('th,td')).map(td=>{
+        const text = (td.textContent||'').trim().replace(/\s+/g,' ');
+        return `"${text.replace(/"/g,'""')}"`;
+      });
+      return cells.join(',');
+    });
+    return lines.join('\n');
+  }
+  function renderTables(doc){
+    const host=$('#tableList');
+    host.innerHTML='';
+    const tables=Array.from(doc.querySelectorAll('table'));
+    if(!tables.length){
+      host.innerHTML='<div class="help">No &lt;table&gt; elements found in the loaded HTML.</div>';
+      return {tables:[]};
+    }
+    tables.forEach((t,i)=>{
+      const rows=t.querySelectorAll('tr').length;
+      const cols=(t.querySelector('tr')?.querySelectorAll('th,td')?.length)||0;
+      const card=document.createElement('div');
+      card.className='card';
+      card.style.boxShadow='none';
+      card.style.background='rgba(2,6,23,.18)';
+      card.style.borderColor='rgba(34,48,74,.9)';
+      card.innerHTML=`
+        <div class="cardBody" style="padding:12px">
+          <div class="row" style="justify-content:space-between">
+            <div class="row" style="gap:8px">
+              <span class="tag ok">table</span>
+              <span class="mono">#${i+1}</span>
+              <span class="tag">${rows} rows</span>
+              <span class="tag">${cols} cols</span>
+            </div>
+            <button class="btn small">CSV</button>
+          </div>
+        </div>`;
+      card.querySelector('button').addEventListener('click', ()=>{
+        downloadText(tableToCsv(t), `table_${i+1}.csv`, 'text/csv');
+        toast('CSV downloaded.', true);
+      });
+      host.appendChild(card);
+    });
+    return {tables};
+  }
+
+  $('#btnTablesList').addEventListener('click', ()=>{
+    if(!state.web.loaded){ toast('Load a site first.', false); return; }
+    const doc=parseHtmlToDoc(state.web.html);
+    const r=renderTables(doc);
+    state.web.tables = r.tables;
+    toast(`Found ${r.tables.length} tables.`, true);
+    updateMeta();
+  });
+
+  $('#btnTablesLargest').addEventListener('click', ()=>{
+    if(!state.web.loaded){ toast('Load a site first.', false); return; }
+    const doc=parseHtmlToDoc(state.web.html);
+    const tables=Array.from(doc.querySelectorAll('table'));
+    if(!tables.length){ toast('No tables found.', false); return; }
+    let best=tables[0], bestScore=-1, idx=0;
+    tables.forEach((t,i)=>{
+      const rows=t.querySelectorAll('tr').length;
+      const cols=(t.querySelector('tr')?.querySelectorAll('th,td')?.length)||0;
+      const s=rows*cols;
+      if(s>bestScore){bestScore=s;best=t;idx=i;}
+    });
+    downloadText(tableToCsv(best), `largest_table_${idx+1}.csv`, 'text/csv');
+    toast('Largest table exported.', true);
+  });
+
+  // Send to HTML editor
+  $('#btnSendToHtml').addEventListener('click', ()=>{
+    if(!state.web.loaded){ toast('Load a site first.', false); return; }
+    state.html.text = state.web.html;
+    state.html.name = 'from_web.html';
+    $('#htmlSub').textContent = `${state.web.url} (${state.web.mode})`;
+    toast('Opened in HTML tab.', true);
+    activateTab('Html');
+    setStatusLine('HTML editor — working copy from Web.');
+    setChip('HTML ready','ok');
+    updateMeta();
+  });
+
+  // HTML load
+  $('#htmlFile').addEventListener('change', async (e)=>{
+    const f=e.target.files && e.target.files[0];
+    if(!f) return;
+    state.html.text = await f.text();
+    state.html.name = f.name || 'updated.html';
+    toast('HTML loaded.', true);
+    $('#htmlSub').textContent = `${state.html.name}`;
+    setChip('HTML loaded','ok');
+    updateMeta();
+    e.target.value='';
+  });
+  $('#btnHtmlPaste').addEventListener('click', ()=>{
+    const t=($('#htmlPaste').value||'');
+    if(!t.trim()){ toast('Paste HTML first.', false); return; }
+    state.html.text=t;
+    state.html.name='pasted.html';
+    toast('HTML pasted.', true);
+    $('#htmlSub').textContent = `pasted.html`;
+    setChip('HTML loaded','ok');
+    updateMeta();
+  });
+
+  // Clear
+  $('#btnClear').addEventListener('click', ()=>{
+    state.web = { url:'', mode:'direct', html:'', contentType:'', loaded:false, assets:[], tables:[] };
+    state.html = { text:'', name:'updated.html', scanned:[] };
+    $('#webUrl').value='';
+    const tbody = $('#assetTbody'); if(tbody) tbody.innerHTML='';
+    $('#tableList').innerHTML='';
+    $('#commentList').innerHTML='';
+    $('#frOut').textContent='No preview yet.';
+    setChip('No site loaded','warn');
+    setStatusLine('Web = load site + extract assets. HTML = edit the loaded HTML.');
+    toast('Cleared.', true);
+    updateMeta();
+    activateTab('Web');
+  });
+
+  // HTML comment tools
+  function splitScriptBlocks(htmlText){
+    const blocks=[];
+    const re=/<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+    let m;
+    while((m=re.exec(htmlText))!==null){
+      blocks.push({start:m.index,end:re.lastIndex,inner:m[1],innerStart:m.index + m[0].indexOf(m[1])});
+    }
+    return blocks;
+  }
+  function scanHtmlComments(htmlText){
+    const out=[];
+    const re=/<!--([\s\S]*?)-->/g;
+    let m,i=0;
+    while((m=re.exec(htmlText))!==null){
+      out.push({id:'H'+(++i),type:'HTML',start:m.index,end:re.lastIndex,preview:m[0].slice(0,180).replace(/\s+/g,' ').trim()});
+    }
+    return out;
+  }
+  function scanJsCommentsInText(jsText){
+    const scrub=jsText
+      .replace(/`(?:\\.|[^`])*`/g, m=>' '.repeat(m.length))
+      .replace(/"(?:\\.|[^"])*"/g, m=>' '.repeat(m.length))
+      .replace(/'(?:\\.|[^'])*'/g, m=>' '.repeat(m.length));
+    const out=[];
+    const block=/\/\*[\s\S]*?\*\//g;
+    let m;
+    while((m=block.exec(scrub))!==null) out.push({kind:'BLOCK',start:m.index,end:block.lastIndex});
+    const line=/\/\/[^\n\r]*/g;
+    while((m=line.exec(scrub))!==null) out.push({kind:'LINE',start:m.index,end:line.lastIndex});
+    out.sort((a,b)=>a.start-b.start||a.end-b.end);
+    const merged=[];
+    for(const c of out){
+      const last=merged[merged.length-1];
+      if(last && c.start<=last.end) last.end=Math.max(last.end,c.end);
+      else merged.push({...c});
+    }
+    return merged;
+  }
+  function scanAllComments(){
+    const htmlText=state.html.text||'';
+    const items=[...scanHtmlComments(htmlText)];
+    const scripts=splitScriptBlocks(htmlText);
+    let sidx=0;
+    for(const s of scripts){
+      sidx++;
+      const found=scanJsCommentsInText(s.inner||'');
+      let j=0;
+      for(const f of found){
+        const absStart=s.innerStart + f.start;
+        const absEnd=s.innerStart + f.end;
+        const preview=htmlText.slice(absStart, Math.min(absEnd, absStart+220)).replace(/\s+/g,' ').trim();
+        items.push({id:'S'+sidx+'_'+(++j),type:'JS',start:absStart,end:absEnd,preview});
+      }
+    }
+    items.sort((a,b)=>a.start-b.start);
+    return items;
+  }
+  function renderComments(list){
+    const host=$('#commentList');
+    host.innerHTML='';
+    if(!list.length){ host.innerHTML='<div class="help">No comments found.</div>'; return; }
+    for(const it of list){
+      const card=document.createElement('div');
+      card.className='card';
+      card.style.boxShadow='none';
+      card.style.background='rgba(2,6,23,.18)';
+      card.style.borderColor='rgba(34,48,74,.9)';
+      card.innerHTML=`
+        <div class="cardBody" style="padding:12px">
+          <div class="row" style="justify-content:space-between">
+            <div class="row" style="gap:8px">
+              <span class="tag ${it.type==='HTML'?'ok':'warn'}">${escapeHtml(it.type)}</span>
+              <span class="mono">${escapeHtml(it.id)}</span>
+            </div>
+            <label class="tag"><input type="checkbox" data-cid="${escapeHtml(it.id)}" style="width:18px;height:18px;margin-right:6px">Select</label>
+          </div>
+          <div class="hr" style="margin:10px 0"></div>
+          <div class="mono" style="white-space:pre-wrap;word-break:break-word">${escapeHtml(it.preview)}</div>
+        </div>`;
+      host.appendChild(card);
+    }
+  }
+
+  $('#btnScanComments').addEventListener('click', ()=>{
+    if(!state.html.text){ toast('Load HTML first.', false); return; }
+    state.html.scanned = scanAllComments();
+    renderComments(state.html.scanned);
+    toast(`Found ${state.html.scanned.length} comment blocks.`, true);
+  });
+  $('#btnRemoveSelected').addEventListener('click', ()=>{
+    if(!state.html.text){ toast('Load HTML first.', false); return; }
+    if(!state.html.scanned.length){ toast('Scan first.', false); return; }
+    const selected=new Set($$('#commentList input[type="checkbox"]:checked').map(x=>x.dataset.cid));
+    if(!selected.size){ toast('Select comments first.', false); return; }
+    const toRemove=state.html.scanned.filter(x=>selected.has(x.id)).sort((a,b)=>b.start-a.start);
+    let txt=state.html.text;
+    for(const r of toRemove) txt = txt.slice(0,r.start) + txt.slice(r.end);
+    state.html.text=txt;
+    state.html.scanned=[];
+    $('#commentList').innerHTML='<div class="help">Removed selected comments. Re-scan to refresh.</div>';
+    toast('Removed selected.', true);
+    updateMeta();
+  });
+  $('#btnRemoveAllComments').addEventListener('click', ()=>{
+    if(!state.html.text){ toast('Load HTML first.', false); return; }
+    const all=scanAllComments().sort((a,b)=>b.start-a.start);
+    let txt=state.html.text;
+    for(const r of all) txt = txt.slice(0,r.start) + txt.slice(r.end);
+    state.html.text=txt;
+    state.html.scanned=[];
+    $('#commentList').innerHTML='<div class="help">Removed ALL comments.</div>';
+    toast('Removed all.', true);
+    updateMeta();
+  });
+  $('#btnDownloadHtml').addEventListener('click', ()=>{
+    if(!state.html.text){ toast('No HTML loaded.', false); return; }
+    downloadText(state.html.text, state.html.name || 'updated.html', 'text/html');
+    toast('Downloaded.', true);
+  });
+
+  // Regex find/replace
+  function parseRegex(input){
+    const s=(input||'').trim();
+    if(!s) return null;
+    if(s.startsWith('/') && s.lastIndexOf('/')>0){
+      const last=s.lastIndexOf('/');
+      const pat=s.slice(1,last);
+      const flags=s.slice(last+1) || 'g';
+      return new RegExp(pat, flags.includes('g')?flags:flags+'g');
+    }
+    return new RegExp(s,'g');
+  }
+  $('#btnFrPreview').addEventListener('click', ()=>{
+    if(!state.html.text){ toast('Load HTML first.', false); return; }
+    let re; try{re=parseRegex($('#frFind').value);}catch(e){toast('Bad regex.', false);return;}
+    if(!re){toast('Enter a find pattern.', false);return;}
+    const txt=state.html.text;
+    const matches=[];
+    let m,count=0;
+    while((m=re.exec(txt))!==null && count<25){
+      const start=m.index, end=start+m[0].length;
+      const sn=txt.slice(Math.max(0,start-40), Math.min(txt.length,end+40)).replace(/\s+/g,' ');
+      matches.push(`@${start}: ${sn}`);
+      count++;
+      if(m[0].length===0) re.lastIndex++;
+    }
+    $('#frOut').textContent = matches.length?matches.join('\n\n'):'No matches found.';
+    toast(`Previewed ${matches.length} matches.`, true);
+  });
+  $('#btnFrApply').addEventListener('click', ()=>{
+    if(!state.html.text){ toast('Load HTML first.', false); return; }
+    let re; try{re=parseRegex($('#frFind').value);}catch(e){toast('Bad regex.', false);return;}
+    if(!re){toast('Enter a find pattern.', false);return;}
+    const rep=$('#frReplace').value ?? '';
+    const before=state.html.text;
+    const after=before.replace(re, rep);
+    state.html.text=after;
+    toast(before!==after ? 'Replaced.' : 'No changes.', before!==after);
+    updateMeta();
+  });
+
+  // ZIP (JSZip CDN)
+  async function ensureJsZip(){
+    if(window.JSZip) return true;
+    const url='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+    return new Promise((resolve)=>{
+      const s=document.createElement('script');
+      s.src=url;
+      s.onload=()=>resolve(!!window.JSZip);
+      s.onerror=()=>resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+  function sanitizePath(p){
+    return (p||'file')
+      .replace(/[<>:"\\|?*\x00-\x1F]/g,'_')
+      .replace(/\s+/g,' ')
+      .replace(/\/{2,}/g,'/')
+      .replace(/^\/+|\/+$/g,'')
+      .replace(/\.\.(\/|$)/g,'__/');
+  }
+  let zipFile = null;
+  $('#zipFile').addEventListener('change', (e)=>{ zipFile = e.target.files && e.target.files[0]; });
+  $('#btnZipAnalyze').addEventListener('click', async ()=>{
+    if(!zipFile){ toast('Load a ZIP file first.', false); return; }
+    const ok=await ensureJsZip();
+    if(!ok){ $('#zipOut').textContent='JSZip failed to load.'; toast('JSZip failed.', false); return; }
+    try{
+      const zip=await JSZip.loadAsync(await zipFile.arrayBuffer());
+      const names=Object.keys(zip.files);
+      const bad=names.filter(n=>sanitizePath(n)!==n);
+      $('#zipOut').textContent=`Files: ${names.length}\nNeeding rename: ${bad.length}\n\nExamples:\n` + bad.slice(0,30).map(n=>`- ${n} -> ${sanitizePath(n)}`).join('\n');
+      toast('Analyzed ZIP.', true);
+    }catch(e){
+      $('#zipOut').textContent='Could not read ZIP.';
+      toast('ZIP read failed.', false);
+    }
+  });
+  $('#btnZipSanitize').addEventListener('click', async ()=>{
+    if(!zipFile){ toast('Load a ZIP file first.', false); return; }
+    const ok=await ensureJsZip();
+    if(!ok){ toast('JSZip failed.', false); return; }
+    try{
+      const zip=await JSZip.loadAsync(await zipFile.arrayBuffer());
+      const out=new JSZip();
+      let count=0;
+      for(const [name, entry] of Object.entries(zip.files)){
+        if(entry.dir) continue;
+        const clean=sanitizePath(name) || ('file_'+count);
+        const data=await entry.async('uint8array');
+        out.file(clean, data);
+        count++;
+      }
+      const zblob=await out.generateAsync({type:'blob'});
+      const outName=(zipFile.name||'zip').replace(/\.zip$/i,'')+'_sanitized.zip';
+      downloadBlob(zblob,outName);
+      toast('Sanitized ZIP downloaded.', true);
+    }catch(e){
+      toast('Sanitize failed.', false);
+    }
+  });
+
+  // Images
+  let imgFile=null;
+  $('#imgFile').addEventListener('change', (e)=>{ imgFile = e.target.files && e.target.files[0]; });
+  async function fileToImage(file){
+    const url=URL.createObjectURL(file);
+    return new Promise((resolve,reject)=>{
+      const img=new Image();
+      img.onload=()=>{URL.revokeObjectURL(url); resolve(img);};
+      img.onerror=()=>{URL.revokeObjectURL(url); reject(new Error('image load failed'));};
+      img.src=url;
+    });
+  }
+  async function exportCanvas(img, mime, name){
+    const canvas=document.createElement('canvas');
+    canvas.width=img.naturalWidth||img.width;
+    canvas.height=img.naturalHeight||img.height;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(img,0,0);
+    const blob=await new Promise(r=>canvas.toBlob(r, mime, 0.92));
+    downloadBlob(blob,name);
+  }
+  $('#btnImgPreview').addEventListener('click', async ()=>{
+    if(!imgFile){ toast('Load an image first.', false); return; }
+    try{
+      const img=await fileToImage(imgFile);
+      const host=$('#imgStage'); host.innerHTML='';
+      img.style.maxWidth='100%';
+      img.style.borderRadius='14px';
+      img.style.border='1px solid rgba(34,48,74,.9)';
+      host.appendChild(img);
+      toast('Preview ready.', true);
+    }catch(e){ toast('Preview failed.', false); }
+  });
+  $('#btnImgToPng').addEventListener('click', async ()=>{
+    if(!imgFile){ toast('Load an image first.', false); return; }
+    const img=await fileToImage(imgFile);
+    await exportCanvas(img,'image/png',(imgFile.name||'image').replace(/\.\w+$/,'')+'.png');
+    toast('Exported PNG.', true);
+  });
+  $('#btnImgToJpg').addEventListener('click', async ()=>{
+    if(!imgFile){ toast('Load an image first.', false); return; }
+    const img=await fileToImage(imgFile);
+    await exportCanvas(img,'image/jpeg',(imgFile.name||'image').replace(/\.\w+$/,'')+'.jpg');
+    toast('Exported JPEG.', true);
+  });
+  $('#btnImgToWebp').addEventListener('click', async ()=>{
+    if(!imgFile){ toast('Load an image first.', false); return; }
+    const img=await fileToImage(imgFile);
+    await exportCanvas(img,'image/webp',(imgFile.name||'image').replace(/\.\w+$/,'')+'.webp');
+    toast('Exported WebP.', true);
+  });
+
+  // Init
+  setChip('No site loaded','warn');
+  updateMeta();
+  activateTab('Web');
+
+})();
+</script>
+</body>
+</html>
