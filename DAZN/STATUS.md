@@ -57,12 +57,12 @@ Only after completed replays work should still-running DVR-from-start behavior b
 
 Give Codex this instruction:
 
-`Read to-shreds/Misc/DAZN/CODEX_FIREFOX_HANDOFF.md and execute it.`
+`Clone https://github.com/to-shreds/Misc.git, read CODEX.md, and execute it.`
 
 Codex should create the extension implementation under `DAZN/firefox-extension/` and work milestone by milestone. It should not start by patching the legacy 3.1 WebView seek guard.
 
 ## Plain-English Status
 
-The old Android player still does not work and is now historical reference rather than the main path forward. The project has a fully mapped Firefox-extension architecture that should remove the WebView layer that caused most of the playback trouble. The next step is implementation in Codex, starting with one shared Firefox extension for Windows and Android.
+The old Android player still does not work and is now historical reference rather than the main path forward. The project has a fully mapped Firefox-extension architecture that should remove the WebView layer that caused most of the playback trouble. The next step is implementation in Codex, starting with one shared Firefox extension for Windows and Android. A fresh Codex workspace does not need the private 3.1 archive to begin.
 
 PROJECT_STATUS_FINAL: IN PROGRESS | 2026-10-01T00:04:59-04:00 | Firefox-first architecture adopted and fully handed off; extension and thin Android launcher implementation have not started yet.
