@@ -1,86 +1,68 @@
 # DAZN / NHL UK current status
 
-State: BLOCKED
+State: **IN PROGRESS**
 
-## Definition of done
+## Current direction
 
-A successful build must do all of the following on the real Samsung phone:
+The legacy Android WebView player is no longer the primary implementation path.
 
-- preserve NordVPN as the Android always-on VPN;
-- automatically switch Nord to a UK exit without routine manual country selection;
-- authenticate to DAZN and reuse the web session;
-- list Sabres games with no scores, results, status, thumbnails, recap text, total runtime, remaining time, or other spoilers;
-- resolve the exact selected NHL game;
-- prepare the beginning, or a saved elapsed position, while picture and sound remain covered;
-- reveal only the verified selected replay position after a separate Play action;
-- save and restore elapsed-only resume position;
-- restore the user's normal VPN state when explicitly requested;
-- never fall through to an unfiltered DAZN sports page.
+The project has adopted a Firefox-first architecture:
 
-No build has met that definition.
+- one Firefox WebExtension codebase for Windows Firefox and Firefox for Android;
+- a thin Android companion app for automatic NordVPN UK switching, launching Firefox, and explicit VPN restoration.
 
-## Latest device evidence
+The controlling implementation specification is `CODEX_FIREFOX_HANDOFF.md`.
 
-Current build tested: 3.1-multi-search-test, versionCode 13.
+## Why the architecture changed
 
-Observed sequence on the phone:
+The legacy WebView project progressively solved VPN switching, DAZN web authentication, catalogue transport, team matching, and same-game variants, but no version ever completed protected playback.
 
-1. The game selection and catalogue flow advanced far enough to present "Prepare beginning."
-2. The user tapped Prepare beginning.
-3. The app reported "Unexpected position change."
-4. No successful playback occurred.
+The final 3.1 phone test reached `Prepare beginning` and then failed with `Unexpected position change`.
 
-This is the first confirmed failure at the protected position-preparation stage. It strongly suggests that catalogue resolution and at least one candidate player route progressed farther than the previous catalogue failures. It does not prove that the selected media was the correct full replay, that Widevine playback would succeed, or that resume works.
+Rather than continue fighting DAZN's DRM/player lifecycle inside Android WebView, the new architecture lets Firefox run DAZN in its native browser environment and moves NHL UK controls into a WebExtension on the real DAZN page.
 
-## What is actually proven on-device
+## What is already durable
 
-- DAZN web sign-in has succeeded in the dedicated authentication flow.
-- The old direct catalogue navigation was rejected by DAZN with HTTP 403.
-- The DAZN-origin browser-fetch transport introduced in 2.9 returned usable catalogue data.
-- 2.9 encountered multiple same-game candidates rather than a transport failure.
-- 3.1 reached a state in which the protected player exposed Prepare beginning.
-- The guard has so far prevented an unverified video from being shown.
+The repo preserves:
 
-## What is not proven
+- the full 2.0 through 3.1 build history;
+- no-spoiler contract;
+- legacy architecture;
+- source map;
+- test limitations;
+- DAZN discovery research;
+- the final legacy failure chronology;
+- the new Firefox implementation handoff.
 
-- Correct full-replay route selection.
-- Safe seek to the beginning on DAZN's actual player.
-- Widevine playback after the guard is released.
-- Resume on the real player.
-- Still-running DVR playback from the beginning.
-- End-to-end VPN restore behavior.
-- Safe use with an unwatched game.
+## New implementation scope
 
-## Current source-level failure target
+Not yet built:
 
-The current guard can emit unexpected-seek from several paths in assets/shield.js.
+- `DAZN/firefox-extension/`;
+- desktop Firefox extension shell;
+- Android Firefox extension shell;
+- new extension-native player state machine;
+- elapsed-only Firefox resume;
+- thin Android Nord launcher refactor.
 
-Relevant mechanisms include:
+## Current definition of done
 
-- a seeking event on the selected media element when internalSeek is false;
-- a write to currentTime by page/player code while the guard considers the video preparing, verified, or authorized;
-- the final Play check if the media position no longer matches the verified target.
+The same Firefox extension must safely play a known Sabres replay on Windows Firefox and Firefox for Android without showing DAZN sports UI or spoiler metadata.
 
-Because the user saw the error immediately after Prepare beginning, before a separate Play action, the final Play check is not the leading path. The exact cause is not yet established. Plausible explanations include a delayed seeking event from the app's own seek, or a DAZN player self-adjustment after the guard clears internalSeek. Do not choose a fix until device diagnostics distinguish those cases.
+The Android companion must automatically switch Nord to UK and launch Firefox.
+
+Only after completed replays work should still-running DVR-from-start behavior be accepted.
 
 ## Next action
 
-Instrument the prepare sequence, not the catalogue or VPN flow.
+Give Codex this instruction:
 
-Add spoiler-safe diagnostic events sufficient to distinguish:
+`Read to-shreds/Misc/DAZN/CODEX_FIREFOX_HANDOFF.md and execute it.`
 
-- prepare requested;
-- target setter invoked internally;
-- seeking event while internalSeek is true;
-- seeking event after internalSeek becomes false;
-- provider currentTime setter attempt while preparing;
-- seeked event;
-- decoded frame verified;
-- provider position adjustment after frame verification;
-- source/timeline change.
+Codex should create the extension implementation under `DAZN/firefox-extension/` and work milestone by milestone. It should not start by patching the legacy 3.1 WebView seek guard.
 
-Do not record or expose the actual video position, total duration, live edge, result metadata, page text, URLs, tokens, or account details.
+## Plain-English Status
 
-After instrumentation, build an installable update with the same package/signing identity and test only a game already watched.
+The old Android player still does not work and is now historical reference rather than the main path forward. The project has a fully mapped Firefox-extension architecture that should remove the WebView layer that caused most of the playback trouble. The next step is implementation in Codex, starting with one shared Firefox extension for Windows and Android.
 
-PROJECT_STATUS_FINAL: BLOCKED | 2026-09-30 | Version 3.1 reached protected position preparation on-device, but Prepare beginning failed with unexpected position change and no build has successfully played a protected replay.
+PROJECT_STATUS_FINAL: IN PROGRESS | 2026-10-01T00:04:59-04:00 | Firefox-first architecture adopted and fully handed off; extension and thin Android launcher implementation have not started yet.
