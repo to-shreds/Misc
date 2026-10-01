@@ -26,7 +26,7 @@
     <div class="cards" id="apps">
       <a class="card" href="knots.html"><span class="type">Visual field guide</span><strong>Knotbook</strong><small>100 knot tutorials, animated demonstrations, pictures and step-by-step instructions</small><span class="arrow" aria-hidden="true">→</span></a>
       <a class="card" href="zork.html"><span class="type">Game</span><strong>Zork I</strong><small>Original Zork I with a modern GUI</small><span class="arrow" aria-hidden="true">→</span></a>
-      <a class="card" href="TorboxDrop/"><span class="type">File explorer</span><strong>TorBox Drop</strong><small>TorBox downloads and dated folder browsing. Web activation pending; Android APK available.</small><span class="arrow" aria-hidden="true">→</span></a>
+      <a class="card" href="TorboxDrop/"><span class="type">File explorer</span><strong>TorBox Drop</strong><small>Browse and download your TorBox files with dates, folders and session-only API-key login.</small><span class="arrow" aria-hidden="true">→</span></a>
     </div>
   </section>
   <section aria-labelledby="files-title">
@@ -44,7 +44,7 @@
   const filesCount=document.getElementById('files-count');
   const featured={
     'knots.html':{title:'Knotbook',type:'Visual field guide',description:'100 knot tutorials, animated demonstrations, pictures and step-by-step instructions'},
-    'torbox-drop.html':{title:'TorBox Drop',type:'File explorer',description:'TorBox downloads and dated folder browsing. Web activation pending; Android APK available.'},
+    'torbox-drop.html':{title:'TorBox Drop',type:'File explorer',description:'Browse and download your TorBox files with dates, folders and session-only API-key login.'},
     'zork.html':{title:'Zork I',type:'Game',description:'Original Zork I with a modern GUI'}
   };
   const titleFromName=name=>name.replace(/\.html$/i,'').replace(/[-_]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
