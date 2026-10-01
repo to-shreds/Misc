@@ -1,5 +1,11 @@
 # HANDOFF: DAZN / NHL UK
 
+## Bootstrap for a fresh Codex workspace
+
+Clone `https://github.com/to-shreds/Misc.git`, then read the repository-root `CODEX.md` and this file's controlling implementation handoff, `DAZN/CODEX_FIREFOX_HANDOFF.md`.
+
+The Firefox rebuild does not depend on the private 3.1 legacy archive. If that archive is unavailable, continue the Firefox extension implementation from the repository documentation and source created here.
+
 ## Controlling implementation handoff
 
 The project has pivoted from the legacy Android WebView player to a Firefox-first architecture.
