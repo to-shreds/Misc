@@ -1,111 +1,89 @@
 # HANDOFF: DAZN / NHL UK
 
-## Read first
+## Controlling implementation handoff
 
-STATUS.md is the current truth. FAILURE_HISTORY.md explains how the project got here. NO_SPOILERS.md is a hard product and safety contract. Do not weaken it to make a test pass.
+The project has pivoted from the legacy Android WebView player to a Firefox-first architecture.
 
-The public Misc repository does not contain the private signing key. The latest private source archive is NHL-UK-3.1-private-backup-fresh.zip. Its SHA-256 is be3772613c6eb4606dd83c4dff87444aa56c97189acd804225284502188a74dc.
+**Codex should read and execute `CODEX_FIREFOX_HANDOFF.md`.**
 
-## Current phone result
+That file is now the controlling implementation specification.
 
-Version 3.1 reached "Prepare beginning." Tapping it produced "Unexpected position change." Nothing has ever successfully played in the protected DAZN player.
+Read these supporting files afterward:
 
-This is materially different from the prior failures. Do not go back to catalogue search, login, or Nord automation unless new evidence points there.
+1. `STATUS.md`
+2. `NO_SPOILERS.md`
+3. `ARCHITECTURE.md`
+4. `FAILURE_HISTORY.md`
+5. `TESTING.md`
+6. `SOURCE_MAP.md`
+7. `history/LEGACY-WEBVIEW-ARCHITECTURE.md`
 
-## Preserve these completed decisions
+## Current architectural decision
 
-- Package remains app.nhluk.
-- Keep the existing signing identity for install-over updates.
-- NordVPN remains the single Android VPN. No second VpnService.
-- UK switching is automatic. Routine manual Nord country selection is not acceptable.
-- DAZN authentication uses a dedicated WebView and shared WebView cookies.
-- The app's own Sabres schedule is spoiler-free and independent of DAZN's visible sports UI.
-- DAZN catalogue discovery uses the browser-origin fetch transport that first succeeded on-device in 2.9.
-- Multiple same-game DAZN records are variants, not automatically fatal ambiguity.
-- Remote DAZN pages do not receive a native Android Javascript interface.
-- No stream, Widevine license, token, password, or account data extraction.
-- The player stays opaque and muted until the selected position is verified.
-- A separate Play action is required after preparation.
+Build one Firefox WebExtension codebase for Windows Firefox and Firefox for Android.
 
-## Latest source mechanics to inspect
+The extension becomes the NHL UK product surface and runs on DAZN's real site so Firefox, not Android WebView, owns DAZN login, DRM, MSE, cookies, and video playback.
 
-Start with assets/shield.js, particularly monitor(), poll(), prepare(), play(), and the currentTime override.
+Keep a separate tiny Android companion only for automatic NordVPN UK switching, launching Firefox, and explicit VPN restoration.
 
-The present prepare sequence is roughly:
+Do not continue the legacy all-in-one WebView player as the primary architecture.
 
-1. mark the page covered;
-2. verify a single media element and seekable beginning;
-3. set preparing=true and internalSeek=true;
-4. set currentTime using the original HTMLMediaElement descriptor;
-5. request decoded video frames;
-6. call the original play() while still muted/covered;
-7. when a decoded frame appears near target, pause, mark frameVerified=true, and set internalSeek=false;
-8. wait for explicit Play.
+## Legacy status
 
-The current guard also:
+The final legacy source is version 3.1-multi-search-test.
 
-- treats a seeking event as unexpected whenever internalSeek is false;
-- treats a page/player currentTime write as unexpected when the selected player is preparing, frameVerified, or authorized and the write is not marked internal.
+Its latest real-phone result was:
 
-The phone result is consistent with a race or normal DAZN player seek that occurs after step 7, but that is a hypothesis, not a conclusion.
+- exact game resolution advanced far enough to show `Prepare beginning`;
+- pressing `Prepare beginning` failed with `Unexpected position change`;
+- no build ever completed protected playback.
 
-## Re-test the safety invariant, not just the threshold
+The legacy source archive remains useful for:
 
-The current implementation implicitly treats almost any position movement during or immediately after preparation as a safety violation.
+- Nord automation;
+- no-spoiler requirements;
+- NHL schedule sanitization;
+- team alias/catalogue matching logic;
+- same-game variant logic;
+- diagnostics patterns;
+- Android package/signing continuity.
 
-That premise itself should be challenged.
+Do not port the legacy remote-player seek guard wholesale.
 
-While the remote page is fully opaque and all media is muted, a DAZN-internal seek is not automatically a spoiler. The real safety requirement is that nothing becomes visible or audible until the final player state has been driven to, and independently verified at, the requested beginning or resume position.
+## New implementation order
 
-Work should therefore consider whether the guard should stop trying to prevent every provider currentTime write during covered preparation. A safer and more compatible design may be:
+Codex should:
 
-- keep the player completely covered and muted throughout preparation;
-- allow DAZN to perform its normal internal initialization/seeks;
-- repeatedly reassert the requested target if necessary;
-- require the timeline and source to remain the selected game;
-- require a stable seekable range containing the requested target;
-- verify one or more decoded frames at the target after DAZN settles;
-- only then mark Ready;
-- after Ready, any unapproved position/source change before or during exposed playback remains fail-closed.
+1. create `DAZN/firefox-extension/`;
+2. make one MV3 extension lint/run on desktop and Android Firefox;
+3. implement the document-start spoiler shield and responsive in-page shell;
+4. port only pure schedule/catalogue logic;
+5. prove authentication in real Firefox;
+6. prove structured DAZN catalogue resolution;
+7. implement a new covered player state machine from scratch;
+8. prove completed-replay Prepare and Play on desktop;
+9. prove Android Firefox parity;
+10. add elapsed-only resume;
+11. only then refactor the existing Android APK into `DAZN/android-launcher/`.
 
-Do not implement this as a blind sleep or a broad "ignore seeks for N seconds" rule. Use explicit state and final-state verification.
+## Hard constraints
 
-## Highest-information next test
-
-Instrument the event order before changing tolerances or disabling protections.
-
-Use a fixed, spoiler-safe diagnostic event vocabulary such as:
-
-- prepare:start
-- prepare:set-position
-- media:seeking-internal
-- media:seeking-external
-- media:seeked-internal
-- media:seeked-external
-- media:provider-currenttime-write
-- frame:verified
-- media:source-change
-- media:timeline-change
-- prepare:ready
-- prepare:failed-<allowlisted-code>
-
-Do not include position values, duration values, page titles, HTML, URLs, query strings, cookies, tokens, scores, results, or current game state.
-
-A likely repair, if diagnostics prove a delayed event from the app's own seek, is a bounded seek-generation or settling-state model rather than a simple boolean internalSeek. If diagnostics prove DAZN legitimately self-seeks after the app's seek, model and authorize only the covered preparation transition needed to reach a final verified target. Do not merely add a broad time window that ignores all seeks.
-
-## Test discipline
-
-A local synthetic pass is necessary but never sufficient. Every claim about DAZN, Nord, Widevine, or Samsung WebView must be labeled unverified until observed on-device.
-
-Do not say a build is fixed, working, ready, or nearly done merely because tests pass. Device evidence has repeatedly invalidated synthetic assumptions.
-
-First device test after any player change must use a replay the user already watched.
+- No spoilers, ever.
+- No native DAZN app.
+- No new DAZN WebView player.
+- No unfiltered DAZN sports page.
+- No live-edge fallback.
+- No total runtime or percentage.
+- No stream/license/token extraction.
+- No signing keys in git.
+- Do not claim readiness from synthetic tests alone.
 
 ## Persistence
 
-After meaningful progress:
+After meaningful work:
 
-1. update this HANDOFF.md if source/next-step state changed;
-2. update STATUS.md;
-3. update to-shreds/ProjectStatus/projects/nhl-uk/STATUS.md as the final persistence step;
-4. never commit the private signing key.
+1. update `CODEX_FIREFOX_HANDOFF.md` only if the architecture changes;
+2. update this HANDOFF;
+3. update `STATUS.md`;
+4. add a report under `history/` or `reports/`;
+5. update `to-shreds/ProjectStatus/projects/nhl-uk/STATUS.md` last.
