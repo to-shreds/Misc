@@ -1,7 +1,7 @@
 # HTMLTools Handoff
 
 ## Current state
-The current working build is `html_toolbox_v24_force_extract.html`, produced 2026-09-30.
+The current verified build is `html_toolbox_v24_force_extract.html`, persisted in `to-shreds/Misc/HTMLTools/` on 2026-09-30.
 
 ## What works
 - Mobile-first tabbed toolbox.
@@ -22,11 +22,13 @@ The current working build is `html_toolbox_v24_force_extract.html`, produced 202
 
 ## Verification
 Jon explicitly confirmed v24 successfully listed assets from the John Kew Pickleball paddle database after prior builds failed.
+The repository copy was fetched back after upload and compared character-for-character with the generated v24 artifact; the contents matched exactly.
 
 ## Current artifact
-Local generated artifact: `html_toolbox_v24_force_extract.html`
-SHA-256: `7b2024a244d48de498322aad224b2c3580285e9b99daa271b287c873a0914c5c`
-Size: 61,942 bytes.
+- Repository path: `HTMLTools/html_toolbox_v24_force_extract.html`
+- Git blob SHA: `bbe6cf58b72b1fd39c7f914e0784410390f0f076`
+- Generated-file SHA-256 previously recorded: `7b2024a244d48de498322aad224b2c3580285e9b99daa271b287c873a0914c5c`
+- UTF-8 text characters: 61,852
 
 ## Next action
-Persist the exact v24 HTML artifact into this folder when a GitHub write path capable of ingesting the generated local file bytes is available.
+Use v24 as the baseline for future HTMLTools changes. Preserve the forced extraction fallback and mobile workflow when adding features.
