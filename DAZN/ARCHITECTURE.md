@@ -1,75 +1,164 @@
-# Architecture
+# Current architecture: Firefox-first
 
-## User flow
+The controlling implementation specification is `CODEX_FIREFOX_HANDOFF.md`.
 
-The intended end-to-end flow is:
+The prior Android WebView architecture is archived at `history/LEGACY-WEBVIEW-ARCHITECTURE.md`.
 
-Local Sabres dashboard -> automatic Nord UK switch -> UK verification -> DAZN auth/session reuse -> spoiler-safe catalogue resolution -> covered DAZN event/player -> Prepare beginning or resume -> decoded-frame verification -> explicit Play -> elapsed-only resume.
+## System
 
-## Components
+### Firefox extension
 
-### Main dashboard
+One Manifest V3 WebExtension codebase targets:
 
-A local WebView hosts the app's own interface and NHL schedule data. It must never show scores or results. It uses NHL schedule data only to identify teams and scheduled times.
+- Firefox desktop on Windows;
+- Firefox for Android.
 
-### Nord automation
+The extension runs directly on DAZN's real website and lets Firefox own:
 
-NordVPN remains Android's one active VPN application.
+- DAZN authentication;
+- cookies/session;
+- Media Source Extensions;
+- DRM/Widevine;
+- actual video playback.
 
-The app requests a UK country switch and uses a narrowly scoped AccessibilityService to handle Nord's current confirmation UI. The service acts only while an app-private switch request is armed and only on the Nord package.
+The extension owns:
 
-The app verifies an active VPN plus a UK public exit before proceeding.
+- the spoiler-free NHL UK interface;
+- NHL schedule sanitization;
+- DAZN catalogue resolution;
+- exact-game and variant selection;
+- player positioning;
+- spoiler shielding;
+- elapsed-only resume;
+- neutral media metadata;
+- diagnostics.
 
-### DAZN authentication
+### Android companion
 
-A separate non-exported Auth activity hosts DAZN's ordinary web login. It shares WebView cookies with playback.
+The Android app becomes a thin launcher only.
 
-The app does not store or extract the DAZN password. Authentication and player views are separate.
+It owns:
 
-### Catalogue discovery
+- automatic NordVPN UK switch;
+- UK route verification where reliable;
+- launching Firefox to DAZN;
+- explicit Restore VPN action.
 
-The current transport was established after several failed approaches.
+It does not host DAZN, catalogue search, authentication, DRM, or playback.
 
-The working direction as of 2.9 is a synthetic HTTPS page under a DAZN origin that uses Chromium fetch to call DAZN's search discovery service. This avoided the HTTP 403 seen when the JSON API was treated as a top-level page.
+### Windows
 
-Raw catalogue data stays inside the hidden renderer. The app accepts only sanitized game identity fields and opaque DAZN route identifiers.
+The same Firefox extension is the Windows client.
 
-3.0 added same-game variant resolution. 3.1 added city/location aliases and multiple neutral search terms.
+Windows Nord automation is not required for the first extension milestone. The user can put Nord on UK manually until a reliable Windows automation mechanism is separately established.
 
-### Protected DAZN player
+## Browser-extension structure
 
-A non-exported Browser activity hosts the remote DAZN player behind a native opaque cover.
+The extension uses an in-page app shell rather than browser popup UI.
 
-assets/shield.js injects a fail-closed page guard. It hides/mutes media, neutralizes system media metadata, blocks uncontrolled picture-in-picture/fullscreen and tries to ensure that only the chosen media element can be exposed.
+A content script runs at document start on DAZN origins so DAZN sports content is covered before it can flash.
 
-The remote DAZN page receives no Android Javascript bridge.
+The extension keeps the normal DAZN page hidden except for:
 
-### Preparation model
+- the real login experience when explicitly in authentication mode;
+- the selected video element after playback authorization.
 
-Before Play, the guard requires:
+The extension does not display DAZN home/search rails, scores, thumbnails, recaps, recommendations, native timeline controls, or autoplay content.
 
-- a single selected media element;
-- an acceptable seekable timeline;
-- the requested beginning or resume position to be available;
-- a controlled seek while picture and sound are hidden;
-- requestVideoFrameCallback support;
-- a decoded frame near the requested position;
-- no unapproved source or position change.
+## Network model
 
-Only after this does the UI offer Play.
+NHL schedule data is sanitized immediately to neutral allowlisted fields.
 
-### Resume
+DAZN catalogue access uses structured discovery services.
 
-Bookmarks are elapsed-only and keyed to the selected game/route/feed. The UI must never display total duration, percentage, or remaining time.
+The catalogue transport must preserve the lesson from the legacy 2.9 build: DAZN-origin browser semantics worked on the real phone.
 
-### Diagnostics
+The implementation may use:
 
-Diagnostics are user-initiated and fixed-schema. They may contain build, stage, allowlisted error code, Android API, WebView version, and allowlisted event markers.
+- a DAZN-page-origin fetch path;
+- an extension background fetch with host permission when DAZN accepts that request shape.
 
-They must not contain scores, page text, URLs, game IDs, titles, video timing values, credentials, cookies/tokens, account details, or IP addresses.
+The transport is abstracted and tested rather than assumed.
 
-## Current architectural concern
+## Player model
 
-The prepare guard uses a boolean internalSeek to distinguish app-controlled and external position changes. The latest device result shows that this model may be too coarse for DAZN's real player lifecycle.
+Do not port the legacy seek guard literally.
 
-Do not replace it blindly. Instrument event provenance and ordering first.
+During preparation the selected DAZN video remains fully hidden and muted. DAZN may perform normal player-internal seeks while hidden.
+
+The extension controls an explicit preparation state machine:
+
+- wait for intended media;
+- wait for usable timeline;
+- position to beginning/resume;
+- allow bounded provider settling;
+- reassert target when necessary;
+- verify stable decoded frame at target;
+- pause;
+- remain covered;
+- show explicit Play.
+
+Only after a final Play-time verification can the selected video become visible/audible.
+
+No broad blind seek-ignore window is allowed.
+
+## User interface
+
+One responsive interface serves desktop and Android.
+
+Core controls:
+
+- game list;
+- Continue Watching;
+- Prepare beginning / Prepare resume;
+- Play/Pause;
+- skip backward/forward;
+- restart from beginning;
+- fullscreen;
+- elapsed time watched;
+- close/return to games.
+
+No total runtime, remaining time, percentage, live edge, or conventional progress bar.
+
+## Storage
+
+Use `browser.storage.local`.
+
+No telemetry, analytics, cloud database, or sync for v1.
+
+Bookmarks store elapsed-only state plus the minimal route/feed identity needed for compatibility.
+
+## Distribution and testing
+
+Use Mozilla `web-ext`.
+
+Desktop:
+
+```
+web-ext run
+```
+
+Android:
+
+```
+web-ext run --target=firefox-android --android-device=<device> --firefox-apk=org.mozilla.firefox
+```
+
+Persistent/public distribution comes after real playback works.
+
+The same source package must declare Android support through `browser_specific_settings.gecko_android`.
+
+## Acceptance order
+
+1. extension shell and spoiler cover on both platforms;
+2. neutral schedule;
+3. DAZN login;
+4. exact catalogue match;
+5. completed-replay preparation;
+6. completed-replay Play;
+7. resume;
+8. Android Firefox parity;
+9. still-running from-beginning DVR;
+10. thin Android Nord launcher.
+
+Do not build the launcher first. The extension must prove playback first.
