@@ -1,0 +1,11 @@
+node_modules/
+dist/
+web-ext-artifacts/
+reports/*.png
+reports/*.json
+reports/*.log
+.env*
+*.pem
+*.key
+*.xpi
+*.zip

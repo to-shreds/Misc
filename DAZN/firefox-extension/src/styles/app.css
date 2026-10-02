@@ -1,0 +1,35 @@
+:host { all:initial; color-scheme:dark; font:16px/1.5 system-ui,sans-serif; color:#edf2fa; }
+* { box-sizing:border-box; }
+.surface { position:fixed; inset:0; overflow:auto; background:#08121f; padding:clamp(18px,4vw,48px); }
+.content { max-width:900px; margin:auto; }
+header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:36px; }
+.brand { font-size:24px; font-weight:800; letter-spacing:.06em; }
+.brand small { display:block; font-size:12px; font-weight:500; color:#abbacf; letter-spacing:.08em; }
+h1 { font-size:clamp(25px,5vw,36px); line-height:1.2; margin:0 0 10px; }
+p { color:#b9c7da; margin:10px 0 20px; }
+button,select,input { font:inherit; }
+button,select { border:1px solid #3c506b; color:#edf2fa; background:#17283d; border-radius:9px; padding:10px 16px; min-height:44px; }
+button { cursor:pointer; }
+button:hover { background:#243b57; }
+button:disabled { opacity:.45; cursor:default; }
+button:focus-visible,select:focus-visible,input:focus-visible { outline:3px solid #f9c959; outline-offset:3px; }
+.primary { color:#111b29; background:#f9c959; border-color:#f9c959; font-weight:750; }
+.primary:hover { background:#ffda87; }
+.row { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:16px 0; }
+.note { font-size:14px; padding:12px 16px; background:#122238; border-left:3px solid #f9c959; border-radius:4px; }
+.list { display:grid; gap:10px; margin:24px 0; }
+.game { display:flex; justify-content:space-between; text-align:left; gap:20px; width:100%; padding:18px; }
+.game time { color:#afbed1; font-size:14px; }
+.status { min-height:24px; color:#f9c959; }
+.controls { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+.elapsed { font-variant-numeric:tabular-nums; text-align:center; margin:10px; }
+.check { display:flex; align-items:center; gap:12px; margin:22px 0; }
+.check input { width:22px; height:22px; }
+pre { white-space:pre-wrap; overflow-wrap:anywhere; color:#b9c7da; }
+.hidden { display:none!important; }
+:host([data-playing]) .surface { background:transparent; pointer-events:none; padding:0; }
+:host([data-playing]) .content { max-width:none; }
+:host([data-playing]) header,:host([data-playing]) .setup { display:none; }
+:host([data-playing]) .player-panel { position:fixed; bottom:0; left:0; right:0; padding:12px 18px max(12px,env(safe-area-inset-bottom)); background:rgba(8,18,31,.96); pointer-events:auto; }
+:host([data-playing]) .status { display:none; }
+@media(max-width:540px) { header { margin-bottom:26px; } .game { flex-direction:column; gap:4px; } .controls button { padding:9px 12px; } }

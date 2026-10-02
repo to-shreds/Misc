@@ -1,0 +1,32 @@
+{
+  "browser": "Firefox 153.0",
+  "installedBy": "web-ext RemoteFirefox.installTemporaryAddon",
+  "driver": "Playwright Firefox",
+  "productionCodeModified": false,
+  "testOnlyProbeAdded": true,
+  "operatingSystem": "linux",
+  "browserSandboxOverrides": {
+    "contentDisabled": true,
+    "mediaDecoderDisabled": true
+  },
+  "localHTTPSFixtures": true,
+  "viewportOnlyMobile": true,
+  "physicalAndroidTested": false,
+  "realDAZNPlaybackTested": false,
+  "checks": [
+    "document-start cover before first provider script and sampled paints",
+    "responsive mobile viewport remains covered and fits the viewport",
+    "recognized authentication form opens, other provider content stays covered",
+    "authentication SPA navigation recloses synchronously",
+    "provider media-session metadata is neutralized",
+    "full shell schedule, catalogue, pending route, prepare, play, pause and stored resume",
+    "actual decoded-video controller: delayed-media",
+    "actual decoded-video controller: provider-seeks",
+    "actual decoded-video controller: source-replacement",
+    "actual decoded-video controller: video-replacement",
+    "actual decoded-video controller: resume",
+    "actual decoded-video controller: exposed-seek",
+    "actual decoded-video controller: ambiguous-media",
+    "actual decoded-video controller: missing-dvr-beginning"
+  ]
+}

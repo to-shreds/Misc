@@ -8,6 +8,8 @@ The project has pivoted to a **Firefox-first architecture**.
 
 The old Android WebView player is preserved as legacy history, but it is no longer the primary implementation path.
 
+The first Firefox development implementation now exists in `firefox-extension/`. Read its `README.md` for commands and `STATUS.md` for the actual verification boundary. It is not yet accepted for unwatched hockey.
+
 The new target is:
 
 - one Firefox WebExtension codebase for Windows Firefox and Firefox for Android;

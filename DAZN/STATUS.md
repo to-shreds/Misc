@@ -2,67 +2,32 @@
 
 State: **IN PROGRESS**
 
-## Current direction
+## Objective and source
 
-The legacy Android WebView player is no longer the primary implementation path.
+One Firefox extension for spoiler-safe Sabres replay playback on Windows and Android, followed by a thin Android NordVPN launcher. `CODEX_FIREFOX_HANDOFF.md` controls architecture. Code is in `to-shreds/Misc/DAZN/firefox-extension/`, development version `0.1.0`.
 
-The project has adopted a Firefox-first architecture:
+## Latest benchmark
 
-- one Firefox WebExtension codebase for Windows Firefox and Firefox for Android;
-- a thin Android companion app for automatic NordVPN UK switching, launching Firefox, and explicit VPN restoration.
+The first shared Firefox implementation now exists: document-start protection, responsive schedule, controlled sign-in, structured catalogue matching and routes, covered decoded-frame preparation, explicit Play, source/seek handling, elapsed-only resume and neutral diagnostics/media metadata.
 
-The controlling implementation specification is `CODEX_FIREFOX_HANDOFF.md`.
+Current provider search and route conventions were verified using DAZN responses and deployed frontend code. The public-data smoke check sanitized 88 schedule rows and matched 3 games into 5 variants, without displaying or storing raw provider content. This establishes data processing, not protected playback.
 
-## Why the architecture changed
+Unit tests, Mozilla lint, package generation and actual installed-extension synthetic Firefox checks have been run. `reports/FIREFOX-IMPLEMENTATION-2026-10-02.md` records the final counts, package hash and limitations. Commands and installation instructions are in `firefox-extension/README.md`.
 
-The legacy WebView project progressively solved VPN switching, DAZN web authentication, catalogue transport, team matching, and same-game variants, but no version ever completed protected playback.
+## Remaining work
 
-The final 3.1 phone test reached `Prepare beginning` and then failed with `Unexpected position change`.
+Real DAZN login, account entitlement, DRM playback and the first revealed broadcast frame/audio must pass on Windows and physical Android. System media controls, notification duration/progress, fullscreen and background/rotation behavior also need real-device evidence. Embedded frames/plugins are blocked, so iframe-dependent login widgets may need a carefully verified integration change.
 
-Rather than continue fighting DAZN's DRM/player lifecycle inside Android WebView, the new architecture lets Firefox run DAZN in its native browser environment and moves NHL UK controls into a WebExtension on the real DAZN page.
+Live/DVR playback and playoff progression remain unavailable. The Android Nord launcher has not been started, as required by the handoff's playback gate. The unsigned development ZIP is a test package, not a persistent Android release. No legacy files or private signing keys were imported.
 
-## What is already durable
+## Current artifact and next action
 
-The repo preserves:
+Development package: `artifacts/nhl-uk-firefox-0.1.0-unsigned.zip`.
 
-- the full 2.0 through 3.1 build history;
-- no-spoiler contract;
-- legacy architecture;
-- source map;
-- test limitations;
-- DAZN discovery research;
-- the final legacy failure chronology;
-- the new Firefox implementation handoff.
-
-## New implementation scope
-
-Not yet built:
-
-- `DAZN/firefox-extension/`;
-- desktop Firefox extension shell;
-- Android Firefox extension shell;
-- new extension-native player state machine;
-- elapsed-only Firefox resume;
-- thin Android Nord launcher refactor.
-
-## Current definition of done
-
-The same Firefox extension must safely play a known Sabres replay on Windows Firefox and Firefox for Android without showing DAZN sports UI or spoiler metadata.
-
-The Android companion must automatically switch Nord to UK and launch Firefox.
-
-Only after completed replays work should still-running DVR-from-start behavior be accepted.
-
-## Next action
-
-Give Codex this instruction:
-
-`Clone https://github.com/to-shreds/Misc.git, read CODEX.md, and execute it.`
-
-Codex should create the extension implementation under `DAZN/firefox-extension/` and work milestone by milestone. It should not start by patching the legacy 3.1 WebView seek guard.
+Next: follow `firefox-extension/tests/REAL-DEVICE-ACCEPTANCE.md` with a previously watched completed replay on Windows Firefox, then on a connected Android phone. Do not use an unwatched game to validate the player.
 
 ## Plain-English Status
 
-The old Android player still does not work and is now historical reference rather than the main path forward. The project has a fully mapped Firefox-extension architecture that should remove the WebView layer that caused most of the playback trouble. The next step is implementation in Codex, starting with one shared Firefox extension for Windows and Android. A fresh Codex workspace does not need the private 3.1 archive to begin.
+The first Firefox version is built, and its protective controls and replay preparation work in synthetic Firefox tests. It has not yet played a real DAZN replay on your Windows computer or Android phone, so it is not ready for unwatched hockey. The next step is to test a game you have already watched on both devices. The automatic Nord launcher comes after those playback tests pass.
 
-PROJECT_STATUS_FINAL: IN PROGRESS | 2026-10-01T00:04:59-04:00 | Firefox-first architecture adopted and fully handed off; extension and thin Android launcher implementation have not started yet.
+PROJECT_STATUS_FINAL: IN PROGRESS | 2026-10-02T04:40:38Z | Firefox development version 0.1.0 implemented and synthetically tested; real DAZN playback, physical-device acceptance and the gated Android launcher remain incomplete.

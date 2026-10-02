@@ -1,5 +1,13 @@
 # Testing and evidence rules
 
+## Current Firefox tests
+
+The implementation under `firefox-extension/` has reproducible Node tests, `web-ext lint`, a package build and a synthetic Firefox installed-extension harness. Run the commands in `firefox-extension/README.md`. The current `reports/FIREFOX-IMPLEMENTATION-2026-10-02.md` records the exact results and browser/environment limitations.
+
+Unit and synthetic Firefox success are implementation evidence. They do not certify protected DAZN playback, the first actual broadcast frame, Windows media controls, physical Android, or VPN restoration. Use `firefox-extension/tests/REAL-DEVICE-ACCEPTANCE.md` for the remaining acceptance sequence.
+
+The tests and phone evidence below describe the retired WebView implementation.
+
 ## Local test coverage
 
 By 3.1 the local suite included:
@@ -61,4 +69,4 @@ Minimum acceptance before any unwatched game:
 
 ## Current next test
 
-Do not broaden the next test. Instrument the position-preparation event sequence and reproduce the Unexpected position change on the same already-watched game.
+Install the Firefox development extension and select a previously watched completed replay. Verify DAZN login, exact route, covered preparation, explicit first-frame/audio release and resume on desktop, then repeat on a physical Android phone. Do not revive the old WebView guard. Do not build the Nord companion until Firefox replay playback passes.

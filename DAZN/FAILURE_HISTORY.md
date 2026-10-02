@@ -94,4 +94,10 @@ This is the current frontier.
 
 The project is not a working DAZN player. It has progressively established several pieces of the flow, but protected playback has never completed on-device.
 
-The next problem is not catalogue discovery. It is the interaction between the spoiler guard's seek model and DAZN's real media player during Prepare beginning.
+That was the legacy frontier. The project subsequently pivoted to real Firefox under `CODEX_FIREFOX_HANDOFF.md`.
+
+## Firefox 0.1.0 implementation, 2026-10-02
+
+The first shared extension replaces the old seek-policing model with covered preparation transactions and decoded-frame verification. Current provider search parameters and browser routes were checked against DAZN public responses and deployed frontend code. Unit tests and the synthetic installed-extension Firefox harness are recorded in `reports/FIREFOX-IMPLEMENTATION-2026-10-02.md`.
+
+Real authenticated DAZN replay playback and physical Android remain unverified. No claim about the legacy failure being fixed on the user's phone follows from this implementation.

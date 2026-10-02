@@ -1,95 +1,45 @@
-# HANDOFF: DAZN / NHL UK
+# HANDOFF: NHL UK Firefox
 
-## Bootstrap for a fresh Codex workspace
+Read `CODEX_FIREFOX_HANDOFF.md`, then this file and `STATUS.md`. The controlling architecture has not changed. The substantive repo is `to-shreds/Misc/DAZN`; readiness is also recorded in `to-shreds/ProjectStatus/projects/nhl-uk/STATUS.md`.
 
-Clone `https://github.com/to-shreds/Misc.git`, then read the repository-root `CODEX.md` and this file's controlling implementation handoff, `DAZN/CODEX_FIREFOX_HANDOFF.md`.
+## Current state
 
-The Firefox rebuild does not depend on the private 3.1 legacy archive. If that archive is unavailable, continue the Firefox extension implementation from the repository documentation and source created here.
+Firefox development version `0.1.0` is implemented under `firefox-extension/`. This is no longer an architecture-only handoff. It is not accepted for watching unwatched games, and real DAZN playback has not been proven. The old WebView application remains untouched.
 
-## Controlling implementation handoff
+## Completed
 
-The project has pivoted from the legacy Android WebView player to a Firefox-first architecture.
+- Shared Firefox MV3 desktop/Android manifest with narrow hosts, local storage and no cookie permission.
+- Document-start user-origin cover, one responsive shell, recognized DAZN sign-in form exposure and synchronous SPA return cover.
+- Official NHL schedule sanitation; exact team/date matching; actual DAZN search parameter/envelope and event/asset browser route evidence.
+- New bounded, generation-based player preparation, decoded-frame readiness, separate Play verification, source/position fail-closed handling and elapsed-only resume.
+- Native-control suppression, neutral Media Session metadata, covered system actions, disabled embedded frames/plugins and PiP.
+- Reproducible Node tests, Mozilla lint/build, public-data smoke check and actual installed-extension Firefox synthetic tests. See the dated reports for counts and limitations.
 
-**Codex should read and execute `CODEX_FIREFOX_HANDOFF.md`.**
+## Source and evidence
 
-That file is now the controlling implementation specification.
+Implementation details: `FIREFOX_ARCHITECTURE.md` and `firefox-extension/README.md`.
 
-Read these supporting files afterward:
+Provider evidence: `reports/CATALOGUE-EVIDENCE-2026-10-02.md` and `reports/DATA-SMOKE-2026-10-02.md`. Current search is `searchTerm`, not the misleading `searchParam` mentioned in provider validation errors. Parse all `Results[].Tiles` groups. The provider's own route table supports `/en-GB/home/<EventId>/<AssetId>`; do not return to guessed bare fixture paths.
 
-1. `STATUS.md`
-2. `NO_SPOILERS.md`
-3. `ARCHITECTURE.md`
-4. `FAILURE_HISTORY.md`
-5. `TESTING.md`
-6. `SOURCE_MAP.md`
-7. `history/LEGACY-WEBVIEW-ARCHITECTURE.md`
+Test/build evidence: `reports/FIREFOX-IMPLEMENTATION-2026-10-02.md`. The synthetic browser harness installs a temporary extension using web-ext, runs production code in actual Firefox, and adds a test-only isolated probe. It is not a real DAZN login, Widevine or physical Android test.
 
-## Current architectural decision
+## Do not break
 
-Build one Firefox WebExtension codebase for Windows Firefox and Firefox for Android.
+- No scores, results, total length, progress percentage, thumbnails, provider headlines or raw diagnostics.
+- No live-edge fallback. Live variants remain excluded. Playoff rows remain hidden pending series-watched support.
+- `shield.cover()` is an intentional operation and must not notify the invalidation handler. Unexpected source/navigation/DOM faults do notify it. Confusing these cancels the player's own preparation.
+- Firefox can retain an old `currentSrc` while loading a new `src`. Track both and discard decoded evidence when source/metadata changes.
+- Hidden `visibility:hidden` video DID produce decoded callbacks in the verified fixture. A container decoder-process failure initially looked like a player failure; do not weaken cover CSS to solve that environment issue.
+- Store only authorized elapsed playback positions. Different variants do not automatically share a timeline.
+- MAIN-world code is page-visible and is not a security boundary against hostile provider JavaScript.
+- No secrets or signing material in this public repository.
 
-The extension becomes the NHL UK product surface and runs on DAZN's real site so Firefox, not Android WebView, owns DAZN login, DRM, MSE, cookies, and video playback.
+## Unresolved acceptance and limits
 
-Keep a separate tiny Android companion only for automatic NordVPN UK switching, launching Firefox, and explicit VPN restoration.
+No authenticated DAZN session, Windows device or attached Android phone was used. Real sign-in, entitlement/DRM playback, first revealed broadcast frame/audio, background behavior, fullscreen and system duration/progress surfaces remain unverified. Embedded auth/player frames are deliberately blocked; inspect any required CAPTCHA or external auth flow before adapting it.
 
-Do not continue the legacy all-in-one WebView player as the primary architecture.
+The Android Nord launcher is intentionally not created because the controlling handoff requires proven extension replay playback first. Mozilla signing and persistent distribution also follow that gate.
 
-## Legacy status
+## Next action
 
-The final legacy source is version 3.1-multi-search-test.
-
-Its latest real-phone result was:
-
-- exact game resolution advanced far enough to show `Prepare beginning`;
-- pressing `Prepare beginning` failed with `Unexpected position change`;
-- no build ever completed protected playback.
-
-The legacy source archive remains useful for:
-
-- Nord automation;
-- no-spoiler requirements;
-- NHL schedule sanitization;
-- team alias/catalogue matching logic;
-- same-game variant logic;
-- diagnostics patterns;
-- Android package/signing continuity.
-
-Do not port the legacy remote-player seek guard wholesale.
-
-## New implementation order
-
-Codex should:
-
-1. create `DAZN/firefox-extension/`;
-2. make one MV3 extension lint/run on desktop and Android Firefox;
-3. implement the document-start spoiler shield and responsive in-page shell;
-4. port only pure schedule/catalogue logic;
-5. prove authentication in real Firefox;
-6. prove structured DAZN catalogue resolution;
-7. implement a new covered player state machine from scratch;
-8. prove completed-replay Prepare and Play on desktop;
-9. prove Android Firefox parity;
-10. add elapsed-only resume;
-11. only then refactor the existing Android APK into `DAZN/android-launcher/`.
-
-## Hard constraints
-
-- No spoilers, ever.
-- No native DAZN app.
-- No new DAZN WebView player.
-- No unfiltered DAZN sports page.
-- No live-edge fallback.
-- No total runtime or percentage.
-- No stream/license/token extraction.
-- No signing keys in git.
-- Do not claim readiness from synthetic tests alone.
-
-## Persistence
-
-After meaningful work:
-
-1. update `CODEX_FIREFOX_HANDOFF.md` only if the architecture changes;
-2. update this HANDOFF;
-3. update `STATUS.md`;
-4. add a report under `history/` or `reports/`;
-5. update `to-shreds/ProjectStatus/projects/nhl-uk/STATUS.md` last.
+Use `firefox-extension/tests/REAL-DEVICE-ACCEPTANCE.md`. Test a previously watched completed replay in Windows Firefox, then the same source on physical Firefox Android with `web-ext run`. Record exact neutral failure stages and platform observations. Fix observed provider integration issues without weakening the cover. Only after both pass, proceed to still-running DVR and the thin Nord launcher.

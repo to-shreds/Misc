@@ -1,0 +1,22 @@
+{
+  "name": "nhl-uk-firefox",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Spoiler-covered Firefox development build for NHL UK",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "test:firefox": "node tests/browser-firefox.cjs",
+    "check:public-data": "python3 scripts/check-public-data.py",
+    "lint": "web-ext lint --source-dir . --ignore-files 'tests/**' 'scripts/**' 'reports/**' 'node_modules/**' 'package*.json' '*.md'",
+    "start": "web-ext run --source-dir .",
+    "start:android": "web-ext run --source-dir . --target firefox-android --firefox-apk org.mozilla.firefox",
+    "build": "web-ext build --source-dir . --artifacts-dir dist --overwrite-dest --ignore-files 'tests/**' 'scripts/**' 'reports/**' 'node_modules/**' 'package*.json' '*.md'"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "web-ext": "10.7.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

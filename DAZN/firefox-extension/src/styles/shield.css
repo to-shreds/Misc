@@ -1,0 +1,123 @@
+/* USER-origin stylesheet, loaded at document_start. Keep layout and media alive. */
+html {
+  background: #08111c !important;
+  color: transparent !important;
+}
+html * {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+html *::before, html *::after, html::before, html::after {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  content: none !important;
+}
+html *::backdrop {
+  background: #08111c !important;
+  background-image: none !important;
+}
+html::view-transition, html::view-transition-group(*), html::view-transition-image-pair(*),
+html::view-transition-old(*), html::view-transition-new(*) {
+  display: none !important;
+}
+html [data-nhluk-video-parent], html [data-nhluk-auth-parent] {
+  opacity: 1 !important;
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  text-shadow: none !important;
+}
+html #nhluk-root {
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  transform: none !important;
+  filter: none !important;
+  clip-path: none !important;
+  z-index: 2147483647 !important;
+  pointer-events: auto !important;
+  background: #08111c !important;
+  color: #f5f7fa !important;
+  isolation: isolate !important;
+}
+html[data-nhluk-playback="exposed"] #nhluk-root {
+  background: transparent !important;
+  pointer-events: none !important;
+}
+html[data-nhluk-playback="exposed"] video[data-nhluk-selected-video] {
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: fixed !important;
+  inset: 0 !important;
+  margin: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  background: #000 !important;
+  z-index: 2147483645 !important;
+  pointer-events: none !important;
+  transform: none !important;
+  filter: none !important;
+  clip-path: none !important;
+}
+/* Ancestors may not create a stacking/clip boundary around the selected video. */
+html[data-nhluk-playback="exposed"] [data-nhluk-video-parent] {
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  perspective: none !important;
+  contain: none !important;
+  content-visibility: visible !important;
+  overflow: visible !important;
+  clip-path: none !important;
+  isolation: auto !important;
+  z-index: auto !important;
+}
+html[data-nhluk-auth="open"] #nhluk-root { z-index: 2147483644 !important; }
+html[data-nhluk-auth="open"] [data-nhluk-auth-parent] {
+  position: static !important;
+  transform: none !important;
+  filter: none !important;
+  perspective: none !important;
+  contain: none !important;
+  overflow: visible !important;
+  clip-path: none !important;
+  isolation: auto !important;
+  z-index: auto !important;
+}
+html[data-nhluk-auth="open"] form[data-nhluk-auth-form] {
+  opacity: 1 !important;
+  position: fixed !important;
+  top: 20vh !important;
+  left: max(12px, calc(50vw - 230px)) !important;
+  width: min(460px, calc(100vw - 24px)) !important;
+  max-height: 72dvh !important;
+  overflow: auto !important;
+  z-index: 2147483646 !important;
+  background: #152334 !important;
+  box-sizing: border-box !important;
+  padding: 20px !important;
+  border-radius: 12px !important;
+}
+html[data-nhluk-auth="open"] [data-nhluk-auth-allowed] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  color: #f5f7fa !important;
+  background-image: none !important;
+}
+html[data-nhluk-auth="open"] input[data-nhluk-auth-allowed] {
+  background-color: #24394f !important;
+}
+video::-moz-media-controls, video::-webkit-media-controls { display: none !important; }

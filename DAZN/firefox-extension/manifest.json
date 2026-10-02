@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "NHL UK",
+  "version": "0.1.0",
+  "description": "Development build: covered Sabres schedule and replay controls. Real DAZN playback acceptance pending.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "nhl-uk@to-shreds.github.io",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": { "required": ["none"] }
+    },
+    "gecko_android": {}
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://www.dazn.com/*",
+    "https://dazn.com/*",
+    "https://api-web.nhle.com/*",
+    "https://search.discovery.indazn.com/*"
+  ],
+  "background": {
+    "scripts": ["src/content/schedule.js", "src/content/route-resolver.js", "src/content/catalogue.js", "src/content/transport.js", "src/background.js"]
+  },
+  "action": { "default_title": "Open NHL UK" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.dazn.com/*", "https://dazn.com/*"],
+      "js": ["src/content/page-guard.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://www.dazn.com/*", "https://dazn.com/*"],
+      "css": ["src/styles/shield.css"],
+      "css_origin": "user",
+      "js": [
+        "src/content/auth.js", "src/content/spoiler-shield.js", "src/content/media-session.js",
+        "src/content/schedule.js", "src/content/catalogue.js", "src/content/route-resolver.js",
+        "src/content/transport.js", "src/content/resume.js", "src/content/diagnostics.js",
+        "src/content/player-controller.js", "src/content/app-shell.js", "src/content/bootstrap.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [{
+    "resources": ["src/styles/app.css"],
+    "matches": ["https://www.dazn.com/*", "https://dazn.com/*"]
+  }]
+}

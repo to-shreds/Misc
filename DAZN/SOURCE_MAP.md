@@ -1,5 +1,22 @@
 # Current source map
 
+## Current Firefox source
+
+The authoritative implementation is now `firefox-extension/`, version `0.1.0`:
+
+- `manifest.json`: shared desktop/Android Firefox MV3 manifest.
+- `src/background.js`: official schedule, bounded catalogue alternative and tab-local pending selection.
+- `src/content/bootstrap.js` and `app-shell.js`: one responsive interface and application flow.
+- `src/content/page-guard.js`, `spoiler-shield.js`, `auth.js`, `media-session.js`: document-start protection and controlled provider authentication.
+- `src/content/schedule.js`, `catalogue.js`, `route-resolver.js`, `transport.js`: strict neutral-data boundaries and provider-evidenced routes.
+- `src/content/player-controller.js`: generation-based covered preparation and explicit Play.
+- `src/content/resume.js`, `diagnostics.js`: device-local elapsed bookmarks and fixed-schema diagnostics.
+- `tests/`: pure logic, background, synthetic media and actual Firefox extension regression harness.
+
+See `FIREFOX_ARCHITECTURE.md` and the current implementation report. The Android companion is intentionally not created before real Firefox playback acceptance.
+
+## Legacy source reference
+
 Current private source archive:
 
 NHL-UK-3.1-private-backup-fresh.zip

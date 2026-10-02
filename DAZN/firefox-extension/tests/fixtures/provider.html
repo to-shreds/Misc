@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Synthetic provider page</title>
+<style>html,body{margin:0;background:#ff00ff}#provider-rail{font:48px sans-serif;background:#ff00ff;color:#000;padding:40px}video{width:320px;height:180px}form{margin:24px}input,button{font:20px sans-serif;padding:12px}</style>
+<div id="provider-rail">SYNTHETIC PROVIDER SPORTS UI</div>
+<script>
+  window.fixturePaints = [];
+  window.fixtureBeforePaint = getComputedStyle(document.querySelector('#provider-rail')).visibility;
+  (function sample() {
+    const rail = document.querySelector('#provider-rail');
+    window.fixturePaints.push({visible: getComputedStyle(rail).visibility, auth: document.documentElement.getAttribute('data-nhluk-auth')});
+    if (window.fixturePaints.length < 40) requestAnimationFrame(sample);
+  })();
+  if (/\/home\/event1\/asset1$/.test(location.pathname)) {
+    const v=document.createElement('video');v.src='/replay.webm?full-shell';v.controls=true;v.poster='/provider-poster.png';v.muted=false;document.body.append(v);v.play().catch(()=>{});
+  }
+  if (/\/signin\/?$/.test(location.pathname)) {
+    const form = document.createElement('form');
+    form.innerHTML = '<label for="email">Email</label><input id="email" type="email"><label for="password">Password</label><input id="password" type="password"><button type="submit">Sign in</button>';
+    form.addEventListener('submit',event=>{event.preventDefault();history.pushState({},'', '/en-GB/home');});
+    document.body.append(form);
+  }
+</script>
