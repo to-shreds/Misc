@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jon.calendarbridge.tests">
+    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    <application android:label="Calendar Bridge fixture tests">
+        <service android:name="com.jon.calendarbridge.tests.FixtureAuthenticatorService" android:exported="true" android:permission="android.permission.BIND_ACCOUNT_AUTHENTICATOR">
+            <intent-filter><action android:name="android.accounts.AccountAuthenticator" /></intent-filter>
+            <meta-data android:name="android.accounts.AccountAuthenticator" android:resource="@xml/fixture_authenticator" />
+        </service>
+    </application>
+    <instrumentation android:name="com.jon.calendarbridge.tests.BridgeInstrumentation" android:targetPackage="com.jon.calendarbridge" android:functionalTest="true" />
+</manifest>
