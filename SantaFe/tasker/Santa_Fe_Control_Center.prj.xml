@@ -1,0 +1,1000 @@
+<TaskerData sr="" dvi="1" tv="6.7.6-beta">
+	<dmetric>1440.0,3120.0</dmetric>
+	<Profile sr="prof25001" ve="2">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<clp>true</clp>
+		<id>25001</id>
+		<mid0>24002</mid0>
+		<nme>SF Local Heartbeat</nme>
+		<Time sr="con0">
+			<fh>-1</fh>
+			<fm>-1</fm>
+			<rep>2</rep>
+			<repval>2</repval>
+			<th>-1</th>
+			<tm>-1</tm>
+		</Time>
+		<State sr="con1" ve="2">
+			<code>165</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%SFEnabled</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</State>
+	</Profile>
+	<Profile sr="prof25002" ve="2">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<clp>true</clp>
+		<id>25002</id>
+		<mid0>24002</mid0>
+		<nme>SF Monitor Started</nme>
+		<Event sr="con0" ve="2">
+			<code>307</code>
+			<pri>0</pri>
+		</Event>
+		<State sr="con1" ve="2">
+			<code>165</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%SFEnabled</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</State>
+	</Profile>
+	<Profile sr="prof25003" ve="2">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<clp>true</clp>
+		<id>25003</id>
+		<mid0>24002</mid0>
+		<nme>SF Phone Unlocked</nme>
+		<Event sr="con0" ve="2">
+			<code>1000</code>
+			<pri>0</pri>
+		</Event>
+		<State sr="con1" ve="2">
+			<code>165</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%SFEnabled</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</State>
+	</Profile>
+	<Profile sr="prof25004" ve="2">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<clp>true</clp>
+		<id>25004</id>
+		<mid0>24017</mid0>
+		<nme>SF Car Bluetooth</nme>
+		<mid1>24018</mid1>
+		<State sr="con0" ve="2">
+			<code>3</code>
+			<Str sr="arg0" ve="3">%SFBtName</Str>
+			<Str sr="arg1" ve="3" />
+		</State>
+		<State sr="con1" ve="2">
+			<code>165</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%SFEnabled</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</State>
+		<State sr="con2" ve="2">
+			<code>165</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%SFBtName</lhs>
+					<op>12</op>
+					<rhs />
+				</Condition>
+			</ConditionList>
+		</State>
+	</Profile>
+	<Profile sr="prof25005" ve="2">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<clp>true</clp>
+		<id>25005</id>
+		<mid0>24019</mid0>
+		<nme>SF Home WiFi</nme>
+		<mid1>24020</mid1>
+		<State sr="con0" ve="2">
+			<code>160</code>
+			<Str sr="arg0" ve="3">%SFHomeWifi</Str>
+			<Str sr="arg1" ve="3" />
+			<Str sr="arg2" ve="3" />
+		</State>
+		<State sr="con1" ve="2">
+			<code>165</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%SFEnabled</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</State>
+		<State sr="con2" ve="2">
+			<code>165</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%SFHomeWifi</lhs>
+					<op>12</op>
+					<rhs />
+				</Condition>
+			</ConditionList>
+		</State>
+	</Profile>
+	<Profile sr="prof25006" ve="2">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<clp>true</clp>
+		<id>25006</id>
+		<mid0>24040</mid0>
+		<nme>SF External Event</nme>
+		<Event sr="con0" ve="2">
+			<code>3050</code>
+			<pri>0</pri>
+			<Str sr="arg0" ve="3">%SFEvent</Str>
+			<Str sr="arg1" ve="3" />
+			<Int sr="arg2" val="0" />
+		</Event>
+		<State sr="con1" ve="2">
+			<code>165</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%SFEnabled</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</State>
+	</Profile>
+	<Profile sr="prof25007" ve="2">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<clp>true</clp>
+		<id>25007</id>
+		<mid0>24021</mid0>
+		<nme>SF Phone Power</nme>
+		<mid1>24022</mid1>
+		<State sr="con0" ve="2">
+			<code>10</code>
+			<Int sr="arg0" val="0" />
+		</State>
+		<State sr="con1" ve="2">
+			<code>165</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%SFEnabled</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</State>
+	</Profile>
+	<Profile sr="prof25008" ve="2">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<clp>true</clp>
+		<id>25008</id>
+		<mid0>24025</mid0>
+		<nme>SF Phone Alarm</nme>
+		<Event sr="con0" ve="2">
+			<code>305</code>
+			<pri>0</pri>
+		</Event>
+		<State sr="con1" ve="2">
+			<code>165</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%SFEnabled</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</State>
+	</Profile>
+	<Project sr="proj0" ve="2">
+		<cdate>1791139161451</cdate>
+		<id>cf1f54dc-cc4e-45b0-9bd0-9ca44f5c4631</id>
+		<name>Santa Fe Control Center</name>
+		<pids>25001,25002,25003,25004,25005,25006,25007,25008</pids>
+		<psort>ActiveAlpha</psort>
+		<scenes>SF Dashboard,SF Controls,SF Climate,SF Automations,SF Simulator,SF Settings,SF Account,SF Diagnostics,SF Quick Controls,SF Offline</scenes>
+		<tids>24001,24002,24003,24004,24005,24006,24007,24008,24009,24010,24011,24012,24013,24014,24015,24016,24017,24018,24019,24020,24021,24022,24023,24024,24025,24026,24027,24028,24029,24030,24031,24032,24033,24034,24035,24036,24037,24038,24039,24040</tids>
+	</Project>
+	<Scene sr="sceneSF Dashboard">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<heightLand>1300</heightLand>
+		<heightPort>2600</heightPort>
+		<nme>SF Dashboard</nme>
+		<widthLand>2600</widthLand>
+		<widthPort>1320</widthPort>
+		<WebElement sr="elements0" ve="2">
+			<flags>4</flags>
+			<geom>0,0,1320,2470,0,0,2600,1170</geom>
+			<Str sr="arg0" ve="3">Control Center</Str>
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">http://127.0.0.1:8293/#dashboard</Str>
+			<Int sr="arg3" val="1" />
+			<Int sr="arg4" val="1" />
+			<Int sr="arg5" val="1" />
+			<Int sr="arg6" val="1" />
+			<Int sr="arg7" val="1" />
+		</WebElement>
+		<ButtonElement sr="elements1" ve="3">
+			<clickTask>24030</clickTask>
+			<flags>4</flags>
+			<geom>1040,2480,260,100,2310,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Close</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>24002</clickTask>
+			<flags>4</flags>
+			<geom>10,2480,260,100,10,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Sync</Str>
+			<Str sr="arg1" ve="3">Sync</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF101A2C</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SF Dashboard</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSF Controls">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<heightLand>1300</heightLand>
+		<heightPort>2600</heightPort>
+		<nme>SF Controls</nme>
+		<widthLand>2600</widthLand>
+		<widthPort>1320</widthPort>
+		<WebElement sr="elements0" ve="2">
+			<flags>4</flags>
+			<geom>0,0,1320,2470,0,0,2600,1170</geom>
+			<Str sr="arg0" ve="3">Control Center</Str>
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">http://127.0.0.1:8293/#controls</Str>
+			<Int sr="arg3" val="1" />
+			<Int sr="arg4" val="1" />
+			<Int sr="arg5" val="1" />
+			<Int sr="arg6" val="1" />
+			<Int sr="arg7" val="1" />
+		</WebElement>
+		<ButtonElement sr="elements1" ve="3">
+			<clickTask>24030</clickTask>
+			<flags>4</flags>
+			<geom>1040,2480,260,100,2310,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Close</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>24002</clickTask>
+			<flags>4</flags>
+			<geom>10,2480,260,100,10,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Sync</Str>
+			<Str sr="arg1" ve="3">Sync</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF101A2C</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SF Controls</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSF Climate">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<heightLand>1300</heightLand>
+		<heightPort>2600</heightPort>
+		<nme>SF Climate</nme>
+		<widthLand>2600</widthLand>
+		<widthPort>1320</widthPort>
+		<WebElement sr="elements0" ve="2">
+			<flags>4</flags>
+			<geom>0,0,1320,2470,0,0,2600,1170</geom>
+			<Str sr="arg0" ve="3">Control Center</Str>
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">http://127.0.0.1:8293/#climate</Str>
+			<Int sr="arg3" val="1" />
+			<Int sr="arg4" val="1" />
+			<Int sr="arg5" val="1" />
+			<Int sr="arg6" val="1" />
+			<Int sr="arg7" val="1" />
+		</WebElement>
+		<ButtonElement sr="elements1" ve="3">
+			<clickTask>24030</clickTask>
+			<flags>4</flags>
+			<geom>1040,2480,260,100,2310,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Close</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>24002</clickTask>
+			<flags>4</flags>
+			<geom>10,2480,260,100,10,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Sync</Str>
+			<Str sr="arg1" ve="3">Sync</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF101A2C</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SF Climate</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSF Automations">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<heightLand>1300</heightLand>
+		<heightPort>2600</heightPort>
+		<nme>SF Automations</nme>
+		<widthLand>2600</widthLand>
+		<widthPort>1320</widthPort>
+		<WebElement sr="elements0" ve="2">
+			<flags>4</flags>
+			<geom>0,0,1320,2470,0,0,2600,1170</geom>
+			<Str sr="arg0" ve="3">Control Center</Str>
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">http://127.0.0.1:8293/#automations</Str>
+			<Int sr="arg3" val="1" />
+			<Int sr="arg4" val="1" />
+			<Int sr="arg5" val="1" />
+			<Int sr="arg6" val="1" />
+			<Int sr="arg7" val="1" />
+		</WebElement>
+		<ButtonElement sr="elements1" ve="3">
+			<clickTask>24030</clickTask>
+			<flags>4</flags>
+			<geom>1040,2480,260,100,2310,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Close</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>24002</clickTask>
+			<flags>4</flags>
+			<geom>10,2480,260,100,10,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Sync</Str>
+			<Str sr="arg1" ve="3">Sync</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF101A2C</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SF Automations</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSF Simulator">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<heightLand>1300</heightLand>
+		<heightPort>2600</heightPort>
+		<nme>SF Simulator</nme>
+		<widthLand>2600</widthLand>
+		<widthPort>1320</widthPort>
+		<WebElement sr="elements0" ve="2">
+			<flags>4</flags>
+			<geom>0,0,1320,2470,0,0,2600,1170</geom>
+			<Str sr="arg0" ve="3">Control Center</Str>
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">http://127.0.0.1:8293/#simulator</Str>
+			<Int sr="arg3" val="1" />
+			<Int sr="arg4" val="1" />
+			<Int sr="arg5" val="1" />
+			<Int sr="arg6" val="1" />
+			<Int sr="arg7" val="1" />
+		</WebElement>
+		<ButtonElement sr="elements1" ve="3">
+			<clickTask>24030</clickTask>
+			<flags>4</flags>
+			<geom>1040,2480,260,100,2310,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Close</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>24002</clickTask>
+			<flags>4</flags>
+			<geom>10,2480,260,100,10,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Sync</Str>
+			<Str sr="arg1" ve="3">Sync</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF101A2C</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SF Simulator</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSF Settings">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<heightLand>1300</heightLand>
+		<heightPort>2600</heightPort>
+		<nme>SF Settings</nme>
+		<widthLand>2600</widthLand>
+		<widthPort>1320</widthPort>
+		<WebElement sr="elements0" ve="2">
+			<flags>4</flags>
+			<geom>0,0,1320,2470,0,0,2600,1170</geom>
+			<Str sr="arg0" ve="3">Control Center</Str>
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">http://127.0.0.1:8293/#settings</Str>
+			<Int sr="arg3" val="1" />
+			<Int sr="arg4" val="1" />
+			<Int sr="arg5" val="1" />
+			<Int sr="arg6" val="1" />
+			<Int sr="arg7" val="1" />
+		</WebElement>
+		<ButtonElement sr="elements1" ve="3">
+			<clickTask>24030</clickTask>
+			<flags>4</flags>
+			<geom>1040,2480,260,100,2310,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Close</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>24002</clickTask>
+			<flags>4</flags>
+			<geom>10,2480,260,100,10,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Sync</Str>
+			<Str sr="arg1" ve="3">Sync</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF101A2C</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SF Settings</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSF Account">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<heightLand>1300</heightLand>
+		<heightPort>2600</heightPort>
+		<nme>SF Account</nme>
+		<widthLand>2600</widthLand>
+		<widthPort>1320</widthPort>
+		<WebElement sr="elements0" ve="2">
+			<flags>4</flags>
+			<geom>0,0,1320,2470,0,0,2600,1170</geom>
+			<Str sr="arg0" ve="3">Control Center</Str>
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">http://127.0.0.1:8293/#account</Str>
+			<Int sr="arg3" val="1" />
+			<Int sr="arg4" val="1" />
+			<Int sr="arg5" val="1" />
+			<Int sr="arg6" val="1" />
+			<Int sr="arg7" val="1" />
+		</WebElement>
+		<ButtonElement sr="elements1" ve="3">
+			<clickTask>24030</clickTask>
+			<flags>4</flags>
+			<geom>1040,2480,260,100,2310,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Close</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>24002</clickTask>
+			<flags>4</flags>
+			<geom>10,2480,260,100,10,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Sync</Str>
+			<Str sr="arg1" ve="3">Sync</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF101A2C</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SF Account</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSF Diagnostics">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<heightLand>1300</heightLand>
+		<heightPort>2600</heightPort>
+		<nme>SF Diagnostics</nme>
+		<widthLand>2600</widthLand>
+		<widthPort>1320</widthPort>
+		<WebElement sr="elements0" ve="2">
+			<flags>4</flags>
+			<geom>0,0,1320,2470,0,0,2600,1170</geom>
+			<Str sr="arg0" ve="3">Control Center</Str>
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">http://127.0.0.1:8293/#diagnostics</Str>
+			<Int sr="arg3" val="1" />
+			<Int sr="arg4" val="1" />
+			<Int sr="arg5" val="1" />
+			<Int sr="arg6" val="1" />
+			<Int sr="arg7" val="1" />
+		</WebElement>
+		<ButtonElement sr="elements1" ve="3">
+			<clickTask>24030</clickTask>
+			<flags>4</flags>
+			<geom>1040,2480,260,100,2310,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Close</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>24002</clickTask>
+			<flags>4</flags>
+			<geom>10,2480,260,100,10,1180,260,100</geom>
+			<Str sr="arg0" ve="3">Sync</Str>
+			<Str sr="arg1" ve="3">Sync</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF101A2C</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SF Diagnostics</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSF Quick Controls">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<heightLand>1300</heightLand>
+		<heightPort>1150</heightPort>
+		<nme>SF Quick Controls</nme>
+		<widthLand>2600</widthLand>
+		<widthPort>1320</widthPort>
+		<TextElement sr="elements0" ve="3">
+			<flags>4</flags>
+			<geom>40,30,1240,100,40,30,2300,100</geom>
+			<Str sr="arg0" ve="3">Title</Str>
+			<Str sr="arg1" ve="3">Santa Fe quick controls</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="24" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements1" ve="3">
+			<flags>4</flags>
+			<geom>40,135,1240,210,40,135,2300,150</geom>
+			<Str sr="arg0" ve="3">Status</Str>
+			<Str sr="arg1" ve="3">%SFStatus</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="16" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>24031</clickTask>
+			<flags>4</flags>
+			<geom>40,365,590,150,40,365,590,150</geom>
+			<Str sr="arg0" ve="3">B0</Str>
+			<Str sr="arg1" ve="3">Dashboard</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements3" ve="3">
+			<clickTask>24007</clickTask>
+			<flags>4</flags>
+			<geom>670,365,590,150,670,365,590,150</geom>
+			<Str sr="arg0" ve="3">B1</Str>
+			<Str sr="arg1" ve="3">Lock</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements4" ve="3">
+			<clickTask>24009</clickTask>
+			<flags>4</flags>
+			<geom>40,545,590,150,40,545,590,150</geom>
+			<Str sr="arg0" ve="3">B2</Str>
+			<Str sr="arg1" ve="3">Start climate</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements5" ve="3">
+			<clickTask>24010</clickTask>
+			<flags>4</flags>
+			<geom>670,545,590,150,670,545,590,150</geom>
+			<Str sr="arg0" ve="3">B3</Str>
+			<Str sr="arg1" ve="3">Stop climate</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements6" ve="3">
+			<clickTask>24013</clickTask>
+			<flags>4</flags>
+			<geom>40,725,590,150,40,725,590,150</geom>
+			<Str sr="arg0" ve="3">B4</Str>
+			<Str sr="arg1" ve="3">Refresh status</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements7" ve="3">
+			<clickTask>24003</clickTask>
+			<flags>4</flags>
+			<geom>670,725,590,150,670,725,590,150</geom>
+			<Str sr="arg0" ve="3">B5</Str>
+			<Str sr="arg1" ve="3">Pause all</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements8" ve="3">
+			<clickTask>24036</clickTask>
+			<flags>4</flags>
+			<geom>40,905,590,150,40,905,590,150</geom>
+			<Str sr="arg0" ve="3">B6</Str>
+			<Str sr="arg1" ve="3">Settings</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements9" ve="3">
+			<clickTask>24030</clickTask>
+			<flags>4</flags>
+			<geom>670,905,590,150,670,905,590,150</geom>
+			<Str sr="arg0" ve="3">B7</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF101A2C</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SF Quick Controls</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSF Offline">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<heightLand>1300</heightLand>
+		<heightPort>900</heightPort>
+		<nme>SF Offline</nme>
+		<widthLand>2600</widthLand>
+		<widthPort>1320</widthPort>
+		<TextElement sr="elements0" ve="3">
+			<flags>4</flags>
+			<geom>40,40,1240,100,40,40,2300,100</geom>
+			<Str sr="arg0" ve="3">Title</Str>
+			<Str sr="arg1" ve="3">Bluelink bridge is offline</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="24" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements1" ve="3">
+			<flags>4</flags>
+			<geom>40,175,1240,340,40,175,2300,340</geom>
+			<Str sr="arg0" ve="3">Help</Str>
+			<Str sr="arg1" ve="3">Open Termux and run sf-start. Leave its session running. Then tap Retry.
+
+No Termux:Tasker plugin is needed. No command has been sent.</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="18" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>24028</clickTask>
+			<flags>4</flags>
+			<geom>40,570,390,160,40,570,390,160</geom>
+			<Str sr="arg0" ve="3">B0</Str>
+			<Str sr="arg1" ve="3">Open Termux</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements3" ve="3">
+			<clickTask>24031</clickTask>
+			<flags>4</flags>
+			<geom>460,570,390,160,460,570,390,160</geom>
+			<Str sr="arg0" ve="3">B1</Str>
+			<Str sr="arg1" ve="3">Retry</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements4" ve="3">
+			<clickTask>24030</clickTask>
+			<flags>4</flags>
+			<geom>880,570,390,160,880,570,390,160</geom>
+			<Str sr="arg0" ve="3">B2</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Str sr="arg4" ve="3">#FFF4F6FA</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg2" val="17" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF101A2C</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SF Offline</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Task sr="task24001">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24001</id>
+		<nme>SF Core</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>474</code>
+			<Str sr="arg0" ve="3">// BeanShell for Tasker 6.7.6-beta. No credentials are stored in Tasker variables.
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import org.json.*;
+import android.app.*;
+import android.content.*;
+import android.os.*;
+import android.net.Uri;
+
+String readSmall(File file) {
+    if (!file.exists()) return "{}";
+    if (file.length() &gt; 32768) throw new IOException("Private settings file too large");
+    BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+    StringBuilder b = new StringBuilder();
+    try { String s; while ((s = r.readLine()) != null) b.append(s); }
+    finally { r.close(); }
+    return b.toString();
+}
+void saveSmall(File file, JSONObject data) {
+    File temp = new File(file.getPath() + ".tmp");
+    FileOutputStream out = new FileOutputStream(temp);
+    try { out.write(data.toString().getBytes("UTF-8")); out.getFD().sync(); }
+    finally { out.close(); }
+    temp.setReadable(false, false); temp.setWritable(false, false);
+    temp.setReadable(true, true); temp.setWritable(true, true);
+    if (!temp.renameTo(file)) throw new IOException("Could not save private pairing");
+}
+JSONObject request(String method, String path, JSONObject body, String token) {
+    // Fixed origin. Redirects are forbidden so a bearer token cannot be redirected elsewhere.
+    if (!path.startsWith("/api/") &amp;&amp; !path.equals("/health")) throw new IOException("Invalid local path");
+    HttpURLConnection c = (HttpURLConnection)new URL("http://127.0.0.1:8293" + path).openConnection();
+    c.setRequestMethod(method); c.setConnectTimeout(3000); c.setReadTimeout(5000);
+    c.setInstanceFollowRedirects(false); c.setRequestProperty("X-SF-Client", "tasker");
+    if (token != null &amp;&amp; token.length() &gt; 0) c.setRequestProperty("Authorization", "Bearer " + token);
+    try {
+        if (body != null) {
+            c.setDoOutput(true); c.setRequestProperty("Content-Type", "application/json");
+            byte[] data = body.toString().getBytes("UTF-8"); c.setFixedLengthStreamingMode(data.length);
+            OutputStream stream = c.getOutputStream(); stream.write(data); stream.close();
+        }
+        int status = c.getResponseCode();
+        InputStream stream = status &gt;= 400 ? c.getErrorStream() : c.getInputStream();
+        if (stream == null) throw new IOException("No response body");
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(); byte[] block = new byte[4096];
+        try {
+            int count;
+            while ((count = stream.read(block)) != -1) {
+                if (bytes.size() + count &gt; 2097152) throw new IOException("Local response too large");
+                bytes.write(block, 0, count);
+            }
+        } finally { stream.close(); }
+        JSONObject result = new JSONObject(new String(bytes.toByteArray(), "UTF-8"));
+        result.put("_http", status);
+        return result;
+    } finally { c.disconnect(); }
+}
+void sendNotice(String message) {
+    NotificationManager nm = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+    nm.createNotificationChannel(new NotificationChannel("sf_control", "Santa Fe Control Center", NotificationManager.IMPORTANCE_DEFAULT));
+    Intent launch = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+    if (launch == null) throw new IOException("Tasker launcher unavailable");
+    PendingIntent pi = PendingIntent.getActivity(context, 8293, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    Notification n = new Notification.Builder(context, "sf_control")
+        .setSmallIcon(context.getApplicationInfo().icon).setContentTitle("Santa Fe Control Center")
+        .setContentText(message).setStyle(new Notification.BigTextStyle().bigText(message))
+        .setContentIntent(pi).setVisibility(Notification.VISIBILITY_PRIVATE).setAutoCancel(true).build();
+    nm.notify(8293, n);
+}
+
+String operation = tasker.getVariable("par1");
+String argument = tasker.getVariable("par2");
+if (operation == null || operation.startsWith("%")) operation = "sync";
+if (argument == null || argument.startsWith("%")) argument = "";
+File privateFile = new File(context.getNoBackupFilesDir(), "sf-control-client.json");
+try {
+    JSONObject saved = new JSONObject(readSmall(privateFile));
+    if (operation.equals("pair")) {
+        JSONObject response = request("POST", "/api/pair", new JSONObject().put("code", argument.trim()), null);
+        if (response.optInt("_http") != 200 || !response.optString("role").equals("tasker")) {
