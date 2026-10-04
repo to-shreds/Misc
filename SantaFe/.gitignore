@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+*.class
+.venv/
+runtime-venv/
+config.json
+config.previous.json
+clients.json
+cooldowns.json
+bridge.lock
+*.log
