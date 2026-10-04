@@ -1,0 +1,4 @@
+# Optional only. The simulator does not require the Hyundai library.
+# Pin the integration package; transitive dependencies are resolved by pip, not fully locked.
+hyundai-kia-connect-api==4.35.0
+tzdata
