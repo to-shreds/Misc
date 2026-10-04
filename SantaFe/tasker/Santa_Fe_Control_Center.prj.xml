@@ -998,3 +998,1786 @@ try {
     if (operation.equals("pair")) {
         JSONObject response = request("POST", "/api/pair", new JSONObject().put("code", argument.trim()), null);
         if (response.optInt("_http") != 200 || !response.optString("role").equals("tasker")) {
+            tasker.showToast("Pairing failed. Generate a Tasker pairing code in Settings, not the owner code.");
+            return "pairing failed";
+        }
+        saved.put("token", response.getString("token")); saved.put("consumed", new JSONArray());
+        saveSmall(privateFile, saved);
+        tasker.setVariable("SFEnabled", "1");
+        tasker.showToast("Tasker paired. Run SF Sync, then SF Open.");
+        return "paired";
+    }
+    if (operation.equals("forget")) {
+        if (privateFile.exists() &amp;&amp; !privateFile.delete()) throw new IOException("Private pairing could not be removed");
+        tasker.setVariable("SFEnabled", "0"); tasker.setVariable("SFVehicleState", "");
+        tasker.setVariable("SFStatus", "Tasker unpaired"); return "unpaired";
+    }
+    String token = saved.optString("token", "");
+    if (token.length() == 0) { tasker.setVariable("SFStatus", "Run SF Pair Tasker"); return "not paired"; }
+    if (operation.equals("pause")) {
+        JSONObject response = request("POST", "/api/pause", new JSONObject(), token);
+        tasker.setVariable("SFStatus", response.optInt("_http") == 200 ? "All rules paused" : response.optString("error", "Pause failed"));
+        return "pause requested";
+    }
+    if (operation.equals("event")) {
+        JSONObject event = new JSONObject(argument);
+        event.put("id", UUID.randomUUID().toString()); event.put("at", System.currentTimeMillis() / 1000.0);
+        JSONObject response = request("POST", "/api/event", event, token);
+        tasker.setVariable("SFStatus", response.optInt("_http") == 200 ? "Event delivered" : response.optString("error", "Event rejected"));
+        return "event processed";
+    }
+    JSONObject snap = request("GET", "/api/snapshot", null, token);
+    if (snap.optInt("_http") != 200) {
+        tasker.setVariable("SFStatus", snap.optString("error", "Pair Tasker again")); return "connection rejected";
+    }
+    JSONObject settings = snap.getJSONObject("config").getJSONObject("settings");
+    // These are harmless configuration/status variables, never authentication secrets.
+    tasker.setVariable("SFBtName", settings.optString("bluetooth_name"));
+    tasker.setVariable("SFHomeWifi", settings.optString("home_wifi"));
+    tasker.setVariable("SFMode", snap.getString("mode"));
+    tasker.setVariable("SFVehicleState", snap.getJSONObject("state").toString(), true);
+    tasker.setVariable("SFStatus", snap.optBoolean("stale") ? "Vehicle status is stale or unknown" : "Bridge connected: " + snap.getString("mode"));
+    // Refresh only context obtained directly from the phone now. Unknown stays unknown.
+    JSONObject phone = new JSONObject();
+    try {
+        Intent battery = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if (battery != null &amp;&amp; battery.getIntExtra("plugged", -1) &gt;= 0) phone.put("charging", battery.getIntExtra("plugged", -1) &gt; 0);
+    } catch (Exception ignored) {}
+    try {
+        android.net.wifi.WifiManager wifi = (android.net.wifi.WifiManager)context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        String ssid = wifi.getConnectionInfo().getSSID();
+        if (ssid != null &amp;&amp; !ssid.equals("&lt;unknown ssid&gt;") &amp;&amp; ssid.length() &gt; 0) {
+            if (ssid.startsWith("\"") &amp;&amp; ssid.endsWith("\"")) ssid=ssid.substring(1,ssid.length()-1);
+            String home = settings.optString("home_wifi");
+            if (home.length() &gt; 0) phone.put("home", ssid.equals(home));
+            phone.put("wifi", true);
+        }
+    } catch (Exception ignored) {}
+    if (phone.length() &gt; 0) request("POST", "/api/context", new JSONObject().put("at",System.currentTimeMillis()/1000.0).put("context",phone), token);
+    if (operation.equals("command")) {
+        JSONObject command = new JSONObject(argument);
+        command.put("request_id", UUID.randomUUID().toString());
+        command.put("expected_mode", snap.getString("mode")); command.put("epoch", snap.getString("epoch"));
+        if (command.optString("action").equals("climate_start") &amp;&amp; !command.has("preset_id"))
+            command.put("preset_id", settings.getString("default_preset"));
+        JSONObject response = request("POST", "/api/command", command, token);
+        String message = response.optString("error", response.optString("message", "Request sent"));
+        tasker.setVariable("SFStatus", message); tasker.showToast(message);
+        // Opening a screen never confirms a command. Confirmation happens in the owner dashboard.
+        if (response.optString("state").equals("confirmation_required")) tasker.callTask("SF Open", null);
+    }
+    // At-most-once dispatch. Save a consumed ID BEFORE invoking a task or speech action.
+    // A crash can lose a notification, but cannot replay an arbitrary task on restart.
+    JSONObject reply = request("GET", "/api/effects", null, token);
+    if (reply.optInt("_http") != 200) return "sync completed";
+    JSONArray effects = reply.getJSONArray("effects");
+    JSONArray consumed = saved.optJSONArray("consumed"); if (consumed == null) consumed = new JSONArray();
+    HashSet seen = new HashSet();
+    for (int i = 0; i &lt; consumed.length(); i++) seen.add(consumed.getString(i));
+    JSONArray ack = new JSONArray();
+    for (int i = 0; i &lt; effects.length(); i++) {
+        JSONObject e = effects.getJSONObject(i); String eid = e.getString("id"); ack.put(eid);
+        if (seen.contains(eid) || e.optDouble("expires", 0) &lt; System.currentTimeMillis()/1000.0) continue;
+        consumed.put(eid); seen.add(eid);
+        while (consumed.length() &gt; 150) consumed.remove(0);
+        saved.put("consumed", consumed); saveSmall(privateFile, saved);
+        try {
+            String type = e.optString("type");
+            if (type.equals("notify")) sendNotice(e.optString("text"));
+            else if (type.equals("speak")) {
+                HashMap params = new HashMap(); params.put("par1", e.optString("text"));
+                if (!tasker.callTask("SF Speak", params)) throw new IOException("Speech task not queued");
+            } else if (type.equals("set_variable")) {
+                String name = e.optString("variable");
+                if (!name.matches("SFUser[A-Za-z0-9_]{1,40}")) throw new IOException("Variable not allowed");
+                tasker.setVariable(name, e.optString("value"));
+            } else if (type.equals("run_task")) {
+                JSONArray allowed = settings.getJSONArray("task_allowlist"); boolean permit = false;
+                for (int j=0; j&lt;allowed.length(); j++) if (allowed.getString(j).equals(e.optString("task"))) permit = true;
+                if (!permit) throw new IOException("Task not allowed");
+                if (!tasker.callTask(e.getString("task"), null)) throw new IOException("Task not queued");
+            }
+        } catch (Exception localFailure) {
+            tasker.setVariable("SFStatus", "A phone action could not be delivered. Check notification permissions and allowed tasks.");
+        }
+    }
+    if (ack.length() &gt; 0) request("POST", "/api/effects/ack", new JSONObject().put("ids", ack), token);
+    return "completed";
+} catch (Exception problem) {
+    // Never log exception messages: libraries can place request contents in them.
+    tasker.setVariable("SFStatus", "Bridge unavailable or invalid response. Open Termux and run sf-start. No command was retried.");
+    return "bridge unavailable";
+}
+</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24002">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24002</id>
+		<nme>SF Sync</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">sync</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24003">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24003</id>
+		<nme>SF Pause All</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">pause</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24004">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24004</id>
+		<nme>SF Forget Pairing</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">forget</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24005">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24005</id>
+		<nme>SF Speak</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>474</code>
+			<Str sr="arg0" ve="3">// Bounded Android text-to-speech, no speech or text logged.
+import android.speech.tts.TextToSpeech;
+import android.os.Bundle;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+String text = tasker.getVariable("par1");
+if (text == null || text.length() == 0) return "no text";
+if (text.length() &gt; 500) text = text.substring(0, 500);
+CountDownLatch ready = new CountDownLatch(1);
+int[] state = new int[]{-1};
+TextToSpeech speaker = new TextToSpeech(context.getApplicationContext(), new TextToSpeech.OnInitListener() {
+    public void onInit(int status) { state[0] = status; ready.countDown(); }
+});
+try {
+    if (!ready.await(8, TimeUnit.SECONDS) || state[0] != TextToSpeech.SUCCESS) return "speech unavailable";
+    if (speaker.speak(text, TextToSpeech.QUEUE_FLUSH, new Bundle(), "sf-control") == TextToSpeech.ERROR) return "speech rejected";
+    // Wait briefly for synthesis to start, then bounded wait for completion.
+    Thread.sleep(600);
+    long until = System.currentTimeMillis() + 45000;
+    while (speaker.isSpeaking() &amp;&amp; System.currentTimeMillis() &lt; until) Thread.sleep(250);
+    return "speech finished";
+} finally { speaker.stop(); speaker.shutdown(); }
+</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24006">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24006</id>
+		<nme>SF Pair Tasker</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>360</code>
+			<Bundle sr="arg0">
+				<Vals sr="val" />
+			</Bundle>
+			<Str sr="arg1" ve="3">Pair Tasker</Str>
+			<Str sr="arg2" ve="3">In the dashboard, open Settings and generate a Tasker pairing code.</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg5" ve="3" />
+			<Str sr="arg8" ve="3" />
+			<Int sr="arg4" val="180" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">pair</Str>
+			<Str sr="arg3" ve="3">%input</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act2">
+			<code>549</code>
+			<Str sr="arg0" ve="3">%input</Str>
+			<Int sr="arg1" val="0" />
+			<Int sr="arg2" val="0" />
+			<Int sr="arg3" val="0" />
+		</Action>
+		<Action ve="7" sr="act3">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24007">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24007</id>
+		<nme>SF Lock</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">command</Str>
+			<Str sr="arg3" ve="3">{"action":"lock"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24008">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24008</id>
+		<nme>SF Unlock</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">command</Str>
+			<Str sr="arg3" ve="3">{"action":"unlock"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24009">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24009</id>
+		<nme>SF Start Climate</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">command</Str>
+			<Str sr="arg3" ve="3">{"action":"climate_start"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24010">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24010</id>
+		<nme>SF Stop Climate</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">command</Str>
+			<Str sr="arg3" ve="3">{"action":"climate_stop"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24011">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24011</id>
+		<nme>SF Lights</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">command</Str>
+			<Str sr="arg3" ve="3">{"action":"lights"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24012">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24012</id>
+		<nme>SF Horn and Lights</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">command</Str>
+			<Str sr="arg3" ve="3">{"action":"horn_lights"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24013">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24013</id>
+		<nme>SF Refresh Status</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">command</Str>
+			<Str sr="arg3" ve="3">{"action":"refresh"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24014">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24014</id>
+		<nme>SF Wake and Refresh</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">command</Str>
+			<Str sr="arg3" ve="3">{"action":"force_refresh"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24015">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24015</id>
+		<nme>SF Locate</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">command</Str>
+			<Str sr="arg3" ve="3">{"action":"locate"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24016">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24016</id>
+		<nme>SF Send Event</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">%par1</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24017">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24017</id>
+		<nme>SF Car Connected</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"bluetooth_connected"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24018">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24018</id>
+		<nme>SF Car Disconnected</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"bluetooth_disconnected"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24019">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24019</id>
+		<nme>SF Home Enter</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"home_enter"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24020">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24020</id>
+		<nme>SF Home Exit</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"home_exit"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24021">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24021</id>
+		<nme>SF Power Connected</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"power_connected"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24022">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24022</id>
+		<nme>SF Power Disconnected</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"power_disconnected"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24023">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24023</id>
+		<nme>SF Android Auto Connected</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"android_auto_connected"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24024">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24024</id>
+		<nme>SF Android Auto Disconnected</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"android_auto_disconnected"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24025">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24025</id>
+		<nme>SF Alarm</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"alarm"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24026">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24026</id>
+		<nme>SF NFC</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"nfc"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24027">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24027</id>
+		<nme>SF Manual Event</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">{"event":"manual"}</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24028">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24028</id>
+		<nme>SF Launch Termux</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>474</code>
+			<Str sr="arg0" ve="3">import android.content.Intent;
+Intent i=context.getPackageManager().getLaunchIntentForPackage("com.termux");
+if(i==null){tasker.showToast("Termux is not installed.");return "unavailable";}
+i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);context.startActivity(i);return "opened";</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24029">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24029</id>
+		<nme>SF Browser</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>474</code>
+			<Str sr="arg0" ve="3">import android.content.Intent;
+import android.net.Uri;
+Intent i=new Intent(Intent.ACTION_VIEW,Uri.parse("http://127.0.0.1:8293/"));
+i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);context.startActivity(i);return "opened";</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task24030">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24030</id>
+		<nme>SF Close</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SF Dashboard</Str>
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SF Controls</Str>
+		</Action>
+		<Action ve="7" sr="act2">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SF Climate</Str>
+		</Action>
+		<Action ve="7" sr="act3">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SF Automations</Str>
+		</Action>
+		<Action ve="7" sr="act4">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SF Simulator</Str>
+		</Action>
+		<Action ve="7" sr="act5">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SF Settings</Str>
+		</Action>
+		<Action ve="7" sr="act6">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SF Account</Str>
+		</Action>
+		<Action ve="7" sr="act7">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SF Diagnostics</Str>
+		</Action>
+		<Action ve="7" sr="act8">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SF Quick Controls</Str>
+		</Action>
+		<Action ve="7" sr="act9">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SF Offline</Str>
+		</Action>
+	</Task>
+	<Task sr="task24031">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24031</id>
+		<nme>SF Open</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Close</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>474</code>
+			<Str sr="arg0" ve="3">import java.net.*;
+tasker.setVariable("sf_online","0");
+HttpURLConnection c=null;
+try { c=(HttpURLConnection)new URL("http://127.0.0.1:8293/health").openConnection();
+c.setConnectTimeout(1500);c.setReadTimeout(1500);c.setInstanceFollowRedirects(false);
+if(c.getResponseCode()==200)tasker.setVariable("sf_online","1");
+} catch(Exception e){} finally{if(c!=null)c.disconnect();}
+return "checked";</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+		<Action ve="7" sr="act2">
+			<code>37</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%sf_online</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</Action>
+		<Action ve="7" sr="act3">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Dashboard</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act4">
+			<code>43</code>
+		</Action>
+		<Action ve="7" sr="act5">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Offline</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act6">
+			<code>38</code>
+		</Action>
+	</Task>
+	<Task sr="task24032">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24032</id>
+		<nme>SF Open Controls</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Close</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>474</code>
+			<Str sr="arg0" ve="3">import java.net.*;
+tasker.setVariable("sf_online","0");
+HttpURLConnection c=null;
+try { c=(HttpURLConnection)new URL("http://127.0.0.1:8293/health").openConnection();
+c.setConnectTimeout(1500);c.setReadTimeout(1500);c.setInstanceFollowRedirects(false);
+if(c.getResponseCode()==200)tasker.setVariable("sf_online","1");
+} catch(Exception e){} finally{if(c!=null)c.disconnect();}
+return "checked";</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+		<Action ve="7" sr="act2">
+			<code>37</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%sf_online</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</Action>
+		<Action ve="7" sr="act3">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Controls</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act4">
+			<code>43</code>
+		</Action>
+		<Action ve="7" sr="act5">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Offline</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act6">
+			<code>38</code>
+		</Action>
+	</Task>
+	<Task sr="task24033">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24033</id>
+		<nme>SF Open Climate</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Close</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>474</code>
+			<Str sr="arg0" ve="3">import java.net.*;
+tasker.setVariable("sf_online","0");
+HttpURLConnection c=null;
+try { c=(HttpURLConnection)new URL("http://127.0.0.1:8293/health").openConnection();
+c.setConnectTimeout(1500);c.setReadTimeout(1500);c.setInstanceFollowRedirects(false);
+if(c.getResponseCode()==200)tasker.setVariable("sf_online","1");
+} catch(Exception e){} finally{if(c!=null)c.disconnect();}
+return "checked";</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+		<Action ve="7" sr="act2">
+			<code>37</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%sf_online</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</Action>
+		<Action ve="7" sr="act3">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Climate</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act4">
+			<code>43</code>
+		</Action>
+		<Action ve="7" sr="act5">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Offline</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act6">
+			<code>38</code>
+		</Action>
+	</Task>
+	<Task sr="task24034">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24034</id>
+		<nme>SF Open Automations</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Close</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>474</code>
+			<Str sr="arg0" ve="3">import java.net.*;
+tasker.setVariable("sf_online","0");
+HttpURLConnection c=null;
+try { c=(HttpURLConnection)new URL("http://127.0.0.1:8293/health").openConnection();
+c.setConnectTimeout(1500);c.setReadTimeout(1500);c.setInstanceFollowRedirects(false);
+if(c.getResponseCode()==200)tasker.setVariable("sf_online","1");
+} catch(Exception e){} finally{if(c!=null)c.disconnect();}
+return "checked";</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+		<Action ve="7" sr="act2">
+			<code>37</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%sf_online</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</Action>
+		<Action ve="7" sr="act3">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Automations</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act4">
+			<code>43</code>
+		</Action>
+		<Action ve="7" sr="act5">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Offline</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act6">
+			<code>38</code>
+		</Action>
+	</Task>
+	<Task sr="task24035">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24035</id>
+		<nme>SF Open Simulator</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Close</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>474</code>
+			<Str sr="arg0" ve="3">import java.net.*;
+tasker.setVariable("sf_online","0");
+HttpURLConnection c=null;
+try { c=(HttpURLConnection)new URL("http://127.0.0.1:8293/health").openConnection();
+c.setConnectTimeout(1500);c.setReadTimeout(1500);c.setInstanceFollowRedirects(false);
+if(c.getResponseCode()==200)tasker.setVariable("sf_online","1");
+} catch(Exception e){} finally{if(c!=null)c.disconnect();}
+return "checked";</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+		<Action ve="7" sr="act2">
+			<code>37</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%sf_online</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</Action>
+		<Action ve="7" sr="act3">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Simulator</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act4">
+			<code>43</code>
+		</Action>
+		<Action ve="7" sr="act5">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Offline</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act6">
+			<code>38</code>
+		</Action>
+	</Task>
+	<Task sr="task24036">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24036</id>
+		<nme>SF Open Settings</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Close</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>474</code>
+			<Str sr="arg0" ve="3">import java.net.*;
+tasker.setVariable("sf_online","0");
+HttpURLConnection c=null;
+try { c=(HttpURLConnection)new URL("http://127.0.0.1:8293/health").openConnection();
+c.setConnectTimeout(1500);c.setReadTimeout(1500);c.setInstanceFollowRedirects(false);
+if(c.getResponseCode()==200)tasker.setVariable("sf_online","1");
+} catch(Exception e){} finally{if(c!=null)c.disconnect();}
+return "checked";</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+		<Action ve="7" sr="act2">
+			<code>37</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%sf_online</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</Action>
+		<Action ve="7" sr="act3">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Settings</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act4">
+			<code>43</code>
+		</Action>
+		<Action ve="7" sr="act5">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Offline</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act6">
+			<code>38</code>
+		</Action>
+	</Task>
+	<Task sr="task24037">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24037</id>
+		<nme>SF Open Account</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Close</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>474</code>
+			<Str sr="arg0" ve="3">import java.net.*;
+tasker.setVariable("sf_online","0");
+HttpURLConnection c=null;
+try { c=(HttpURLConnection)new URL("http://127.0.0.1:8293/health").openConnection();
+c.setConnectTimeout(1500);c.setReadTimeout(1500);c.setInstanceFollowRedirects(false);
+if(c.getResponseCode()==200)tasker.setVariable("sf_online","1");
+} catch(Exception e){} finally{if(c!=null)c.disconnect();}
+return "checked";</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+		<Action ve="7" sr="act2">
+			<code>37</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%sf_online</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</Action>
+		<Action ve="7" sr="act3">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Account</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act4">
+			<code>43</code>
+		</Action>
+		<Action ve="7" sr="act5">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Offline</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act6">
+			<code>38</code>
+		</Action>
+	</Task>
+	<Task sr="task24038">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24038</id>
+		<nme>SF Open Diagnostics</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Close</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>474</code>
+			<Str sr="arg0" ve="3">import java.net.*;
+tasker.setVariable("sf_online","0");
+HttpURLConnection c=null;
+try { c=(HttpURLConnection)new URL("http://127.0.0.1:8293/health").openConnection();
+c.setConnectTimeout(1500);c.setReadTimeout(1500);c.setInstanceFollowRedirects(false);
+if(c.getResponseCode()==200)tasker.setVariable("sf_online","1");
+} catch(Exception e){} finally{if(c!=null)c.disconnect();}
+return "checked";</Str>
+			<Str sr="arg1" ve="3">%sf_result</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+		<Action ve="7" sr="act2">
+			<code>37</code>
+			<ConditionList sr="if">
+				<Condition sr="c0" ve="3">
+					<lhs>%sf_online</lhs>
+					<op>2</op>
+					<rhs>1</rhs>
+				</Condition>
+			</ConditionList>
+		</Action>
+		<Action ve="7" sr="act3">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Diagnostics</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act4">
+			<code>43</code>
+		</Action>
+		<Action ve="7" sr="act5">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Offline</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+		<Action ve="7" sr="act6">
+			<code>38</code>
+		</Action>
+	</Task>
+	<Task sr="task24039">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24039</id>
+		<nme>SF Quick Controls</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Close</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SF Quick Controls</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task24040">
+		<cdate>1791139161451</cdate>
+		<edate>1791139161451</edate>
+		<id>24040</id>
+		<nme>SF External Event Dispatch</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action ve="7" sr="act0">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3">event</Str>
+			<Str sr="arg3" ve="3">%SFEvent</Str>
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+		<Action ve="7" sr="act1">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SF Sync</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+			<Int sr="arg10" val="1" />
+		</Action>
+	</Task>
+</TaskerData>

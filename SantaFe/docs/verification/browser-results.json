@@ -1,0 +1,23 @@
+{
+  "checks_passed": 15,
+  "checks": [
+    "Unpaired dashboard offers owner pairing",
+    "Owner pairing opens simulation",
+    "Eight sections render without mobile horizontal overflow",
+    "Custom climate preset saves and returns to list",
+    "Rule editor saves typed conditions and enables master separately",
+    "Simulator trigger executes matching enabled rule",
+    "Unlock waits for explicit confirmation",
+    "Missing timestamps displayed as stale/unknown",
+    "User text is escaped, not interpreted as HTML",
+    "Tasker pairing-code generation",
+    "Backup restore disables rules",
+    "Post-mutation refresh waits for in-flight reads",
+    "Stale settings form cannot overwrite another editor",
+    "Desktop layout renders",
+    "No uncaught JavaScript errors with model transport"
+  ],
+  "page_errors": [],
+  "engine": "Chromium via Playwright, in-memory DOM and model-transport test double. Managed URL navigation blocked; no browser network was used. HTTP/auth tested separately.",
+  "not_tested": "Android Tasker WebView, import behavior, on-device notifications, Hyundai account"
+}
