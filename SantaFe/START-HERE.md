@@ -1,3 +1,5 @@
+PHONE IMPORT WARNING (2026-10-04): the current generated Tasker project is retained for diagnosis only. On the user's Tasker 6.7.6-beta installation, it imports the task names but every task has zero actions. Do not rely on the import/setup steps below until tools/build_tasker.py is corrected and a new export is verified on-device.
+
 # Santa Fe Control Center 0.1.0
 
 Start with the simulated car. You do not need the Santa Fe, a Hyundai account, or Termux:Tasker for this setup.
