@@ -1,3 +1,7 @@
+## Post-build phone result
+
+On October 4, 2026, the user imported the generated Tasker project into Tasker 6.7.6-beta. Task names appeared, but every imported task had zero actions. This is a real on-device failure and supersedes any implication that the structural XML tests established Tasker importability. The existing XML and generator remain in the repository for diagnosis.
+
 # Verification report: version 0.1.0
 
 Verified in the build environment on October 4, 2026. This report distinguishes local checks from Android and Hyundai checks.
