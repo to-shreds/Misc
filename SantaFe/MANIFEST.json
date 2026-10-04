@@ -1,0 +1,189 @@
+{
+  "project": "Santa Fe Control Center",
+  "repository": "to-shreds/Misc",
+  "path": "SantaFe",
+  "status": "IN PROGRESS",
+  "known_blocker": "Tasker 6.7.6-beta imports the generated project with task names present but zero actions. The current XML is retained for diagnosis and is not a working deliverable.",
+  "files": [
+    {
+      "path": ".gitignore",
+      "git_blob_sha": "077a18d0966bbb1eb4258dd8da22237ee5563956",
+      "bytes": 142
+    },
+    {
+      "path": "Enable-Live.sh",
+      "git_blob_sha": "01d0ba55a1513079208fa301a8aa56e380b172ff",
+      "bytes": 1004
+    },
+    {
+      "path": "HANDOFF.md",
+      "git_blob_sha": "20221a6b4eb0834facbfdd54bd41f0ffb07ee0bd",
+      "bytes": 4176
+    },
+    {
+      "path": "Install.sh",
+      "git_blob_sha": "4806c5046803dfa2e930cc21e62bf6f1664b541a",
+      "bytes": 310
+    },
+    {
+      "path": "README.md",
+      "git_blob_sha": "4156a7826fcaee5e1a13fe9cbf32039db4588b9e",
+      "bytes": 1168
+    },
+    {
+      "path": "START-HERE.md",
+      "git_blob_sha": "89cdbae74443f4224133082b5499defced7e8328",
+      "bytes": 5397
+    },
+    {
+      "path": "Start.sh",
+      "git_blob_sha": "ced9aac62cbfecf5058c8345a5888cab703fa784",
+      "bytes": 534
+    },
+    {
+      "path": "bridge/__init__.py",
+      "git_blob_sha": "94ef9583e1f1f1084a3141d5d16a81881bed82cd",
+      "bytes": 31
+    },
+    {
+      "path": "bridge/adapters.py",
+      "git_blob_sha": "fc1e10b42aa0c683e85b9c092f21732df5922337",
+      "bytes": 11168
+    },
+    {
+      "path": "bridge/engine.py",
+      "git_blob_sha": "44aa52ebee16dedde9456d75804ec513d52ccd04",
+      "bytes": 28319
+    },
+    {
+      "path": "bridge/model.py",
+      "git_blob_sha": "6ff9f3f2e0cd6fa9007f5b3640472f28b739da11",
+      "bytes": 13382
+    },
+    {
+      "path": "bridge/server.py",
+      "git_blob_sha": "1cc503221abe4c04e40cc7cccf99b2ef6995920c",
+      "bytes": 10112
+    },
+    {
+      "path": "docs/API.md",
+      "git_blob_sha": "0843f4ce0f93659e0b031149f0bbb8197a9db0fb",
+      "bytes": 5265
+    },
+    {
+      "path": "docs/OPERATIONS.md",
+      "git_blob_sha": "5af7fc22367589a01a6c42664e8bbb3d57cc133b",
+      "bytes": 5220
+    },
+    {
+      "path": "docs/SOURCES.md",
+      "git_blob_sha": "4d24ea8b919e728603658a59511f89c10172a934",
+      "bytes": 2757
+    },
+    {
+      "path": "docs/TEST_REPORT.md",
+      "git_blob_sha": "ddb89c9ab740cf2f61cee2c357c93f291ca35dd1",
+      "bytes": 5112
+    },
+    {
+      "path": "docs/verification/browser-results.json",
+      "git_blob_sha": "c1d580cfff3b1160b1e02275b093bda2bacca152",
+      "bytes": 1103
+    },
+    {
+      "path": "docs/verification/dashboard-desktop.png",
+      "git_blob_sha": "dc88ccfea88d0847c603ba9f0a3870364d3a029f",
+      "bytes": 222082
+    },
+    {
+      "path": "docs/verification/dashboard-mobile.png",
+      "git_blob_sha": "3a0c2a7cd6516e363308a8ad687d91ec969eb758",
+      "bytes": 162720
+    },
+    {
+      "path": "docs/verification/rule-builder-mobile.png",
+      "git_blob_sha": "d43c751788d888e463834ed1b9a2ae19e2330f99",
+      "bytes": 122789
+    },
+    {
+      "path": "requirements-live.txt",
+      "git_blob_sha": "e3875ebefded3cc576bf670ad1376f84774f7036",
+      "bytes": 202
+    },
+    {
+      "path": "tasker/Santa_Fe_Control_Center.prj.xml",
+      "git_blob_sha": "38477f34384bdb0b4eb4480f39aab137d89513a5",
+      "bytes": 84884
+    },
+    {
+      "path": "tasker/core.java",
+      "git_blob_sha": "63027a3dbb9b5130719892ccdefe8cc5e02abafb",
+      "bytes": 11939
+    },
+    {
+      "path": "tasker/speak.java",
+      "git_blob_sha": "0fbf717f1cddbf77868c1a3db7cc938a6e66ff90",
+      "bytes": 1199
+    },
+    {
+      "path": "tests/browser_check.py",
+      "git_blob_sha": "0502b719e70624fe3ec5540bd4d3409c5a781ecf",
+      "bytes": 11392
+    },
+    {
+      "path": "tests/test_adapter_contract.py",
+      "git_blob_sha": "b54d226b05512dc1c1249b797b2c2b0f9f5fa29f",
+      "bytes": 5211
+    },
+    {
+      "path": "tests/test_engine.py",
+      "git_blob_sha": "7a9775b9d102e534aa4a325bee166507bf7d55c2",
+      "bytes": 11992
+    },
+    {
+      "path": "tests/test_http.py",
+      "git_blob_sha": "b23bc9539290a23fc654a1498126138b23e14819",
+      "bytes": 3575
+    },
+    {
+      "path": "tests/test_install.py",
+      "git_blob_sha": "40924011a3eab94e52561afff4b2e5d7c7a92c3f",
+      "bytes": 3151
+    },
+    {
+      "path": "tests/test_tasker.py",
+      "git_blob_sha": "fa4b7d214cf08f206db11e3e3f6718512582e699",
+      "bytes": 2402
+    },
+    {
+      "path": "tools/ParseBeanShell.java",
+      "git_blob_sha": "b39174e692eb0f691eeaec4f9f5b2303cd93b00b",
+      "bytes": 381
+    },
+    {
+      "path": "tools/build_tasker.py",
+      "git_blob_sha": "6dd5e7e29d6c774de56b3b3b854ebdd9c5fe81c7",
+      "bytes": 11030
+    },
+    {
+      "path": "tools/install.py",
+      "git_blob_sha": "78feaa6cb3cd73e1af5e3568ef0ef4659857e5e1",
+      "bytes": 3641
+    },
+    {
+      "path": "ui/app.css",
+      "git_blob_sha": "d25ede37b159f76a4c385cbfce4c42c054edf784",
+      "bytes": 8307
+    },
+    {
+      "path": "ui/app.js",
+      "git_blob_sha": "b4eb4f71258a3e49c74a0532fa37215af9918b71",
+      "bytes": 41618
+    },
+    {
+      "path": "ui/index.html",
+      "git_blob_sha": "510301f40f96a7ac86b62fd53bbb16f77a50ae33",
+      "bytes": 1006
+    }
+  ]
+}
