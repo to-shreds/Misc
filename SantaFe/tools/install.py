@@ -23,6 +23,7 @@ def install(source,home,prefix=None):
     base=home/'.local/lib/santa-fe-control-center';target=base/VERSION
     bindir=Path(prefix)/'bin' if prefix else home/'.local/bin'
     launcher=bindir/'sf-start'
+    # Check collisions before mutating the installation.
     if launcher.exists() and MARKER not in launcher.read_text(errors='replace'):
         raise RuntimeError('An unrelated sf-start command already exists; nothing was overwritten.')
     base.mkdir(mode=0o700,parents=True,exist_ok=True)
@@ -55,6 +56,7 @@ def main():
         from zoneinfo import ZoneInfo
         ZoneInfo('America/New_York')
     except Exception:
+        # Android may omit a timezone database usable by Python. Isolate any dependency.
         venv=Path.home()/'.local/share/santa-fe-control-center/runtime-venv'
         venv.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
         if not (venv/'bin/python').exists():subprocess.run([sys.executable,'-m','venv',str(venv)],check=True)
