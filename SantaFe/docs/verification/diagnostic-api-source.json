@@ -1,0 +1,30 @@
+{
+  "reviewed_at": "2026-10-04T23:19:37Z",
+  "upstream": {
+    "repository": "Hyundai-Kia-Connect/hyundai_kia_connect_api",
+    "commit": "82801884bdf619c5f2a35ff6bbae1693d2e1a3e8",
+    "usa_blob": "9a7fa8b0f333877451ce4b03073f85ed267084b9"
+  },
+  "cors_probe": {
+    "method": "OPTIONS",
+    "url": "https://api.telematics.hyundaiusa.com/v2/ac/oauth/token",
+    "request_headers": {
+      "Origin": "https://to-shreds.github.io",
+      "Access-Control-Request-Method": "POST",
+      "Access-Control-Request-Headers": "content-type,client_id,clientsecret,from,to,language,offset,refresh,encryptflag,brandindicator"
+    },
+    "response": {
+      "http_status": 500,
+      "headers": {
+        "Cache-Control": "private",
+        "Content-Type": "text/html;charset=utf-8",
+        "Content-Language": "en",
+        "Content-Length": "2269",
+        "Date": "Sun, 04 Oct 2026 23:19:37 GMT",
+        "Connection": "close",
+        "Server": ""
+      }
+    },
+    "interpretation": "This unauthenticated preflight did not grant browser access to this origin. It does not validate account login, VIN support, or command execution."
+  }
+}

@@ -1,0 +1,64 @@
+<!-- Synthetic values. Native slot types and lexical ordering were checked
+     against a Tasker 6.7.6-beta export. No user task or credential is copied. -->
+<TaskerData sr="" dvi="1" tv="6.7.6-beta">
+    <Task sr="task1">
+        <cdate>0</cdate>
+        <edate>0</edate>
+        <id>1</id>
+        <nme>Schema fixture</nme>
+        <pri>6</pri>
+        <Action sr="act0" ve="7">
+            <code>474</code>
+            <Str sr="arg0" ve="3">return "fixture";</Str>
+            <Str sr="arg1" ve="3">%result</Str>
+            <Int sr="arg2" val="1" />
+        </Action>
+        <Action sr="act1" ve="7">
+            <code>130</code>
+            <Str sr="arg0" ve="3">Fixture task</Str>
+            <Int sr="arg1"><var>%priority</var></Int>
+            <Int sr="arg10" val="1" />
+            <Str sr="arg2" ve="3" />
+            <Str sr="arg3" ve="3" />
+            <Str sr="arg4" ve="3" />
+            <Int sr="arg5" val="0" />
+            <Int sr="arg6" val="0" />
+            <Str sr="arg7" ve="3" />
+            <Int sr="arg8" val="0" />
+            <Int sr="arg9" val="0" />
+        </Action>
+        <Action sr="act2" ve="7">
+            <code>47</code>
+            <Str sr="arg0" ve="3">Fixture scene</Str>
+            <Int sr="arg1" val="2" />
+            <Int sr="arg10" val="0" />
+            <Int sr="arg2" val="100" />
+            <Int sr="arg3" val="100" />
+            <Int sr="arg4" val="0" />
+            <Int sr="arg5" val="0" />
+            <Int sr="arg6" val="0" />
+            <Int sr="arg7" val="1" />
+            <Int sr="arg8" val="0" />
+            <Int sr="arg9" val="0" />
+        </Action>
+        <Action sr="act3" ve="7">
+            <code>360</code>
+            <Bundle sr="arg0"><Vals sr="val" /></Bundle>
+            <Str sr="arg1" ve="3">Fixture input</Str>
+            <Str sr="arg2" ve="3">Enter a test value</Str>
+            <Str sr="arg3" ve="3" />
+            <Int sr="arg4" val="120" />
+            <Str sr="arg5" ve="3" />
+            <Int sr="arg6" val="0" />
+            <Int sr="arg7" val="0" />
+            <Str sr="arg8" ve="3" />
+        </Action>
+        <Action sr="act4" ve="7">
+            <code>549</code>
+            <Str sr="arg0" ve="3">%fixture</Str>
+            <Int sr="arg1" val="0" />
+            <Int sr="arg2" val="0" />
+            <Int sr="arg3" val="0" />
+        </Action>
+    </Task>
+</TaskerData>

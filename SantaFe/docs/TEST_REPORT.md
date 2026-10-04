@@ -1,6 +1,33 @@
-## Post-build phone result
+# Current benchmark: API Lab 0.2.0 and Tasker serialization repair
 
-On October 4, 2026, the user imported the generated Tasker project into Tasker 6.7.6-beta. Task names appeared, but every imported task had zero actions. This is a real on-device failure and supersedes any implication that the structural XML tests established Tasker importability. The existing XML and generator remain in the repository for diagnosis.
+Verified October 4, 2026:
+
+- 92 Python tests pass, including all preserved bridge/engine/HTTP/installer checks and six native-format Tasker regressions.
+- 19 adversarial diagnostic client/helper tests pass through the shipped scripts' UI event handlers.
+- Nine actual Chromium scenarios pass through HTTP-loaded HTML/CSS/JavaScript, with fixture Hyundai responses and a fixture GM transport. They cover login/export/disconnect, real postMessage handshake, readable transaction headers, SUCCESS versus submission, two-vehicle selection, missing transaction IDs, rate limiting, CORS failures, empty login bodies, duplicate submission gating and 412-pixel mobile layout. No unexpected network request occurred.
+- JavaScript syntax checks and `git diff --check` pass. Desktop/mobile screenshots and machine-readable results are under `verification/diagnostic-*`.
+- A real credential-free OPTIONS probe of Hyundai's login endpoint returned HTTP 500 without CORS permission. This confirms that particular plain-browser access problem, not login correctness.
+
+The original Tasker file is archived, and its corrected replacement preserves all 40 tasks, 113 actions, eight profiles and ten scenes. Native action attributes and serialized child order now match a privately inspected known-good 6.7.6-beta export. The fixture regression detects the archived defect and verifies unchanged semantic payloads. Actual Tasker deserialization is still untested; ordering differences are a likely cause, not an importer-confirmed diagnosis.
+
+No real account was logged in and no vehicle was operated. The browser helper is not yet tested in Firefox for Android. Real-account responses must establish VIN-specific support before live Tasker behavior is built. Nothing in the fixture suites upgrades those claims.
+
+Reproduce from `SantaFe/`:
+
+```sh
+PYTHONPATH=. python -m pytest tests -q
+node --test tests/test_diagnostic.cjs
+node --check diagnostic.js
+node --check santafe-network.user.js
+# Browser check needs Playwright and a Chromium executable:
+SANTAFE_CHROMIUM=/path/to/chromium node tests/diagnostic_browser.cjs
+```
+
+The browser script uses `CODEX_PRIMARY_RUNTIME_NODE_MODULES` for the runtime Playwright installation; outside that runtime, adjust the module resolution to your own installation. The following sections retain the historical 0.1.0 verification record.
+
+## Historical post-build phone result
+
+On October 4, 2026, the user imported the original Tasker project into Tasker 6.7.6-beta. Task names appeared, but every imported task had zero actions. This real phone failure supersedes any implication that the old structural tests established importability. That XML is now archived; the current correction is described above.
 
 # Verification report: version 0.1.0
 

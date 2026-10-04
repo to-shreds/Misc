@@ -9,7 +9,10 @@ def text(p,k,v): x=E.SubElement(p,k);x.text=str(v);return x
 def arg(p,n,v,integer=False):
     if integer:E.SubElement(p,'Int',sr='arg'+str(n),val=str(v))
     else:E.SubElement(p,'Str',sr='arg'+str(n),ve='3').text=str(v)
-def action(code):a=E.Element('Action',ve='7');text(a,'code',code);return a
+def action(code):
+    # Native Tasker exports put the serialized reference first. Creating ve
+    # before adding sr produced <Action ve="7" sr="act0"> in the broken export.
+    a=E.Element('Action',sr='',ve='7');text(a,'code',code);return a
 def java(code):
     a=action(474);arg(a,0,code);arg(a,1,'%sf_result');arg(a,2,1,True);return a
 def call(name,p1='',p2=''):
@@ -19,6 +22,7 @@ def call(name,p1='',p2=''):
     for n,v in [(5,0),(6,0),(8,0),(9,0),(10,1)]:arg(a,n,v,True)
     return a
 def task(name,acts):
+    if not acts:raise ValueError('Task must contain at least one action: '+name)
     tid=24001+len(TASKS);t=E.SubElement(root,'Task',sr='task'+str(tid))
     for k,v in [('cdate',stamp),('edate',stamp),('id',tid),('nme',name),('pri',6),('rty',0)]:text(t,k,v)
     for i,a in enumerate(acts):a.set('sr','act'+str(i));t.append(a)
@@ -152,8 +156,14 @@ s=E.SubElement(p,'State',sr='con0',ve='2');text(s,'code',10);arg(s,0,0,True);gua
 p=profile('SF Phone Alarm','SF Alarm');e=E.SubElement(p,'Event',sr='con0',ve='2');text(e,'code',305);text(e,'pri',0);guard(p,1)
 proj=E.SubElement(root,'Project',sr='proj0',ve='2')
 for k,v in [('cdate',stamp),('id','cf1f54dc-cc4e-45b0-9bd0-9ca44f5c4631'),('name','Santa Fe Control Center'),('pids',','.join(map(str,PROFILES))),('psort','ActiveAlpha'),('scenes',','.join(SCENES)),('tids',','.join(map(str,TASKS.values())))]:text(proj,k,v)
-# Stable category ordering. Tasker's references, not XML position, control relationships.
-root[:]=sorted(root,key=lambda x:{'dmetric':0,'Profile':1,'Project':2,'Scene':3,'Task':4}.get(x.tag,5))
+# Match the user's native 6.7.6-beta export: scalar fields first, then children
+# sorted lexicographically by serialized reference (arg1, arg10, arg2, ...).
+# Keep the numeric references themselves intact because they define execution
+# order. Well-formed generic XML alone did not establish Tasker compatibility.
+def native_order(node):
+    node[:]=sorted(node,key=lambda child:(1,child.get('sr')) if child.get('sr') is not None else (0,child.tag))
+    for child in node:native_order(child)
+native_order(root)
 E.indent(root,space='\t')
 out=ROOT/'tasker/Santa_Fe_Control_Center.prj.xml';E.ElementTree(root).write(out,encoding='utf-8',xml_declaration=False)
 print(f'Generated {len(TASKS)} tasks, {len(PROFILES)} profiles, {len(SCENES)} scenes: {out.name}')

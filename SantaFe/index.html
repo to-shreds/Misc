@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10191c">
+  <meta name="referrer" content="no-referrer">
+  <title>Santa Fe API Lab</title>
+  <link rel="stylesheet" href="./diagnostic.css">
+  <script src="./diagnostic.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to tests</a>
+  <div class="page-shell">
+    <header class="page-header">
+      <div class="wordmark"><span class="brand-icon" aria-hidden="true">SF</span><span>Santa Fe <span class="muted">/ API Lab</span></span></div>
+      <span class="header-label">Hyundai USA · Bluelink</span>
+    </header>
+
+    <main id="main">
+      <section class="intro" aria-labelledby="pageTitle">
+        <div>
+          <p class="eyebrow">CONFIRM THE CALLS. CAPTURE THE RESULTS.</p>
+          <h1 id="pageTitle">Test your Santa Fe connection.</h1>
+          <p class="intro-copy">Connect to Bluelink, inspect your vehicle, and keep a useful test log. Start with read tests, then try individual controls when you are ready.</p>
+        </div>
+        <div class="connection-indicators" aria-label="Connection status">
+          <div><span class="indicator-label">Connection</span><span id="transportStatus" class="status-pill">Checking connection method</span></div>
+          <div><span class="indicator-label">Session</span><span id="sessionStatus" class="status-pill">Not connected</span></div>
+        </div>
+      </section>
+
+      <div id="notice" class="notice" role="status" aria-live="polite">Enter your Bluelink details to begin. Vehicle controls never run automatically.</div>
+
+      <div class="workspace-grid">
+        <section class="panel connect-panel" aria-labelledby="connectTitle">
+          <div class="panel-heading"><span class="step-number">01</span><div><p class="eyebrow">GET CONNECTED</p><h2 id="connectTitle">Your Bluelink account</h2></div></div>
+          <form id="loginForm">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com" required>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <label for="pin">Bluelink PIN <span class="field-note">For remote controls</span></label>
+            <input id="pin" name="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="4 digits">
+            <div class="button-row login-actions">
+              <button id="loginBtn" class="button primary" type="submit">Connect</button>
+              <button id="disconnectBtn" class="button secondary" type="button" disabled>Disconnect</button>
+            </div>
+          </form>
+          <p class="privacy-note"><span class="small-lock" aria-hidden="true">●</span> Credentials stay in this page's memory and are cleared when you disconnect or reload. Saved logs remove passwords, PINs, tokens, and vehicle identifiers.</p>
+
+          <details class="setup-details" open>
+            <summary>Connection setup <span class="details-hint">Start here</span></summary>
+            <div class="details-body">
+              <p>GitHub Pages cannot normally call Hyundai directly because of browser restrictions. Install the small network helper, then reload this page.</p>
+              <ol class="setup-steps">
+                <li>In Firefox for Android, install <a href="https://addons.mozilla.org/en-US/android/addon/tampermonkey/" target="_blank" rel="noopener noreferrer">Tampermonkey</a>.</li>
+                <li>Open the <a href="./santafe-network.user.js">Santa Fe network helper</a> and choose <strong>Install</strong>.</li>
+                <li>Return here and reload. Leave the connection method on <strong>Automatic</strong>.</li>
+              </ol>
+              <label for="transportMode">Connection method</label>
+              <select id="transportMode">
+                <option value="auto" selected>Automatic (recommended)</option>
+                <option value="helper">Network helper</option>
+                <option value="direct">Direct browser requests</option>
+              </select>
+              <p class="field-help">Direct requests are useful for diagnostics but may fail with a CORS or network error. That does not by itself mean your login details are wrong.</p>
+              <button id="connectionTestBtn" class="button secondary full-width" type="button">Check connection method</button>
+            </div>
+          </details>
+        </section>
+
+        <div class="test-column">
+          <section class="panel" aria-labelledby="testsTitle">
+            <div class="panel-heading"><span class="step-number">02</span><div><p class="eyebrow">START WITH READ TESTS</p><h2 id="testsTitle">See what works</h2></div></div>
+            <p class="section-copy">After connecting, checks enrolled vehicles, cached vehicle status, and reported capabilities. Each request and response is added to the log.</p>
+            <div class="button-row"><button id="runReadTestsBtn" class="button primary" type="button">Run read tests</button><button id="stopBtn" class="button quiet" type="button" disabled>Stop waiting</button></div>
+            <p class="field-help">Read tests do not send remote vehicle commands. Stopping ends this page's wait; a request already sent may still finish.</p>
+            <div id="results" class="results" aria-live="polite"><div class="empty-state compact"><span class="empty-icon" aria-hidden="true">↗</span><p>Your test results will appear here.</p></div></div>
+          </section>
+
+          <section class="panel vehicle-panel" aria-labelledby="vehicleTitle">
+            <div class="panel-heading"><span class="step-number">03</span><div><p class="eyebrow">INSPECT YOUR VEHICLE</p><h2 id="vehicleTitle">Vehicle details</h2></div></div>
+            <label for="vehicleSelect">Enrolled vehicle</label>
+            <div class="vehicle-picker"><select id="vehicleSelect" disabled><option value="">Connect to load vehicles</option></select><button id="selectVehicleBtn" class="button secondary" type="button" disabled>Select</button></div>
+            <div id="vehicleSummary" class="vehicle-summary"><p class="muted">No vehicle selected yet.</p></div>
+            <div class="button-row wrap">
+              <button id="cachedBtn" class="button secondary" type="button" disabled>Cached status</button>
+              <button id="capabilitiesBtn" class="button secondary" type="button" disabled>Capabilities</button>
+              <button id="refreshBtn" class="button secondary" type="button" disabled>Refresh from car</button>
+            </div>
+            <p class="field-help"><strong>Refresh from car</strong> may wake the vehicle and can take longer. Cached status reads the latest information Hyundai already has.</p>
+          </section>
+        </div>
+      </div>
+
+      <details class="panel expandable command-panel">
+        <summary><div class="summary-title"><span class="step-number">04</span><div><p class="eyebrow">OPTIONAL</p><h2>Test a remote control</h2></div></div><span class="summary-description">Send one command at a time</span></summary>
+        <div class="details-body">
+          <p class="section-copy">These tests operate your actual vehicle. Choose a command, review its settings, and confirm before sending. A successful request can mean accepted for processing; use the status check to look for the final result.</p>
+          <div class="command-grid">
+            <div><label for="commandSelect">Command</label><select id="commandSelect"><option value="lock">Lock doors</option><option value="unlock">Unlock doors</option><option value="climate_start">Start climate</option><option value="climate_stop">Stop climate</option><option value="lights">Flash lights</option><option value="horn_lights">Horn and lights</option></select></div>
+            <div><label for="temperature">Temperature (°F)</label><input id="temperature" type="number" value="72" min="62" max="81" step="1" inputmode="numeric"></div>
+            <div><label for="duration">Duration (minutes)</label><input id="duration" type="number" value="10" min="1" max="10" step="1" inputmode="numeric"></div>
+          </div>
+          <div class="checkbox-row"><label class="checkbox-label" for="defrost"><input id="defrost" type="checkbox"><span>Front defrost</span></label><label class="checkbox-label" for="outdoor"><input id="outdoor" type="checkbox"><span>Vehicle is outdoors</span></label></div>
+          <p class="field-help">Temperature, duration, and defrost apply to climate start. Start climate only when the vehicle is outdoors with adequate ventilation.</p>
+          <label class="checkbox-label confirm-box" for="confirmCommand"><input id="confirmCommand" type="checkbox"><span>I intend to send this command to the selected vehicle.</span></label>
+          <div class="button-row wrap"><button id="commandBtn" class="button primary" type="button" disabled>Send command</button><button id="pollBtn" class="button secondary" type="button" disabled>Check last command status</button></div>
+        </div>
+      </details>
+
+      <details class="panel expandable logs-panel" open>
+        <summary><div class="summary-title"><span class="log-symbol" aria-hidden="true">⌘</span><div><p class="eyebrow">AUTOMATIC, SANITIZED</p><h2>Test log <span id="logCount" class="count-badge">0</span></h2></div></div><span class="summary-description">Review or export your results</span></summary>
+        <div class="details-body">
+          <div class="log-toolbar"><p class="field-help">Saved in this browser. Download the log to share results for the Tasker build. Review exported content before sharing.</p><div class="button-row wrap"><button id="downloadLogBtn" class="button secondary" type="button">Download log</button><button id="copyLogBtn" class="button secondary" type="button">Copy log</button><button id="clearLogBtn" class="button quiet" type="button">Clear</button></div></div>
+          <div id="logList" class="log-list" aria-live="polite"><div class="empty-state"><span class="empty-icon" aria-hidden="true">≡</span><p>No requests logged yet.</p><span>Run the read tests to capture your first results.</span></div></div>
+        </div>
+      </details>
+      <noscript><div class="notice error">Enable JavaScript in your browser to run the diagnostic tests.</div></noscript>
+    </main>
+    <footer class="page-footer"><span>Santa Fe API Lab</span><span>Verify the API first. Build Tasker from confirmed results.</span></footer>
+  </div>
+</body>
+</html>

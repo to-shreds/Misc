@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-10-04T23:35:18.881Z",
+  "browser": "Actual headless Chromium",
+  "method": "HTTP UI execution; Hyundai routes and GM transport use fixtures; no real account login, API availability validation, or physical vehicle command",
+  "blocked_unexpected_requests": [],
+  "results": [
+    {
+      "test": "Direct desktop login, safe cache reads, sanitized download and disconnect",
+      "passed": true,
+      "elapsed_ms": 437
+    },
+    {
+      "test": "Real postMessage helper handshake, automatic transport, raw transaction headers and SUCCESS",
+      "passed": true,
+      "elapsed_ms": 591
+    },
+    {
+      "test": "Two-vehicle picker can select the second record and uses its identifiers",
+      "passed": true,
+      "elapsed_ms": 266
+    },
+    {
+      "test": "HTTP 200 without transaction ID is unresolved and cannot poll or resubmit",
+      "passed": true,
+      "elapsed_ms": 339
+    },
+    {
+      "test": "429 produces one request and actionable rate-limit response",
+      "passed": true,
+      "elapsed_ms": 216
+    },
+    {
+      "test": "Direct blocked network response offers helper setup without retry",
+      "passed": true,
+      "elapsed_ms": 178
+    },
+    {
+      "test": "Empty login response cannot enable authenticated or command buttons",
+      "passed": true,
+      "elapsed_ms": 220
+    },
+    {
+      "test": "Rapid double submit is gated while login is in flight",
+      "passed": true,
+      "elapsed_ms": 161
+    },
+    {
+      "test": "412px mobile layout avoids horizontal overflow and supports helper read tests",
+      "passed": true,
+      "elapsed_ms": 316
+    }
+  ]
+}

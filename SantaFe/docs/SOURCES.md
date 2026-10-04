@@ -1,5 +1,27 @@
 # Source and interface notes
 
+## Browser-first API Lab benchmark, October 4, 2026
+
+Diagnostic request recipes are pinned to the primary upstream implementation:
+
+https://github.com/Hyundai-Kia-Connect/hyundai_kia_connect_api/blob/82801884bdf619c5f2a35ff6bbae1693d2e1a3e8/hyundai_kia_connect_api/HyundaiBlueLinkApiUSA.py
+
+USA blob: `9a7fa8b0f333877451ce4b03073f85ed267084b9`. These are source-backed recipes, not an official public Hyundai API contract or proof of this account/VIN's support. Non-EV climate's body `vin` uses the registration ID upstream; lock/light bodies use the VIN. Transaction IDs come from response headers. Lights/horn polling use `LIGHTS_ONLY` and `HORN_AND_LIGHTS`; ordinary commands use `REMOTE_POLL`. Empty HTTP 200 command bodies do not prove completion.
+
+Actual credential-free preflight evidence is at `verification/diagnostic-api-source.json`: HTTP 500 with no `Access-Control-Allow-Origin` or allowed-header response. No account login or vehicle operation was involved.
+
+Primary browser-helper documentation:
+
+https://www.tampermonkey.net/documentation.php?locale=en#api:GM_xmlhttpRequest
+
+https://violentmonkey.github.io/api/gm/#gm_xmlhttprequest
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS
+
+Special header support varies by browser, including Android. Helper detection and fixture tests do not establish real Firefox/Hyundai compatibility.
+
+The user's native Tasker 6.7.6-beta export was inspected privately. All 466 native actions put `sr` before `ve`; serialized children are lexicographically ordered. The generator now follows both conventions. A synthetic fixture is at `tests/fixtures/tasker/native-action-shapes.xml`. These differences are a likely explanation for zero actions, but only a new actual import can establish the fix.
+
 Reviewed during this build on October 4, 2026. These references support interface choices, not a claim of live validation of this project.
 
 ## Tasker

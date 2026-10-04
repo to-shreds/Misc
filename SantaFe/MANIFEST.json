@@ -1,188 +1,311 @@
 {
-  "project": "Santa Fe Control Center",
+  "project": "Santa Fe",
   "repository": "to-shreds/Misc",
   "path": "SantaFe",
   "status": "IN PROGRESS",
-  "known_blocker": "Tasker 6.7.6-beta imports the generated project with task names present but zero actions. The current XML is retained for diagnosis and is not a working deliverable.",
+  "diagnostic_version": "0.2.0",
+  "bridge_version": "0.1.0",
+  "next_verification": "Real Firefox/Hyundai login and vehicle test log; actual phone import of corrected Tasker XML.",
+  "verification": {
+    "python_tests_passed": 92,
+    "diagnostic_behavior_tests_passed": 19,
+    "chromium_scenarios_passed": 9,
+    "real_account_verified": false,
+    "tasker_phone_import_verified": false
+  },
   "files": [
     {
       "path": ".gitignore",
       "git_blob_sha": "077a18d0966bbb1eb4258dd8da22237ee5563956",
+      "sha256": "607c277d73b0fe7d617494d7234a54daecb6e6d54736b56b5b35c15193976646",
       "bytes": 142
     },
     {
       "path": "Enable-Live.sh",
       "git_blob_sha": "01d0ba55a1513079208fa301a8aa56e380b172ff",
+      "sha256": "3df64f94806935a63d9e451468a9cedf91e82c5a65dd98224962c3e7f43707d0",
       "bytes": 1004
     },
     {
       "path": "HANDOFF.md",
-      "git_blob_sha": "20221a6b4eb0834facbfdd54bd41f0ffb07ee0bd",
-      "bytes": 4176
+      "git_blob_sha": "26ab9b07bffd04386fcec344f995272977510089",
+      "sha256": "a6dc19826d81a5bfa1f9675c32543373c937c1796f4bdf6a98194267691c483c",
+      "bytes": 3304
     },
     {
       "path": "Install.sh",
       "git_blob_sha": "4806c5046803dfa2e930cc21e62bf6f1664b541a",
+      "sha256": "18219dc6c6d5007e63d1fe20dbc4648712c10fe873041cd9fffd9bfef113e91a",
       "bytes": 310
     },
     {
       "path": "README.md",
-      "git_blob_sha": "4156a7826fcaee5e1a13fe9cbf32039db4588b9e",
-      "bytes": 1168
+      "git_blob_sha": "ba4f5882b12dfd19494fd169d5967f05f58d96cc",
+      "sha256": "e7a4695322a5077e878a59d9b206d6933363e2f685a697772426d105f52c5fa9",
+      "bytes": 2491
     },
     {
       "path": "START-HERE.md",
-      "git_blob_sha": "89cdbae74443f4224133082b5499defced7e8328",
-      "bytes": 5397
+      "git_blob_sha": "f97f6c7b5196dfbfd995a08b81792f8dfcd01162",
+      "sha256": "1211366bdded9ce40d5459e4366058daf201f83058bcb0afce33f8efe4d65f8d",
+      "bytes": 5997
     },
     {
       "path": "Start.sh",
       "git_blob_sha": "ced9aac62cbfecf5058c8345a5888cab703fa784",
+      "sha256": "e44a2acaa5bb01329634421a56f30f44150414d05fd25c4298b8495d964c231d",
       "bytes": 534
     },
     {
       "path": "bridge/__init__.py",
       "git_blob_sha": "94ef9583e1f1f1084a3141d5d16a81881bed82cd",
+      "sha256": "c9320b362157f6fccd50af53536db6248d4310b824860f8ac9331a0ddf7ae8dd",
       "bytes": 31
     },
     {
       "path": "bridge/adapters.py",
       "git_blob_sha": "fc1e10b42aa0c683e85b9c092f21732df5922337",
+      "sha256": "5a89de6ded21186f2e6127f754d4f713cfabeef3e6a4605ba74a69457331b9d9",
       "bytes": 11168
     },
     {
       "path": "bridge/engine.py",
       "git_blob_sha": "44aa52ebee16dedde9456d75804ec513d52ccd04",
+      "sha256": "d2b96da6a51e0fcf73737231c203169d3e5cbf73a606778a167603541deed315",
       "bytes": 28319
     },
     {
       "path": "bridge/model.py",
       "git_blob_sha": "6ff9f3f2e0cd6fa9007f5b3640472f28b739da11",
+      "sha256": "a7b81ae461cf92603a99c982530985f2738a35a691e0fc4175bca75d39864124",
       "bytes": 13382
     },
     {
       "path": "bridge/server.py",
       "git_blob_sha": "1cc503221abe4c04e40cc7cccf99b2ef6995920c",
+      "sha256": "d1892a06bc4ca275c1419f4fa45308a368f71ea6db6e2dd639c7701671f071b3",
       "bytes": 10112
+    },
+    {
+      "path": "diagnostic.css",
+      "git_blob_sha": "353f60371bd91980a1346c298e4af49e2e2496a2",
+      "sha256": "211bc833e047046abcad065823a18d4f38f94077f56afdafef107bf9a826f66d",
+      "bytes": 14170
+    },
+    {
+      "path": "diagnostic.js",
+      "git_blob_sha": "0a38d9f6d7b10ddc74fe794d30a51b254dc59081",
+      "sha256": "3927b4818d9ebe1097c86d91127d3df0c17cd3bc3f204e454d670650348c3ebe",
+      "bytes": 25420
     },
     {
       "path": "docs/API.md",
       "git_blob_sha": "0843f4ce0f93659e0b031149f0bbb8197a9db0fb",
+      "sha256": "1119e92e25865020b6e6018eab6527c137286b13cc6ce1a7e2938a6800a9dd56",
       "bytes": 5265
     },
     {
       "path": "docs/OPERATIONS.md",
       "git_blob_sha": "5af7fc22367589a01a6c42664e8bbb3d57cc133b",
+      "sha256": "c201b308ff4cff7806871ef978209b86fcecbf87e94abd9152fe7e87bd02bb06",
       "bytes": 5220
     },
     {
       "path": "docs/SOURCES.md",
-      "git_blob_sha": "4d24ea8b919e728603658a59511f89c10172a934",
-      "bytes": 2757
+      "git_blob_sha": "cf6eaa2375ff0ab461f1afdb24a06f21523586a7",
+      "sha256": "eaa25caa2b1b87d775f8cada3901c03a449113a83d9365ca4fb5d5430bfc49dc",
+      "bytes": 4519
     },
     {
       "path": "docs/TEST_REPORT.md",
-      "git_blob_sha": "ddb89c9ab740cf2f61cee2c357c93f291ca35dd1",
-      "bytes": 5112
+      "git_blob_sha": "d674f965b4745def938dc6656b4a71ef7303b03e",
+      "sha256": "658b5942da3c25606e75030957364a8045fa42dd99934c320ebd901090bb28f1",
+      "bytes": 7906
     },
     {
       "path": "docs/verification/browser-results.json",
       "git_blob_sha": "c1d580cfff3b1160b1e02275b093bda2bacca152",
+      "sha256": "befb1e831995500043322db46bb2d7a0ea1a34a78421a6bb3921864f32555471",
       "bytes": 1103
     },
     {
       "path": "docs/verification/dashboard-desktop.png",
       "git_blob_sha": "dc88ccfea88d0847c603ba9f0a3870364d3a029f",
+      "sha256": "272ded83dcb42c742e46b5ba765739ff0e3f02527520f01ac23fdce3431883d9",
       "bytes": 222082
     },
     {
       "path": "docs/verification/dashboard-mobile.png",
       "git_blob_sha": "3a0c2a7cd6516e363308a8ad687d91ec969eb758",
+      "sha256": "a6ac75d8ca0a2f2c5c7da12b67be4ab0b425878c5ace7cd4de9892062e14bc9f",
       "bytes": 162720
+    },
+    {
+      "path": "docs/verification/diagnostic-api-source.json",
+      "git_blob_sha": "3bb1cd4d66126f367d24a8c9293de20a5ff5bdd7",
+      "sha256": "38f55d8fdd464e6f3dc8a1c1128e0e165cf7c08d6edf3dc7183f513e013a1403",
+      "bytes": 1133
+    },
+    {
+      "path": "docs/verification/diagnostic-browser-results.json",
+      "git_blob_sha": "13d93bac0f92b84524afb7e481e7520dc5c639f1",
+      "sha256": "8868815bc3ef52a0fb15da904186a018b2398e5da45a9b859f40a8d458026999",
+      "bytes": 1629
+    },
+    {
+      "path": "docs/verification/diagnostic-desktop.png",
+      "git_blob_sha": "6e67b269df146cd82ecdfa3e7cba63cc7ee94ee7",
+      "sha256": "0c84d35b10bbf5a5b75bfcd34b23ee41c00c811661778796c3a022d8f0c9c469",
+      "bytes": 298656
+    },
+    {
+      "path": "docs/verification/diagnostic-mobile.png",
+      "git_blob_sha": "ccd60d84ce8b91f4314c073a21b60cc396c3bce2",
+      "sha256": "379690c495ea44e63aa3dc47512f1afa21e7d4813122fdedd0f17d7b5e8ff0a9",
+      "bytes": 260856
+    },
+    {
+      "path": "docs/verification/diagnostic-tests.json",
+      "git_blob_sha": "773e9dbd6002862e980bef1b32f1c42f6a485010",
+      "sha256": "70eae579e179d8837bd3d141fd11bf74fec354c8728c99482d0297617c351427",
+      "bytes": 3044
     },
     {
       "path": "docs/verification/rule-builder-mobile.png",
       "git_blob_sha": "d43c751788d888e463834ed1b9a2ae19e2330f99",
+      "sha256": "1445100cc3a27d4d33c12ee0f596f82b85c8617f0da0f76b4dffce82249bf688",
       "bytes": 122789
+    },
+    {
+      "path": "index.html",
+      "git_blob_sha": "f12749ed18a70543e86c03de9eeed22d354f8fed",
+      "sha256": "255c3c54002a3bca8ae838793da14fc23644dd65f12d024dd4cedac6af6b6b59",
+      "bytes": 10784
     },
     {
       "path": "requirements-live.txt",
       "git_blob_sha": "e3875ebefded3cc576bf670ad1376f84774f7036",
+      "sha256": "bf3ba86b135fc5b8f4d2d70941163f47be71ddfed497cb9e000652bdc4ac362c",
       "bytes": 202
     },
     {
+      "path": "santafe-network.user.js",
+      "git_blob_sha": "ba461437d82804e1efb213ee4996a0c63f333513",
+      "sha256": "bae4c9a9ec0f658283e6c633e19f9dbf3a58822f510f278424d6e1640cf6c7ec",
+      "bytes": 4021
+    },
+    {
       "path": "tasker/Santa_Fe_Control_Center.prj.xml",
+      "git_blob_sha": "df9f622144ea891febfcfffdba28b9e7a2eeaba9",
+      "sha256": "b707725dbc5bcce13c43c5fe886b28ced708e514d1fc229e2cb0af6f5cac1749",
+      "bytes": 84884
+    },
+    {
+      "path": "tasker/archive/Santa_Fe_Control_Center.zero-actions-2026-10-04.prj.xml",
       "git_blob_sha": "38477f34384bdb0b4eb4480f39aab137d89513a5",
+      "sha256": "0b915ce4b5e39d42480c66b26efc64950e6383772ae8eaf8253ab2793f3b7ef4",
       "bytes": 84884
     },
     {
       "path": "tasker/core.java",
       "git_blob_sha": "63027a3dbb9b5130719892ccdefe8cc5e02abafb",
+      "sha256": "b326cd7b4e6edea29ac6ce728601e4966e4fb5252a3143d7d33ca3baf6ec900c",
       "bytes": 11939
     },
     {
       "path": "tasker/speak.java",
       "git_blob_sha": "0fbf717f1cddbf77868c1a3db7cc938a6e66ff90",
+      "sha256": "36dbd27153cedac839c3cd4ead4b1ea8169cb1d673ca46da1d75ae0e8b050d79",
       "bytes": 1199
     },
     {
       "path": "tests/browser_check.py",
       "git_blob_sha": "0502b719e70624fe3ec5540bd4d3409c5a781ecf",
+      "sha256": "e9a4df8c554b4cef31e24a3bb0e9ff5d3800d6723921f1384bdee72d0bc4ce94",
       "bytes": 11392
+    },
+    {
+      "path": "tests/diagnostic_browser.cjs",
+      "git_blob_sha": "77f7fa55f4d413ebbc2196da9e0a9d71016f986b",
+      "sha256": "2ebe8b335b57af0cc2eef8230cee2b3aa1da380b97f2f727ca3601b46e4d01f6",
+      "bytes": 14428
+    },
+    {
+      "path": "tests/fixtures/tasker/native-action-shapes.xml",
+      "git_blob_sha": "6f083265e069436ab2d52c3f97a1785661791341",
+      "sha256": "9e9b341a2ec3ff7fd767d5381755a8e0c9b8bbd687ac1f229edcea560b3370a4",
+      "bytes": 2366
     },
     {
       "path": "tests/test_adapter_contract.py",
       "git_blob_sha": "b54d226b05512dc1c1249b797b2c2b0f9f5fa29f",
+      "sha256": "d9ffdce22c9ce3310534b0b308698d191b3cb43ab185ce8f925dd34cb7a1a653",
       "bytes": 5211
+    },
+    {
+      "path": "tests/test_diagnostic.cjs",
+      "git_blob_sha": "8b31c9576d2df0239c0046ecf2f3f1ddd42b137d",
+      "sha256": "a09f39fe215dee04f20cbc4f563c19abfd952116b090f39e4a544f3713b32a86",
+      "bytes": 19949
     },
     {
       "path": "tests/test_engine.py",
       "git_blob_sha": "7a9775b9d102e534aa4a325bee166507bf7d55c2",
+      "sha256": "f909ab96fde3ec83af7697052b780cb60ad0d1252edcaa0eecfe85f86ada023e",
       "bytes": 11992
     },
     {
       "path": "tests/test_http.py",
       "git_blob_sha": "b23bc9539290a23fc654a1498126138b23e14819",
+      "sha256": "82bd38c4fb2a616becebb2538be7be6b03378eafac4cf924f7a983160756319d",
       "bytes": 3575
     },
     {
       "path": "tests/test_install.py",
       "git_blob_sha": "40924011a3eab94e52561afff4b2e5d7c7a92c3f",
+      "sha256": "7a0cffb908f58dcdb6f8c1f6c17731a9e62ba4725564177ca12874ec88a93c67",
       "bytes": 3151
     },
     {
       "path": "tests/test_tasker.py",
-      "git_blob_sha": "fa4b7d214cf08f206db11e3e3f6718512582e699",
-      "bytes": 2402
+      "git_blob_sha": "ffc383843d159ac6f852d5ad0e031a42288f864c",
+      "sha256": "156a3573db5cbf9eab7bac5ca5c1d5536dc539ed261c461594e0e874411e7e77",
+      "bytes": 5765
     },
     {
       "path": "tools/ParseBeanShell.java",
       "git_blob_sha": "b39174e692eb0f691eeaec4f9f5b2303cd93b00b",
+      "sha256": "55337191b8904ad201fe433a7f540c70f2bce911364ea2df63ef9f46b578a591",
       "bytes": 381
     },
     {
       "path": "tools/build_tasker.py",
-      "git_blob_sha": "6dd5e7e29d6c774de56b3b3b854ebdd9c5fe81c7",
-      "bytes": 11030
+      "git_blob_sha": "e0de45ba4697e3265f0e1b414f6b5e8db5d52e8f",
+      "sha256": "03155505cc6d820a7ab94e1d45416203f7335d9f688d7fa81edcc5142ecfccd9",
+      "bytes": 11595
     },
     {
       "path": "tools/install.py",
       "git_blob_sha": "78feaa6cb3cd73e1af5e3568ef0ef4659857e5e1",
+      "sha256": "e9f12a515fe3f608a422322eba8ea7a9e5c832100cdb8d5c35d5d85c2607d504",
       "bytes": 3641
     },
     {
       "path": "ui/app.css",
       "git_blob_sha": "d25ede37b159f76a4c385cbfce4c42c054edf784",
+      "sha256": "54ff5d01478a85a6891b5df59fd68b8f76808272db175aededd36ba549daf4f3",
       "bytes": 8307
     },
     {
       "path": "ui/app.js",
       "git_blob_sha": "b4eb4f71258a3e49c74a0532fa37215af9918b71",
+      "sha256": "827fc0e738a1401883c29edc7f019c0b105d0b9a43f850f805d90cebf36b3c38",
       "bytes": 41618
     },
     {
       "path": "ui/index.html",
       "git_blob_sha": "510301f40f96a7ac86b62fd53bbb16f77a50ae33",
+      "sha256": "b61d1605ef37a1d23dd15a9378b67561a3786ac5b24fc1a2639f6a6d09d874ab",
       "bytes": 1006
     }
   ]

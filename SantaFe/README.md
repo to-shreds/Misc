@@ -1,24 +1,23 @@
-# Santa Fe Control Center
+# Santa Fe
 
-This directory is the canonical GitHub home for the Santa Fe / Bluelink Tasker project.
+Start with **[Santa Fe API Lab](https://to-shreds.github.io/Misc/SantaFe/)**. The lowercase `/Misc/santafe/` address redirects there.
 
-Current status: **IN PROGRESS**.
+The page takes your MyHyundai email, password, and four-digit Bluelink service PIN. It reads enrollment and cached status, inspects returned capability fields, and records sanitized requests/responses automatically. Logs survive reloads in that browser and can be downloaded as JSON. Credentials and session tokens remain only in tab memory.
 
-The first generated Tasker project is **known broken on-device**: it imports tasks by name, but every imported task shows zero actions in Tasker 6.7.6-beta. The existing generator therefore needs correction before the Tasker artifact is usable.
+## Browser setup
 
-## Architecture
+On Firefox for Android, install [Tampermonkey](https://addons.mozilla.org/en-US/android/addon/tampermonkey/), then open the page's **Santa Fe network helper** link and choose Install. Reload and check for **Browser helper ready**. Connect, select your vehicle if necessary, and use **Run read tests**. Download the log when finished.
 
-Tasker -> localhost bridge -> U.S. Hyundai Bluelink API
+The helper sends directly from your browser to Hyundai, with a fixed hostname and endpoint allowlist. No hosted proxy, account database, analytics, or Termux setup is required. The ordinary-browser option remains available for diagnostics. An actual credential-free preflight returned HTTP 500 without CORS permission; `no-cors` would not produce readable API results.
 
-No Termux:Tasker dependency is intended. Tasker communicates with the local bridge over HTTP on 127.0.0.1.
+## Vehicle commands
 
-## Preserve
+Refresh from car is separate and can wake the vehicle. Lock, unlock, climate, lights, and horn tests require individual confirmation. Climate start also requires outdoor acknowledgement. Submission is not completion: check the transaction result. A timeout, unreadable transaction ID, or empty response never triggers a retry. Reported equipment fields do not by themselves confirm remote support.
 
-- Keep simulation and live scopes separate.
-- Do not store Hyundai credentials in Tasker XML or exported variables.
-- Do not add Termux:Tasker, AutoInput, Shizuku, or a cloud relay as dependencies.
-- Do not treat an accepted remote request or a timeout as proof that the car performed the action.
-- Preserve unrelated projects and user settings.
-- The user's sample Regex Tasker export and original Hyundai APK are reference inputs only and must not be committed here because the sample XML contains unrelated secrets.
+## Tasker
 
-See HANDOFF.md for the current state and exact next step.
+The old export created named tasks with zero actions on the phone. The generator now follows action attribute and child ordering in the user's known-good native export. The corrected XML contains 40 tasks and 113 actions. The broken file is archived under `tasker/archive/`.
+
+**[Corrected Tasker import candidate](tasker/Santa_Fe_Control_Center.prj.xml)** still needs an actual phone import. This is not a claim that Hyundai features or Tasker runtime are verified. Use the HTML tester's real-account log to decide which calls/features can be carried into Tasker.
+
+The existing local bridge, simulator, UI, settings, and Tasker action payloads are preserved. They remain a separate local system: `Tasker -> localhost bridge -> Hyundai`. See [START-HERE.md](START-HERE.md), [HANDOFF.md](HANDOFF.md), and [docs/TEST_REPORT.md](docs/TEST_REPORT.md).

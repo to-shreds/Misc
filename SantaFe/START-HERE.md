@@ -1,4 +1,6 @@
-PHONE IMPORT WARNING (2026-10-04): the current generated Tasker project is retained for diagnosis only. On the user's Tasker 6.7.6-beta installation, it imports the task names but every task has zero actions. Do not rely on the import/setup steps below until tools/build_tasker.py is corrected and a new export is verified on-device.
+CURRENT START (2026-10-04): open [Santa Fe API Lab](https://to-shreds.github.io/Misc/SantaFe/) first. Follow the page's Firefox/Tampermonkey helper setup, connect, run read tests, and download the sanitized log. No Termux setup is needed for API Lab. Real-account results must guide the live Tasker build.
+
+The Tasker generator now matches native export serialization and its new XML contains 113 actions. Actual phone import is still unverified. The old zero-action artifact is archived in `tasker/archive/`. The local bridge setup below is preserved for reference and is not required for API Lab.
 
 # Santa Fe Control Center 0.1.0
 
