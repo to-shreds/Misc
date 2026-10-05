@@ -9,7 +9,7 @@
     "Actual Tasker executes offline Core verification and reports one executable action",
     "Actual Tasker JSON reader maps boolean status flags correctly",
     "Offline verification dialog closes normally",
-    "Actual Tasker import retains all 64 tasks and 134 executable actions",
+    "Actual Tasker import retains all 65 tasks and 137 executable actions",
     "Actual Tasker import retains all nine scenes",
     "Actual Tasker retains the hourly location profile",
     "Periodic profile retains its opt-in condition",
@@ -84,10 +84,9 @@
     "GUI closes without any vehicle operation",
     "SFD Open renders the bundled HTML interface offline",
     "WebView detects the real Tasker JavaScript interface",
-    "HTML navigation opens phone settings",
-    "HTML account button opens the native editor"
+    "HTML navigation opens phone settings"
   ],
-  "project_sha256": "a1cf9deea18ad075fed3b2ca4a2a47784505497256a95ea771bf3e94334b74fe",
+  "project_sha256": "97b2e5322ee10e033c8aba6c25b51ac073e2ec0e5cade2731e67c6ebca493c21",
   "adb_root": "",
   "import_windows": [
     [
@@ -99,7 +98,7 @@
       "Don\u2019t allow"
     ],
     [
-      "222k",
+      "224k",
       "Santa_Fe_Direct",
       "Tasker/projects/",
       "Primary Storage",
@@ -160,6 +159,7 @@
     "SFD Web Receive": 1,
     "SFD Web Prepare": 1,
     "SFD Open Web": 3,
+    "SFD Web Settings": 3,
     "SFD Core": 1,
     "SFD Verify Actions": 1,
     "SFD Setup": 1,
@@ -218,7 +218,7 @@
   },
   "synthetic_account_saved": true,
   "scene_observation": "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms.",
-  "error": "HTML settings use the saved masked account form",
+  "error": "HTML account button opens the native editor",
   "last_ui": [
     "1.",
     "Perform Task",
@@ -998,6 +998,6 @@
       "bounds": "[975,138][1080,264]"
     }
   ],
-  "native_backup_bytes": 207880,
+  "native_backup_bytes": 209667,
   "native_backup_prefix": "<TaskerData sr=\"\"dvi=\"1\"tv=\"6.6.20\"><Scene sr=\"sceneSFD Controls\"><TextElement s"
 }
