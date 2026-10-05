@@ -29,7 +29,7 @@
     "Control menu cancels without any vehicle operation"
   ],
   "project_sha256": "851c4cbac713570e194805692bb17bcfddac83e711c8dd098c9f95d161ecbb83",
-  "adb_root": "restarting adbd as root",
+  "adb_root": "",
   "roundtrip_source": "/data/data/net.dinglisch.android.taskerm/files/autobackup.xml",
   "imported_scene_names": [
     "SFD Controls",
