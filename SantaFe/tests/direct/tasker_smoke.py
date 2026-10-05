@@ -162,10 +162,14 @@ def import_project():
     if not click(root, ["Import Project", "Import"]):
         raise RuntimeError("No observed Import Project menu: " + str(visible(root)))
     selected = False
+    imported_names = {task.findtext("nme") for task in E.parse(ROOT / "tasker/Santa_Fe_Direct.prj.xml").getroot().iter("Task")}
     for _ in range(20):
         root = screen()
         REPORT.setdefault("import_windows", []).append(visible(root))
-        if selected and matching(root, "SFD Core") is not None:
+        # Tasker can open the list at its previous scroll position. Any exact
+        # delivered task name proves the task list is visible; open_task then
+        # scrolls to Core. Tapping an already selected Tasks tab opens a menu.
+        if selected and any(matching(root, name) is not None for name in imported_names):
             return root
         if selected and matching(root, "Tasks") is not None:
             if matching(root, "Apply") is not None:
@@ -176,7 +180,7 @@ def import_project():
             click(root, ["Tasks"])
             time.sleep(0.8)
             root = screen()
-            if matching(root, "SFD Core") is not None:
+            if any(matching(root, name) is not None for name in imported_names):
                 return root
             explanation = next((n for n in nodes(root) if n.get("text", "").startswith("Profiles link contexts")), None)
             if explanation is not None:
