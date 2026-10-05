@@ -48,6 +48,9 @@
       referrerPolicy: 'no-referrer', signal
     });
     const http = response.status;
+    if (!response.ok && (http >= 500 || http === 408)) {
+      const error = new Error('Join delivery cannot be confirmed.'); error.http = http; throw error;
+    }
     if (!response.ok) return { state: 'REJECTED', http, message: 'Join returned HTTP ' + http + '. No retry was sent.' };
     const text = await response.text();
     if (text.length > 65536) throw new Error('Unreadable Join response.');

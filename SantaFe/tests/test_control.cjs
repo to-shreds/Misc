@@ -42,10 +42,15 @@ test('Join rejection does not echo a private error body', async () => {
   assert.equal(result.state, 'REJECTED'); assert.ok(!JSON.stringify(result).includes(config.apiKey)); assert.ok(!JSON.stringify(result).includes(config.deviceId));
 });
 test('HTTP failures make one request and are not success', async () => {
-  for (const status of [401, 403, 429, 502]) {
+  for (const status of [401, 403, 429]) {
     let count = 0;
     const result = await P.send(config, 'ping', async () => { count++; return { ok: false, status }; });
     assert.equal(result.state, 'REJECTED'); assert.equal(result.http, status); assert.equal(count, 1);
+  }
+  for (const status of [408, 500, 502, 503]) {
+    let count = 0;
+    await assert.rejects(P.send(config, 'ping', async () => { count++; return { ok: false, status }; }), error => error.http === status);
+    assert.equal(count, 1);
   }
 });
 test('network failures and unreadable replies never retry', async () => {

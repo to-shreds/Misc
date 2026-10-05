@@ -86,8 +86,8 @@
     try {
       const result = await P.send(config, payload, window.fetch.bind(window), abort.signal);
       store.remove(KEYS.pending); unknown = null; record(command, result); notice(result.message, result.state === 'REJECTED');
-    } catch (_) {
-      unknown = pending; record(command, { state: 'UNKNOWN', message: 'The browser could not confirm Join delivery. Check the phone before another vehicle command. No retry was sent.' });
+    } catch (failure) {
+      unknown = pending; record(command, { state: 'UNKNOWN', http: failure && Number.isInteger(failure.http) ? failure.http : null, message: 'The browser could not confirm Join delivery. Check the phone before another vehicle command. No retry was sent.' });
       notice('Delivery unknown. Check your phone. Nothing was resent.', true);
     } finally { clearTimeout(timer); busy = false; activeId = ''; buttons(); }
   }
