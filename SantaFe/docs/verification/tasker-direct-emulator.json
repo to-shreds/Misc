@@ -34,10 +34,21 @@
     "Actual Tasker opens the native Home scene",
     "Scene labels resolve their display variables",
     "Home navigation opens Controls",
-    "Native Controls scene is visible"
+    "Native Controls scene is visible",
+    "Control scene displays all six controls including presets",
+    "Control scene contains no unconfirmed controls",
+    "Native scene returns to Home from Controls",
+    "Home is restored after Controls",
+    "Home navigation opens Status",
+    "Native Status scene is visible",
+    "Native scene returns to Home from Status",
+    "Home is restored after Status",
+    "Home navigation opens Account",
+    "Native Account scene is visible",
+    "Scene account button runs the saved settings form"
   ],
-  "project_sha256": "c7a72b7c2b4313a3c9a97483171706e0638f5846312fd82d131b1ab9f5a7f867",
-  "adb_root": "restarting adbd as root",
+  "project_sha256": "a1cf9deea18ad075fed3b2ca4a2a47784505497256a95ea771bf3e94334b74fe",
+  "adb_root": "",
   "import_windows": [
     [
       "com.android.permissioncontroller:id/grant_singleton",
@@ -167,7 +178,7 @@
   },
   "synthetic_account_saved": true,
   "scene_observation": "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms.",
-  "error": "Control scene displays all six controls including presets",
+  "error": "Account scene retains the saved synthetic account and masks secrets",
   "last_ui": [
     "1.",
     "Perform Task",
@@ -308,7 +319,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[0,276][1080,2337]"
+      "bounds": "[0,211][1080,2337]"
     },
     {
       "index": "0",
@@ -327,7 +338,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[0,276][1080,2337]"
+      "bounds": "[0,211][1080,2337]"
     },
     {
       "index": "0",
@@ -346,7 +357,7 @@
       "long-clickable": "true",
       "password": "false",
       "selected": "false",
-      "bounds": "[0,276][1080,2264]"
+      "bounds": "[0,211][1080,2264]"
     },
     {
       "index": "0",
@@ -365,7 +376,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,276][1038,427]"
+      "bounds": "[42,211][1038,362]"
     },
     {
       "index": "0",
@@ -384,7 +395,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,276][1038,427]"
+      "bounds": "[42,211][1038,362]"
     },
     {
       "index": "0",
@@ -403,7 +414,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,276][1038,419]"
+      "bounds": "[42,211][1038,354]"
     },
     {
       "index": "0",
@@ -422,7 +433,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,276][1038,419]"
+      "bounds": "[42,211][1038,354]"
     },
     {
       "index": "0",
@@ -441,7 +452,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,276][970,416]"
+      "bounds": "[42,211][970,351]"
     },
     {
       "index": "0",
@@ -460,7 +471,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[47,276][970,348]"
+      "bounds": "[47,211][970,283]"
     },
     {
       "index": "0",
@@ -479,7 +490,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[47,276][121,345]"
+      "bounds": "[47,211][121,280]"
     },
     {
       "index": "1",
@@ -498,7 +509,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[121,276][970,345]"
+      "bounds": "[121,211][970,280]"
     },
     {
       "index": "1",
@@ -517,7 +528,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,348][522,413]"
+      "bounds": "[42,283][522,348]"
     },
     {
       "index": "0",
@@ -536,7 +547,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,358][84,400]"
+      "bounds": "[42,293][84,335]"
     },
     {
       "index": "1",
@@ -555,7 +566,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[116,351][235,408]"
+      "bounds": "[116,286][235,343]"
     },
     {
       "index": "2",
@@ -574,7 +585,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[235,351][512,408]"
+      "bounds": "[235,286][512,343]"
     },
     {
       "index": "3",
@@ -593,7 +604,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[512,353][517,406]"
+      "bounds": "[512,288][517,341]"
     },
     {
       "index": "5",
@@ -612,7 +623,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[517,353][522,406]"
+      "bounds": "[517,288][522,341]"
     },
     {
       "index": "1",
@@ -631,7 +642,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[970,276][1038,344]"
+      "bounds": "[970,211][1038,279]"
     },
     {
       "index": "1",
@@ -650,7 +661,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,428][1038,579]"
+      "bounds": "[42,363][1038,514]"
     },
     {
       "index": "0",
@@ -669,7 +680,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,428][1038,579]"
+      "bounds": "[42,363][1038,514]"
     },
     {
       "index": "0",
@@ -688,7 +699,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,428][1038,571]"
+      "bounds": "[42,363][1038,506]"
     },
     {
       "index": "0",
@@ -707,7 +718,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,428][1038,571]"
+      "bounds": "[42,363][1038,506]"
     },
     {
       "index": "0",
@@ -726,7 +737,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,428][970,568]"
+      "bounds": "[42,363][970,503]"
     },
     {
       "index": "0",
@@ -745,7 +756,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[47,428][970,500]"
+      "bounds": "[47,363][970,435]"
     },
     {
       "index": "0",
@@ -764,7 +775,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[47,428][121,497]"
+      "bounds": "[47,363][121,432]"
     },
     {
       "index": "1",
@@ -783,7 +794,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[121,428][970,497]"
+      "bounds": "[121,363][970,432]"
     },
     {
       "index": "1",
@@ -802,7 +813,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,500][564,565]"
+      "bounds": "[42,435][564,500]"
     },
     {
       "index": "0",
@@ -821,7 +832,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,510][84,552]"
+      "bounds": "[42,445][84,487]"
     },
     {
       "index": "1",
@@ -840,7 +851,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[116,503][235,560]"
+      "bounds": "[116,438][235,495]"
     },
     {
       "index": "2",
@@ -859,7 +870,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[235,503][554,560]"
+      "bounds": "[235,438][554,495]"
     },
     {
       "index": "3",
@@ -878,7 +889,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[554,505][559,558]"
+      "bounds": "[554,440][559,493]"
     },
     {
       "index": "5",
@@ -897,7 +908,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[559,505][564,558]"
+      "bounds": "[559,440][564,493]"
     },
     {
       "index": "1",
@@ -916,7 +927,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[970,428][1038,496]"
+      "bounds": "[970,363][1038,431]"
     },
     {
       "index": "2",
@@ -935,7 +946,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,580][1038,731]"
+      "bounds": "[42,515][1038,666]"
     },
     {
       "index": "0",
@@ -954,7 +965,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,580][1038,731]"
+      "bounds": "[42,515][1038,666]"
     },
     {
       "index": "0",
@@ -973,7 +984,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,580][1038,723]"
+      "bounds": "[42,515][1038,658]"
     },
     {
       "index": "0",
@@ -992,7 +1003,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,580][1038,723]"
+      "bounds": "[42,515][1038,658]"
     },
     {
       "index": "0",
@@ -1011,7 +1022,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,580][970,720]"
+      "bounds": "[42,515][970,655]"
     },
     {
       "index": "0",
@@ -1030,7 +1041,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[47,580][970,652]"
+      "bounds": "[47,515][970,587]"
     },
     {
       "index": "0",
@@ -1049,7 +1060,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[47,580][121,649]"
+      "bounds": "[47,515][121,584]"
     },
     {
       "index": "1",
@@ -1068,7 +1079,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[121,580][970,649]"
+      "bounds": "[121,515][970,584]"
     },
     {
       "index": "1",
@@ -1087,7 +1098,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,652][970,717]"
+      "bounds": "[42,587][970,652]"
     },
     {
       "index": "0",
@@ -1106,7 +1117,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[42,662][84,704]"
+      "bounds": "[42,597][84,639]"
     },
     {
       "index": "1",
@@ -1125,7 +1136,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[116,655][235,712]"
+      "bounds": "[116,590][235,647]"
     },
     {
       "index": "2",
@@ -1144,7 +1155,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[235,655][439,712]"
+      "bounds": "[235,590][439,647]"
     },
     {
       "index": "3",
@@ -1163,7 +1174,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[439,655][649,712]"
+      "bounds": "[439,590][649,647]"
     },
     {
       "index": "4",
@@ -1182,7 +1193,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[649,655][970,712]"
+      "bounds": "[649,590][970,647]"
     },
     {
       "index": "1",
@@ -1201,7 +1212,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[970,580][1038,648]"
+      "bounds": "[970,515][1038,583]"
     },
     {
       "index": "1",
@@ -1353,7 +1364,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[0,0][1080,275]"
+      "bounds": "[0,0][1080,210]"
     },
     {
       "index": "0",
@@ -1372,7 +1383,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[0,128][1080,275]"
+      "bounds": "[0,63][1080,210]"
     },
     {
       "index": "0",
@@ -1391,7 +1402,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[0,128][147,275]"
+      "bounds": "[0,63][147,210]"
     },
     {
       "index": "1",
@@ -1410,7 +1421,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[189,138][407,209]"
+      "bounds": "[189,73][407,144]"
     },
     {
       "index": "2",
@@ -1429,7 +1440,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[189,209][496,265]"
+      "bounds": "[189,144][496,200]"
     },
     {
       "index": "3",
@@ -1448,7 +1459,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[597,128][1080,275]"
+      "bounds": "[597,63][1080,210]"
     },
     {
       "index": "0",
@@ -1467,7 +1478,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[597,138][723,264]"
+      "bounds": "[597,73][723,199]"
     },
     {
       "index": "1",
@@ -1486,7 +1497,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[723,138][849,264]"
+      "bounds": "[723,73][849,199]"
     },
     {
       "index": "2",
@@ -1505,7 +1516,7 @@
       "long-clickable": "false",
       "password": "false",
       "selected": "false",
-      "bounds": "[849,138][975,264]"
+      "bounds": "[849,73][975,199]"
     },
     {
       "index": "3",
@@ -1524,9 +1535,9 @@
       "long-clickable": "true",
       "password": "false",
       "selected": "false",
-      "bounds": "[975,138][1080,264]"
+      "bounds": "[975,73][1080,199]"
     }
   ],
-  "native_backup_bytes": 207620,
+  "native_backup_bytes": 207880,
   "native_backup_prefix": "<TaskerData sr=\"\"dvi=\"1\"tv=\"6.6.20\"><Scene sr=\"sceneSFD Controls\"><TextElement s"
 }
