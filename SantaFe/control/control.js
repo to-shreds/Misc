@@ -139,8 +139,11 @@
     const link = document.createElement('a'), url = URL.createObjectURL(blob); link.href = url; link.download = 'SantaFe-control-log-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
   settingsView(); renderLog();
+  if (entries.length) { const last = entries[entries.length - 1]; $('last-time').textContent = dateText(last.time); $('last-state').textContent = last.state; $('last-message').textContent = last.message; }
   if (bridge) {
     $('mode').textContent = 'Tasker phone interface';
+    $('connection-title').textContent = 'Phone connection';
+    document.querySelector('footer').textContent = 'Phone interface → Tasker → Hyundai';
     document.querySelectorAll('.native-only').forEach(element => { element.hidden = false; });
     document.querySelectorAll('.external-note').forEach(element => { element.hidden = true; });
     $('settings-form').hidden = true; $('saved-settings').hidden = true;

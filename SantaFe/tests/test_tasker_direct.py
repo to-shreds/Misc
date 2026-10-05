@@ -110,7 +110,7 @@ def test_join_event_uses_supplied_native_plugin_and_joincomm():
     profile = next(p for p in root.findall("Profile") if p.findtext("nme") == "SFD Join Commands")
     event = profile.find("Event")
     assert event.findtext("code") == "1668911626"
-    assert event.findtext("Bundle/Vals/FilterText") == "hyundai=:= " .rstrip()
+    assert event.findtext("Bundle/Vals/FilterText") == "hyundai=:="
     assert event.findtext('Str[@sr="arg1"]') == "com.joaomgcd.join"
     assert profile.findtext("State/ConditionList/Condition/lhs") == "%SFDJoinEnabled"
     expected = E.parse(ROOT / "tests/fixtures/tasker/join-received-push.xml").getroot()

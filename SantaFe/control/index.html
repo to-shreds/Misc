@@ -46,8 +46,8 @@
       <p class="hint external-note">Results appear on your phone. Open SFD Open Web in Tasker to see them here.</p>
     </section>
     <section id="settings" class="page" hidden>
-      <h2>Join connection</h2>
-      <p class="hint">This page needs your Join API key and phone ID. Your Hyundai account stays in Tasker.</p>
+      <h2 id="connection-title">Join connection</h2>
+      <p class="hint external-note">This page needs your Join API key and phone ID. Your Hyundai account stays in Tasker.</p>
       <form id="settings-form" autocomplete="off">
         <label for="join-link">Paste your Join API link <span>Optional shortcut</span></label><input id="join-link" type="password" autocomplete="off" placeholder="Paste once to fill the two fields">
         <label for="device-id">Phone device ID</label><input id="device-id" spellcheck="false" autocomplete="off" maxlength="32">
@@ -56,7 +56,7 @@
         <div class="actions"><button type="submit">Save settings</button><button id="forget" type="button" class="secondary">Forget Join settings</button></div>
       </form>
       <p id="saved-settings" class="hint">No Join settings saved.</p>
-      <p class="hint">Remembered Join settings use this browser's local storage. They are not uploaded to GitHub or included in exported logs.</p>
+      <p class="hint external-note">Remembered Join settings use this browser's local storage. They are not uploaded to GitHub or included in exported logs.</p>
       <button class="command secondary" data-command="ping">Test connection</button><p class="hint">This test reaches Tasker without contacting Hyundai or operating the car.</p>
       <div class="card"><h2>Phone settings</h2><p class="hint">In Tasker, save the Hyundai account once and enable SFD Join Settings. The phone interface below opens the existing masked account editor.</p><div class="actions native-only" hidden><button data-task="SFD Setup">Hyundai account</button><button data-task="SFD Connect">Connect</button><button data-task="SFD Choose Vehicle">Choose car</button><button data-task="SFD Join Settings">Join receiver</button><button data-task="SFD Climate Settings">Regular preset</button><button data-task="SFD Cold Settings">Cold preset</button><button data-task="SFD Hot Settings">Hot preset</button><button data-task="SFD Location Settings">Location checks</button></div></div>
       <p class="hint">Controller 1.2.0 · <a href="../START-HERE.md" target="_blank" rel="noopener noreferrer">Setup instructions</a></p>

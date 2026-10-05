@@ -161,11 +161,13 @@ def import_project():
     root = screen()
     if not click(root, ["Import Project", "Import"]):
         raise RuntimeError("No observed Import Project menu: " + str(visible(root)))
+    selected = False
     for _ in range(20):
         root = screen()
-        if matching(root, "SFD Core") is not None:
+        REPORT.setdefault("import_windows", []).append(visible(root))
+        if selected and matching(root, "SFD Core") is not None:
             return root
-        if matching(root, "Tasks") is not None:
+        if selected and matching(root, "Tasks") is not None:
             if matching(root, "Apply") is not None:
                 click(root, ["Apply"])
                 root = screen()
@@ -186,7 +188,16 @@ def import_project():
             # select Tasks again within the bound instead of treating a main
             # screen transition as an XML failure.
             continue
-        if click(root, ["Santa_Fe_Direct.prj.xml", "Santa_Fe_Direct", "Download", "Downloads", "projects"]):
+        if matching(root, "Import Task") is not None and matching(root, "Set Sort") is not None:
+            adb("shell", "input", "keyevent", "4")
+            continue
+        if click(root, ["Santa_Fe_Direct.prj.xml", "Santa_Fe_Direct"]):
+            selected = True
+            continue
+        if click(root, ["Download", "Downloads", "projects"]):
+            continue
+        if not selected and matching(root, "Tasks") is not None:
+            time.sleep(1)
             continue
         if not click(root, ["Allow", "Allow all", "Yes", "Import", "OK", "Continue", "Done", "No"]):
             raise RuntimeError("Unhandled import UI: " + str(visible(root)))
@@ -254,7 +265,13 @@ def scene_screen():
         left=min(int(w["left"]) for w in words); top=min(int(w["top"]) for w in words)
         right=max(int(w["left"])+int(w["width"]) for w in words); bottom=max(int(w["top"])+int(w["height"]) for w in words)
         E.SubElement(rendered, "node", text=text, enabled="true", clickable="true", bounds=f"[{left},{top}][{right},{bottom}]")
-    if any(n.get("text", "").startswith("Santa Fe / ") for n in nodes(rendered)):
+        # HTML navigation can share a single OCR line. Preserve observed word
+        # bounds too, so tapping Settings uses evidence rather than fixed pixels.
+        if len(words) > 1:
+            for word in words:
+                x, y, w, h = [int(word[k]) for k in ["left", "top", "width", "height"]]
+                E.SubElement(rendered, "node", text=word["text"], enabled="true", clickable="true", bounds=f"[{x},{y}][{x+w},{y+h}]")
+    if any(n.get("text", "").startswith("Santa Fe / ") for n in nodes(rendered)) or any(matching(rendered, text) is not None for text in ["Climate start", "Tasker phone interface", "Phone connection"]):
         REPORT["scene_observation"] = "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms."
         return rendered
     return root
@@ -263,7 +280,7 @@ def wait_for(text):
     # First Java-action compilation and scene transitions can outlast the
     # fixture's short delay. Observe until the target exists; never retap.
     for _ in range(15):
-        root = scene_screen() if text.startswith("Santa Fe / ") else screen()
+        root = scene_screen() if text.startswith("Santa Fe / ") or text in ["Climate start", "Tasker phone interface", "Phone connection", "PHONE REACHED"] else screen()
         if matching(root, text) is not None:
             return root
         time.sleep(1)
@@ -499,6 +516,13 @@ def run():
     check(matching(root, "Climate start") is not None, "SFD Open renders the bundled HTML interface offline")
     check(matching(root, "Tasker phone interface") is not None, "WebView detects the real Tasker JavaScript interface")
     (RESULTS / "scene-web.png").write_bytes(adb("exec-out", "screencap", "-p"))
+    check(click(root, ["Settings"]), "HTML navigation opens phone settings")
+    root = wait_for("Phone connection")
+    check(click(root, ["Test connection"]), "Actual HTML button dispatches an offline request to Tasker")
+    root = scene_screen(); check(click(root, ["Controls"]), "HTML returns to Controls after the connection test")
+    root = wait_for("PHONE REACHED")
+    check(matching(root, "PHONE REACHED") is not None, "Actual Tasker WebView shows the correlated offline receiver result")
+    (RESULTS / "scene-web-ping.png").write_bytes(adb("exec-out", "screencap", "-p"))
     check(click(root, ["Native screens"]), "Bundled HTML returns to native Home without network")
     root = wait_for("Santa Fe / Home"); click(root, ["Close"])
     REPORT["passed"] = True
