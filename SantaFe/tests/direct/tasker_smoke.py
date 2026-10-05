@@ -133,10 +133,21 @@ def startup():
     raise RuntimeError("Tasker startup did not finish: " + str(visible(root)))
 
 def import_project():
+    adb("shell", "mkdir", "-p", "/sdcard/Tasker/projects")
     adb("push", str(ROOT / "tasker/Santa_Fe_Direct.prj.xml"), "/sdcard/Download/Santa_Fe_Direct.prj.xml")
-    adb("shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", "file:///sdcard/Download/Santa_Fe_Direct.prj.xml", "-t", "text/xml", "-n", PACKAGE + "/.IntentHandler")
-    time.sleep(2)
-    for _ in range(14):
+    adb("push", str(ROOT / "tasker/Santa_Fe_Direct.prj.xml"), "/sdcard/Tasker/projects/Santa_Fe_Direct.prj.xml")
+    root = screen()
+    project = matching(root, "Default Project")
+    if project is None:
+        raise RuntimeError("No observed project tab for normal Import Project: " + str(visible(root)))
+    left, top, right, bottom = [int(v) for v in re.findall(r"\d+", project.get("bounds", ""))]
+    x, y = str((left + right) // 2), str((top + bottom) // 2)
+    adb("shell", "input", "swipe", x, y, x, y, "1000")
+    time.sleep(0.8)
+    root = screen()
+    if not click(root, ["Import Project", "Import"]):
+        raise RuntimeError("No observed Import Project menu: " + str(visible(root)))
+    for _ in range(20):
         root = screen()
         if any(n.get("text", "").startswith("SFD ") for n in nodes(root)):
             return root
@@ -147,6 +158,8 @@ def import_project():
             root = screen()
             if any(n.get("text", "").startswith("SFD ") for n in nodes(root)):
                 return root
+        if click(root, ["Santa_Fe_Direct.prj.xml", "Santa_Fe_Direct", "Download", "Downloads", "projects"]):
+            continue
         if not click(root, ["Yes", "Import", "OK", "Continue", "Done", "No"]):
             raise RuntimeError("Unhandled import UI: " + str(visible(root)))
     raise RuntimeError("Import did not expose tasks")
