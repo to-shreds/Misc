@@ -3,13 +3,13 @@
   "repository": "to-shreds/Misc",
   "path": "SantaFe",
   "status": "IN PROGRESS",
-  "diagnostic_version": "0.2.0",
+  "diagnostic_version": "0.2.1",
   "bridge_version": "0.1.0",
   "next_verification": "Real Firefox/Hyundai login and vehicle test log; actual phone import of corrected Tasker XML.",
   "verification": {
     "python_tests_passed": 92,
-    "diagnostic_behavior_tests_passed": 19,
-    "chromium_scenarios_passed": 9,
+    "diagnostic_behavior_tests_passed": 21,
+    "chromium_scenarios_passed": 10,
     "real_account_verified": false,
     "tasker_phone_import_verified": false
   },
@@ -28,9 +28,9 @@
     },
     {
       "path": "HANDOFF.md",
-      "git_blob_sha": "26ab9b07bffd04386fcec344f995272977510089",
-      "sha256": "a6dc19826d81a5bfa1f9675c32543373c937c1796f4bdf6a98194267691c483c",
-      "bytes": 3304
+      "git_blob_sha": "7d6e2e551e6b5b548c3eadc32d8b4bedb123a98e",
+      "sha256": "43b5e94fc589c0103a173d02a50908c664d2fb1d1dca9a751daf81a95937f2fc",
+      "bytes": 3823
     },
     {
       "path": "Install.sh",
@@ -40,9 +40,9 @@
     },
     {
       "path": "README.md",
-      "git_blob_sha": "ba4f5882b12dfd19494fd169d5967f05f58d96cc",
-      "sha256": "e7a4695322a5077e878a59d9b206d6933363e2f685a697772426d105f52c5fa9",
-      "bytes": 2491
+      "git_blob_sha": "7739515e01f2284480ef223cbe5476310a5b0cbd",
+      "sha256": "272ff07e5e9010288086f52ada6b3c5f33f8af17018ce6f1cdf42674567c9b58",
+      "bytes": 2769
     },
     {
       "path": "START-HERE.md",
@@ -94,9 +94,9 @@
     },
     {
       "path": "diagnostic.js",
-      "git_blob_sha": "0a38d9f6d7b10ddc74fe794d30a51b254dc59081",
-      "sha256": "3927b4818d9ebe1097c86d91127d3df0c17cd3bc3f204e454d670650348c3ebe",
-      "bytes": 25420
+      "git_blob_sha": "0cf632cb4cb1fdfa69294a50169ab885a0207053",
+      "sha256": "7cb435f6827e3b223508b052160ca64a1c2397f5fb82f3ed1ccba79259e2bbfb",
+      "bytes": 26738
     },
     {
       "path": "docs/API.md",
@@ -118,9 +118,9 @@
     },
     {
       "path": "docs/TEST_REPORT.md",
-      "git_blob_sha": "d674f965b4745def938dc6656b4a71ef7303b03e",
-      "sha256": "658b5942da3c25606e75030957364a8045fa42dd99934c320ebd901090bb28f1",
-      "bytes": 7906
+      "git_blob_sha": "9601fd074a1559177f7db2336437eab4b7a30bb8",
+      "sha256": "9af2021eb2b0e4ff69e41999e64feb28ca43fa00f4d2f8feec7a2c5e9f68d94b",
+      "bytes": 8843
     },
     {
       "path": "docs/verification/browser-results.json",
@@ -148,27 +148,27 @@
     },
     {
       "path": "docs/verification/diagnostic-browser-results.json",
-      "git_blob_sha": "13d93bac0f92b84524afb7e481e7520dc5c639f1",
-      "sha256": "8868815bc3ef52a0fb15da904186a018b2398e5da45a9b859f40a8d458026999",
-      "bytes": 1629
+      "git_blob_sha": "af3f6336841864cc0171fdb20aa5f79330078e97",
+      "sha256": "3b864dcd280756efc108a2b13e7cb55e245b3b07ced97998b58cec6101accd21",
+      "bytes": 1798
     },
     {
       "path": "docs/verification/diagnostic-desktop.png",
-      "git_blob_sha": "6e67b269df146cd82ecdfa3e7cba63cc7ee94ee7",
-      "sha256": "0c84d35b10bbf5a5b75bfcd34b23ee41c00c811661778796c3a022d8f0c9c469",
-      "bytes": 298656
+      "git_blob_sha": "b1df2ff4c20a226f82f4a23da6ec6a54ebd31e74",
+      "sha256": "92039042751acbfe5ccf49cd4f674ca5408e613b23838dd19c81e639eacbf590",
+      "bytes": 301979
     },
     {
       "path": "docs/verification/diagnostic-mobile.png",
-      "git_blob_sha": "ccd60d84ce8b91f4314c073a21b60cc396c3bce2",
-      "sha256": "379690c495ea44e63aa3dc47512f1afa21e7d4813122fdedd0f17d7b5e8ff0a9",
-      "bytes": 260856
+      "git_blob_sha": "7bc05544d1c81654fa70b6d23c3b07bbd4e6cb13",
+      "sha256": "a711b3d280433342894d51601c16c07a209bd39cc647577c4d9c6d706c07c8b3",
+      "bytes": 263059
     },
     {
       "path": "docs/verification/diagnostic-tests.json",
-      "git_blob_sha": "773e9dbd6002862e980bef1b32f1c42f6a485010",
-      "sha256": "70eae579e179d8837bd3d141fd11bf74fec354c8728c99482d0297617c351427",
-      "bytes": 3044
+      "git_blob_sha": "87f5e13de182c574749db7beefadff69ba278258",
+      "sha256": "45dd7020410d0e2d5f5b5ccd90d820d3eb19b8b197b44e81d869c54982f18c1b",
+      "bytes": 3378
     },
     {
       "path": "docs/verification/rule-builder-mobile.png",
@@ -178,9 +178,9 @@
     },
     {
       "path": "index.html",
-      "git_blob_sha": "f12749ed18a70543e86c03de9eeed22d354f8fed",
-      "sha256": "255c3c54002a3bca8ae838793da14fc23644dd65f12d024dd4cedac6af6b6b59",
-      "bytes": 10784
+      "git_blob_sha": "5fd7650a3d8ab4cbb2dfa63b2838f4b56b59b6a6",
+      "sha256": "f870555a35c635767726d153dbb681a0dc4ef4f8edf81d74c9d501b9767b48aa",
+      "bytes": 10913
     },
     {
       "path": "requirements-live.txt",
@@ -226,9 +226,9 @@
     },
     {
       "path": "tests/diagnostic_browser.cjs",
-      "git_blob_sha": "77f7fa55f4d413ebbc2196da9e0a9d71016f986b",
-      "sha256": "2ebe8b335b57af0cc2eef8230cee2b3aa1da380b97f2f727ca3601b46e4d01f6",
-      "bytes": 14428
+      "git_blob_sha": "e453ffd03c73406d4b802dee71edddf97c3a36fd",
+      "sha256": "7acdafe60c518cb7960d0ac84ce36eb2982d30712fc3c66483156005c6838c00",
+      "bytes": 16101
     },
     {
       "path": "tests/fixtures/tasker/native-action-shapes.xml",
@@ -244,9 +244,9 @@
     },
     {
       "path": "tests/test_diagnostic.cjs",
-      "git_blob_sha": "8b31c9576d2df0239c0046ecf2f3f1ddd42b137d",
-      "sha256": "a09f39fe215dee04f20cbc4f563c19abfd952116b090f39e4a544f3713b32a86",
-      "bytes": 19949
+      "git_blob_sha": "2830070c5012f30339abf8e66149c0a69bc9c40e",
+      "sha256": "bc023caafda1e49062ca34cdf4c523cf654565f8edc5efd6c1eb4e25ebc76ded",
+      "bytes": 22577
     },
     {
       "path": "tests/test_engine.py",

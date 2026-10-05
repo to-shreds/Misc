@@ -30,29 +30,15 @@
         </div>
       </section>
 
-      <div id="notice" class="notice" role="status" aria-live="polite">Enter your Bluelink details to begin. Vehicle controls never run automatically.</div>
+      <div id="notice" class="notice" role="status" aria-live="polite">Complete Connection setup first. The login form unlocks when the browser helper is ready.</div>
 
       <div class="workspace-grid">
         <section class="panel connect-panel" aria-labelledby="connectTitle">
           <div class="panel-heading"><span class="step-number">01</span><div><p class="eyebrow">GET CONNECTED</p><h2 id="connectTitle">Your Bluelink account</h2></div></div>
-          <form id="loginForm">
-            <label for="email">Email address</label>
-            <input id="email" name="email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com" required>
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password" autocomplete="current-password" required>
-            <label for="pin">Bluelink PIN <span class="field-note">For remote controls</span></label>
-            <input id="pin" name="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="4 digits">
-            <div class="button-row login-actions">
-              <button id="loginBtn" class="button primary" type="submit">Connect</button>
-              <button id="disconnectBtn" class="button secondary" type="button" disabled>Disconnect</button>
-            </div>
-          </form>
-          <p class="privacy-note"><span class="small-lock" aria-hidden="true">●</span> Credentials stay in this page's memory and are cleared when you disconnect or reload. Saved logs remove passwords, PINs, tokens, and vehicle identifiers.</p>
-
-          <details class="setup-details" open>
-            <summary>Connection setup <span class="details-hint">Start here</span></summary>
+          <details id="connectionSetup" class="setup-details" open>
+            <summary>Connection setup <span class="details-hint">Required first</span></summary>
             <div class="details-body">
-              <p>GitHub Pages cannot normally call Hyundai directly because of browser restrictions. Install the small network helper, then reload this page.</p>
+              <p>Open this page in Firefox. Install both Tampermonkey and the Santa Fe network helper before entering credentials. The login form unlocks when the helper is detected.</p>
               <ol class="setup-steps">
                 <li>In Firefox for Android, install <a href="https://addons.mozilla.org/en-US/android/addon/tampermonkey/" target="_blank" rel="noopener noreferrer">Tampermonkey</a>.</li>
                 <li>Open the <a href="./santafe-network.user.js">Santa Fe network helper</a> and choose <strong>Install</strong>.</li>
@@ -62,12 +48,28 @@
               <select id="transportMode">
                 <option value="auto" selected>Automatic (recommended)</option>
                 <option value="helper">Network helper</option>
-                <option value="direct">Direct browser requests</option>
+                <option value="direct">Direct browser requests (diagnostic only)</option>
               </select>
               <p class="field-help">Direct requests are useful for diagnostics but may fail with a CORS or network error. That does not by itself mean your login details are wrong.</p>
               <button id="connectionTestBtn" class="button secondary full-width" type="button">Check connection method</button>
             </div>
           </details>
+
+          <form id="loginForm">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" disabled autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com" required>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" disabled autocomplete="current-password" required>
+            <label for="pin">Bluelink PIN <span class="field-note">For remote controls</span></label>
+            <input id="pin" name="pin" type="password" disabled inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="4 digits">
+            <div class="button-row login-actions">
+              <button id="loginBtn" class="button primary" type="submit" disabled>Install helper first</button>
+              <button id="disconnectBtn" class="button secondary" type="button" disabled>Disconnect</button>
+            </div>
+          </form>
+          <p class="privacy-note"><span class="small-lock" aria-hidden="true">●</span> Credentials stay in this page's memory and are cleared when you disconnect or reload. Saved logs remove passwords, PINs, tokens, and vehicle identifiers.</p>
+
+
         </section>
 
         <div class="test-column">

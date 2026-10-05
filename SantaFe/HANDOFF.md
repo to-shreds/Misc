@@ -2,7 +2,9 @@
 
 ## Current state
 
-Browser-first API validation is the controlling next step. API Lab 0.2.0 is a static GitHub Pages page at `SantaFe/index.html`, with CSS, client code, and a scoped browser userscript transport. `santafe/index.html` redirects there. The existing 0.1.0 loopback bridge/simulator remains intact.
+Browser-first API validation is the controlling next step. API Lab 0.2.1 is a static GitHub Pages page at `SantaFe/index.html`, with CSS, client code, and a scoped browser userscript transport. `santafe/index.html` redirects there. The existing 0.1.0 loopback bridge/simulator remains intact.
+
+The user's first browser attempt showed "Browser helper not detected" and a failed direct response read. The required setup is now above the login form. Automatic/helper modes lock credentials and Connect until a helper handshake succeeds, and an Enter/programmatic submission cannot send a login without it. Automatic mode no longer falls back to a known-blocked direct request. Direct mode remains an explicitly selected diagnostic option. No account failure or real API capability was inferred from the screenshot.
 
 The original Tasker project imported named tasks but zero actions on Tasker 6.7.6-beta. The generator now matches the native export's `sr`-first action attributes and lexicographic serialized child-slot ordering. It retains 40 tasks, 113 actions, 8 profiles and 10 scenes. This is a corrected import candidate, not a confirmed phone/runtime fix. The broken XML is archived in `tasker/archive/`.
 

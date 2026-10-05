@@ -49,12 +49,12 @@ async function pageFixture(fixtures, opts = {}) {
         return {abort:()=>{cancelled=true;clearTimeout(timer);opts.onabort();}};};\n`;
     await page.addInitScript({ content: shim + fs.readFileSync(path.join(ROOT, 'santafe-network.user.js'), 'utf8') });
   }
-  await page.goto(url); await page.waitForFunction(() => !!document.getElementById('loginBtn') && !document.getElementById('loginBtn').disabled);
+  await page.goto(url); await page.waitForFunction(() => document.getElementById('sessionStatus')?.textContent === 'Signed out');
   if (opts.helper) await page.waitForFunction(() => document.getElementById('transportStatus').textContent === 'Browser helper ready');
-  else await page.selectOption('#transportMode', 'direct');
+  else if ((opts.mode || 'direct') !== 'auto') await page.selectOption('#transportMode', opts.mode || 'direct');
   return { page, context, calls, errors, async requests() { return opts.helper ? page.evaluate(() => window.__testRequests) : calls; }, async close() { await context.close(); } };
 }
-async function idle(page) { await page.waitForFunction(() => !document.getElementById('loginBtn').disabled); }
+async function idle(page) { await page.waitForFunction(() => document.getElementById('stopBtn').disabled); }
 async function login(page) { await page.fill('#email', USER); await page.fill('#password', PASSWORD); await page.fill('#pin', PIN); await page.click('#loginBtn'); await idle(page); }
 async function controls(page, action = 'lock') { await page.locator('.command-panel').evaluate(el => { el.open = true; }); await page.selectOption('#commandSelect', action); await page.check('#confirmCommand'); await page.click('#commandBtn'); await idle(page); }
 async function exported(page) {
@@ -64,6 +64,23 @@ async function exported(page) {
 (async () => {
   fs.mkdirSync(OUT, { recursive: true }); await new Promise(resolve => server.listen(0, '127.0.0.1', resolve)); url = `http://127.0.0.1:${server.address().port}/SantaFe/index.html`;
   browser = await chromium.launch({ executablePath: EXE, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  await scenario('Default Automatic setup precedes login and blocks Enter/programmatic submits without network', async () => {
+    const h = await pageFixture([], { mode: 'auto' }); try {
+      assert.equal(await h.page.inputValue('#transportMode'), 'auto');
+      assert.equal(await h.page.locator('.setup-details').evaluate(el => el.open), true);
+      assert.equal(await h.page.locator('.setup-details').evaluate(el => Boolean(el.compareDocumentPosition(document.getElementById('loginForm')) & Node.DOCUMENT_POSITION_FOLLOWING)), true);
+      for (const id of ['email', 'password', 'pin', 'loginBtn']) assert.equal(await h.page.isEnabled('#' + id), false, `${id} enabled before helper installation`);
+      await h.page.keyboard.press('Enter');
+      await h.page.evaluate(({ user, password, pin }) => {
+        document.getElementById('email').value = user; document.getElementById('password').value = password; document.getElementById('pin').value = pin;
+        document.getElementById('loginForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        document.getElementById('loginForm').requestSubmit();
+      }, { user: USER, password: PASSWORD, pin: PIN });
+      await idle(h.page); assert.equal((await h.requests()).length, 0); assert.equal(await h.page.isEnabled('#loginBtn'), false); assert.deepEqual(h.errors, []);
+      await h.page.selectOption('#transportMode', 'direct');
+      for (const id of ['email', 'password', 'pin', 'loginBtn']) assert.equal(await h.page.isEnabled('#' + id), true, `${id} stayed disabled after explicit direct diagnostics`);
+    } finally { await h.close(); }
+  });
   await scenario('Direct desktop login, safe cache reads, sanitized download and disconnect', async () => {
     const h = await pageFixture(basics()); try {
       await login(h.page); assert.equal((await h.requests()).length, 3); assert.equal(await h.page.inputValue('#password'), ''); assert.equal(await h.page.inputValue('#pin'), ''); assert.equal(await h.page.isEnabled('#vehicleSelect'), true); assert.equal(await h.page.isEnabled('#commandBtn'), true);

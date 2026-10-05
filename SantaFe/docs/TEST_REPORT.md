@@ -1,4 +1,10 @@
-# Current benchmark: API Lab 0.2.0 and Tasker serialization repair
+# Current benchmark: API Lab 0.2.1 helper setup gate
+
+The user's initial browser screenshot showed no helper detected and a failed direct response read. That is a transport/setup failure, not proof of bad credentials. Connection setup now precedes credentials. Automatic/helper modes disable the account form until a valid helper handshake, refuse Enter/programmatic submissions without the helper, and never fall back to direct requests. Explicit Direct mode remains available for diagnostics.
+
+21 adversarial diagnostic tests and ten actual Chromium scenarios pass, including the new missing-helper gate. No unexpected network requests occurred, and all Hyundai responses remain fixtures. Updated results and desktop/mobile screenshots are under `verification/diagnostic-*`. Python and Tasker implementation are unchanged from the 92-test benchmark below; real Firefox/Hyundai login and actual Tasker phone import remain unverified.
+
+## Earlier benchmark: API Lab 0.2.0 and Tasker serialization repair
 
 Verified October 4, 2026:
 

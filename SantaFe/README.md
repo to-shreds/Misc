@@ -8,6 +8,8 @@ The page takes your MyHyundai email, password, and four-digit Bluelink service P
 
 On Firefox for Android, install [Tampermonkey](https://addons.mozilla.org/en-US/android/addon/tampermonkey/), then open the page's **Santa Fe network helper** link and choose Install. Reload and check for **Browser helper ready**. Connect, select your vehicle if necessary, and use **Run read tests**. Download the log when finished.
 
+Complete Connection setup above the login form first. In Automatic mode, credentials and Connect stay disabled until the helper is detected. Missing-helper submissions send no login request. Direct browser requests are an explicit diagnostic option, not an automatic fallback.
+
 The helper sends directly from your browser to Hyundai, with a fixed hostname and endpoint allowlist. No hosted proxy, account database, analytics, or Termux setup is required. The ordinary-browser option remains available for diagnostics. An actual credential-free preflight returned HTTP 500 without CORS permission; `no-cors` would not produce readable API results.
 
 ## Vehicle commands

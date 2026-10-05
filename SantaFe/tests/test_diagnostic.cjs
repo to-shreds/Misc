@@ -36,14 +36,14 @@ function makeWindow() {
   };
   return window;
 }
-function harness(responses = []) {
+function harness(responses = [], { mode = 'direct' } = {}) {
   const elements = new Map();
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   for (const m of html.matchAll(/<([a-z]+)\b([^>]*\bid="([^"]+)"[^>]*)>/gi)) {
     const e = new Element(m[1]); e.disabled = /\bdisabled(?:\s|>)/.test(m[2] + '>');
     e.value = m[2].match(/\bvalue="([^"]*)"/)?.[1] || ''; elements.set(m[3], e);
   }
-  elements.get('transportMode').value = 'direct'; elements.get('commandSelect').value = 'lock';
+  elements.get('transportMode').value = mode; elements.get('commandSelect').value = 'lock';
   const window = makeWindow(), requests = [], storage = new Map(), timers = new Set();
   const context = { window, document: { getElementById: id => elements.get(id), createElement: tag => new Element(tag) },
     location: { origin: ORIGIN }, crypto: { randomUUID }, AbortController, URL, Blob, performance, Date,
@@ -69,7 +69,7 @@ function harness(responses = []) {
     close() { for (const timer of timers) clearTimeout(timer); },
   };
   async function idle() {
-    for (let i = 0; i < 100; i++) { await new Promise(r => setImmediate(r)); if (!get('loginBtn').disabled) return; }
+    for (let i = 0; i < 100; i++) { await new Promise(r => setImmediate(r)); if (get('stopBtn').disabled) return; }
     throw new Error('UI remained busy beyond fixture completion');
   }
 }
@@ -93,6 +93,36 @@ function check(name, fn) {
 after(() => {
   const out = path.join(ROOT, 'docs/verification/diagnostic-tests.json'); fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify({ generated_at: new Date().toISOString(), method: 'Node VM UI fixture execution of shipped scripts; all HTTP responses mocked; no Hyundai account or vehicle used', results: findings }, null, 2) + '\n');
+});
+
+check('Helper-required setup blocks credentials and every programmatic login without direct fallback', async t => {
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  assert.ok(html.indexOf('class="setup-details"') < html.indexOf('<form id="loginForm"'), 'Connection setup must precede the account form');
+  for (const mode of ['auto', 'helper']) {
+    const h = harness([], { mode }); t.after(() => h.close());
+    for (const id of ['email', 'password', 'pin', 'loginBtn']) assert.equal(h.get(id).disabled, true, `${mode}: ${id} was usable without the required helper`);
+    await login(h); await h.action('loginForm', 'submit'); await h.action('connectionTestBtn');
+    assert.equal(h.requests.length, 0, `${mode} must not send a credential request or fall back to direct fetch`);
+    assert.equal(h.get('sessionStatus').textContent, 'Signed out');
+    assert.match(h.get('notice').textContent, /helper|setup/i);
+  }
+});
+
+check('Only a valid same-window helper hello enables credentials and Automatic uses the helper', async t => {
+  const h = harness(loginFixtures(), { mode: 'auto' }); t.after(() => h.close());
+  const hello = h.window.messages.find(m => m.data.type === 'SF_HELPER_REQUEST' && m.data.id === 'hello').data;
+  const signal = (version, extra = {}) => h.window.emit('message', { source: h.window, origin: ORIGIN, data: { type: 'SF_HELPER_RESPONSE', channel: hello.channel, id: 'hello', version }, ...extra });
+  signal('1', { origin: 'https://evil.example' }); assert.equal(h.get('loginBtn').disabled, true);
+  signal('0'); assert.equal(h.get('loginBtn').disabled, true);
+  signal('1'); for (const id of ['email', 'password', 'pin', 'loginBtn']) assert.equal(h.get(id).disabled, false, `${id} stayed disabled after a valid helper hello`);
+  h.window.onPost = data => {
+    if (!data.request) return;
+    h.requests.push({ ...data.request }); const next = h.responses.shift(); assert.ok(next, 'Helper fixture queue exhausted');
+    queueMicrotask(() => h.window.emit('message', { source: h.window, origin: ORIGIN, data: { type: 'SF_HELPER_RESPONSE', channel: data.channel, id: data.id, response: { status: next.status || 200, text: next.text === undefined ? JSON.stringify(next.data) : next.text, headers: next.headers || {} } } }));
+  };
+  h.context.fetch = () => { throw new Error('Automatic unexpectedly fell back to direct fetch'); };
+  await login(h); assert.equal(h.requests.length, 3); assert.equal(h.get('sessionStatus').textContent, 'Signed in for this tab');
+  assert.ok(h.report().filter(r => r.transport).every(r => r.transport === 'browser helper'));
 });
 
 check('Login, enrollment and cached status run in order and clear credentials', async t => {

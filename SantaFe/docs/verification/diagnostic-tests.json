@@ -1,86 +1,96 @@
 {
-  "generated_at": "2026-10-04T23:35:15.810Z",
+  "generated_at": "2026-10-05T00:18:38.413Z",
   "method": "Node VM UI fixture execution of shipped scripts; all HTTP responses mocked; no Hyundai account or vehicle used",
   "results": [
     {
-      "test": "Login, enrollment and cached status run in order and clear credentials",
+      "test": "Helper-required setup blocks credentials and every programmatic login without direct fallback",
+      "passed": true,
+      "elapsed_ms": 12
+    },
+    {
+      "test": "Only a valid same-window helper hello enables credentials and Automatic uses the helper",
       "passed": true,
       "elapsed_ms": 11
     },
     {
-      "test": "Saved and copied logs redact credentials, identifiers, coordinates and echoed secrets",
-      "passed": true,
-      "elapsed_ms": 5
-    },
-    {
-      "test": "Non-JSON authentication errors retain status without raw response text",
-      "passed": true,
-      "elapsed_ms": 2
-    },
-    {
-      "test": "Connection check after login sends no account identity, access token or service PIN",
-      "passed": true,
-      "elapsed_ms": 3
-    },
-    {
-      "test": "Empty HTTP 200 login does not invent an authenticated session or vehicle data",
-      "passed": true,
-      "elapsed_ms": 2
-    },
-    {
-      "test": "Malformed enrollment and status response shapes cannot enable vehicle commands",
-      "passed": true,
-      "elapsed_ms": 3
-    },
-    {
-      "test": "HTTP 429 stops the read sequence and never retries",
-      "passed": true,
-      "elapsed_ms": 1
-    },
-    {
-      "test": "CORS failure offers actionable helper instructions and sends no retry",
-      "passed": true,
-      "elapsed_ms": 1
-    },
-    {
-      "test": "Duplicate login submissions while busy produce only one request",
-      "passed": true,
-      "elapsed_ms": 2
-    },
-    {
-      "test": "Stop waiting aborts the request and never retries or preserves password",
-      "passed": true,
-      "elapsed_ms": 2
-    },
-    {
-      "test": "Accepted command without transaction ID stays unresolved and cannot be retried",
-      "passed": true,
-      "elapsed_ms": 4
-    },
-    {
-      "test": "Command is observed first and confirmed only after SUCCESS transaction result",
-      "passed": true,
-      "elapsed_ms": 3
-    },
-    {
-      "test": "Lights and horn/lights poll with their specific service type",
-      "passed": true,
-      "elapsed_ms": 8
-    },
-    {
-      "test": "Rereading enrollment after a command preserves polling for the same vehicle identifiers",
+      "test": "Login, enrollment and cached status run in order and clear credentials",
       "passed": true,
       "elapsed_ms": 6
     },
     {
+      "test": "Saved and copied logs redact credentials, identifiers, coordinates and echoed secrets",
+      "passed": true,
+      "elapsed_ms": 7
+    },
+    {
+      "test": "Non-JSON authentication errors retain status without raw response text",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "Connection check after login sends no account identity, access token or service PIN",
+      "passed": true,
+      "elapsed_ms": 4
+    },
+    {
+      "test": "Empty HTTP 200 login does not invent an authenticated session or vehicle data",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "Malformed enrollment and status response shapes cannot enable vehicle commands",
+      "passed": true,
+      "elapsed_ms": 9
+    },
+    {
+      "test": "HTTP 429 stops the read sequence and never retries",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "CORS failure offers actionable helper instructions and sends no retry",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "Duplicate login submissions while busy produce only one request",
+      "passed": true,
+      "elapsed_ms": 10
+    },
+    {
+      "test": "Stop waiting aborts the request and never retries or preserves password",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "Accepted command without transaction ID stays unresolved and cannot be retried",
+      "passed": true,
+      "elapsed_ms": 6
+    },
+    {
+      "test": "Command is observed first and confirmed only after SUCCESS transaction result",
+      "passed": true,
+      "elapsed_ms": 10
+    },
+    {
+      "test": "Lights and horn/lights poll with their specific service type",
+      "passed": true,
+      "elapsed_ms": 14
+    },
+    {
+      "test": "Rereading enrollment after a command preserves polling for the same vehicle identifiers",
+      "passed": true,
+      "elapsed_ms": 5
+    },
+    {
       "test": "Climate validation blocks unsafe or unknown engine settings before transmission",
       "passed": true,
-      "elapsed_ms": 13
+      "elapsed_ms": 10
     },
     {
       "test": "Browser helper rejects non-Hyundai, unknown endpoints, invalid methods and injectable headers",
       "passed": true,
-      "elapsed_ms": 2
+      "elapsed_ms": 3
     },
     {
       "test": "Browser helper ignores messages from other origins, windows or session channels",
@@ -90,12 +100,12 @@
     {
       "test": "Browser helper honors cancellation and rejects third concurrent request",
       "passed": true,
-      "elapsed_ms": 1
+      "elapsed_ms": 2
     },
     {
       "test": "Browser helper suppresses response bodies after an unexpected cross-origin redirect",
       "passed": true,
-      "elapsed_ms": 1
+      "elapsed_ms": 2
     }
   ]
 }

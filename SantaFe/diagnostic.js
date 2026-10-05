@@ -5,7 +5,7 @@
   const API = BASE + '/ac/v2/';
   const LOGIN = BASE + '/v2/ac/oauth/token';
   const LOG_KEY = 'santafe-diagnostics-v1';
-  const VERSION = '0.2.0';
+  const VERSION = '0.2.1';
   const SOURCE = '82801884bdf619c5f2a35ff6bbae1693d2e1a3e8';
   const $ = id => document.getElementById(id);
   const sensitive = /password|secret|token|authorization|cookie|pin|vin|regid|registration.?id|username|user.?name|user.?id|login.?id|email|e.?mail|address|phone|mobile|contact|customer|subscriber|owner|first.?name|last.?name|full.?name|nick.?name|birth|latitude|longitude|coord|location|gps|tms.?tid|transaction.?id|^tid$|^xid$|^name$|image|photo|postal|zip.?code|^city$|^state$|street|license|licence|account.?id|person/i;
@@ -67,6 +67,9 @@
   function updateSession() {
     $('sessionStatus').textContent=session?'Signed in for this tab':'Signed out';
     $('transportStatus').textContent=helperAvailable?'Browser helper ready':'Browser helper not detected';
+    const needsHelper=!helperAvailable && $('transportMode').value!=='direct';
+    for(const id of ['email','password','pin','loginBtn'])$(id).disabled=busy || needsHelper;
+    $('loginBtn').textContent=needsHelper?'Install helper first':'Connect';
     if(!busy) {
       $('vehicleSelect').disabled=!session || vehicles.length===0;
       for(const id of ['runReadTestsBtn','selectVehicleBtn']) $(id).disabled=!session;
@@ -76,10 +79,16 @@
       $('disconnectBtn').disabled=!session;
     }
   }
+  function setupNotice() {
+    if(session || busy)return;
+    if(helperAvailable)notice('Browser helper ready. Enter your Bluelink details and tap Connect.','success');
+    else if($('transportMode').value==='direct')notice('Direct mode is for diagnostics. Hyundai blocked this browser request in testing; use Firefox and the helper for login.','warning');
+    else notice('Set up the browser helper before entering your login details. Open this page in Firefox and follow Connection setup below.','warning');
+  }
   window.addEventListener('message',event=>{
     const msg=event.data;
     if(event.source!==window || event.origin!==location.origin || !msg || msg.type!=='SF_HELPER_RESPONSE' || msg.channel!==channel) return;
-    if(msg.id==='hello') {helperAvailable=msg.version==='1';updateSession();return;}
+    if(msg.id==='hello') {helperAvailable=msg.version==='1';updateSession();setupNotice();return;}
     const item=pending.get(msg.id); if(!item)return;
     pending.delete(msg.id); clearTimeout(item.timer); item.cleanup();
     if(msg.error)item.reject(new Error(msg.error));else item.resolve(msg.response);
@@ -89,6 +98,7 @@
 
   async function send(spec,signal) {
     const mode=$('transportMode').value;
+    if(mode!=='direct' && !helperAvailable)throw new Error('Browser helper not detected. In Firefox, install Tampermonkey and the Santa Fe network helper, then reload this page. No request was sent.');
     if(mode==='helper' || (mode==='auto' && helperAvailable)) {
       if(!helperAvailable)throw new Error('Install the browser helper, reload this page, and check that Browser helper ready appears.');
       currentTransport='browser helper';
@@ -183,6 +193,7 @@
     result('Capability inspection',`${paths.length} reported fields logged. Trim equipment and returned fields do not prove remote command support.`);
   }
   async function login() {
+    if($('transportMode').value!=='direct' && !helperAvailable){$('password').value='';$('pin').value='';throw new Error('Install the browser helper in Firefox before signing in. No login request was sent.');}
     if(transaction&&!transaction.done)throw new Error('A command is awaiting confirmation of its outcome. Check its result before starting another session.');
     session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;statusRead=false;evidence=[];
     const username=$('email').value.trim(),password=$('password').value,pin=$('pin').value.trim();
@@ -257,13 +268,13 @@
   $('capabilitiesBtn').addEventListener('click',()=>task(async()=>capabilities()));
   $('commandBtn').addEventListener('click',()=>task(command));$('pollBtn').addEventListener('click',()=>task(poll));
   $('disconnectBtn').addEventListener('click',disconnect);
-  $('connectionTestBtn').addEventListener('click',()=>task(async()=>{const r=await request('Connection check (no login)','GET',LOGIN,null,{},false,false,true);result('Connection response',`Hyundai returned HTTP ${r.status}. This checks whether a response is readable, not whether your credentials work.`);notice('Connection check logged.');}));
+  $('connectionTestBtn').addEventListener('click',()=>{ping();if(!helperAvailable && $('transportMode').value!=='direct'){setupNotice();return;}task(async()=>{const r=await request('Connection check (no login)','GET',LOGIN,null,{},false,false,true);result('Connection response',`Hyundai returned HTTP ${r.status}. This checks whether a response is readable, not whether your credentials work.`);notice('Connection check logged.');});});
   $('stopBtn').addEventListener('click',()=>{stopped=true;controller?.abort();notice('Stopped locally. A submitted remote command cannot be recalled; no retry will run.','warning');});
   $('downloadLogBtn').addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([report()],{type:'application/json'}));const a=node('a');a.href=url;a.download='SantaFe-test-log-'+new Date().toISOString().replaceAll(':','-')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
   $('copyLogBtn').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(report());notice('Sanitized log copied.');}catch{notice('Clipboard unavailable. Use Download log instead.','warning');}});
   $('clearLogBtn').addEventListener('click',()=>{if(!window.confirm('Delete the saved sanitized test log?'))return;logs=[];evidence=[];try{localStorage.removeItem(LOG_KEY);}catch{}renderLog();notice('Saved test log cleared.');});
-  $('transportMode').addEventListener('change',updateSession);
+  $('transportMode').addEventListener('change',()=>{updateSession();setupNotice();});
   try{const saved=JSON.parse(localStorage.getItem(LOG_KEY)||'[]');if(Array.isArray(saved))logs=saved.slice(-150).map(v=>redact(v));}catch{}
   window.addEventListener('pagehide',()=>{session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;privateValues.clear();for(const id of ['email','password','pin'])$(id).value='';controller?.abort();});
-  renderLog();setBusy(false);
+  renderLog();setBusy(false);setupNotice();
 })();
