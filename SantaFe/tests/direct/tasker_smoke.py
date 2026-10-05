@@ -115,7 +115,7 @@ def startup():
             if unchecked:
                 tap(unchecked[0])
                 continue
-            if click(root, ["Get Started", "Continue", "Next"]):
+            if click(root, ["Proceed", "Get Started", "Continue", "Next"]):
                 continue
             # The fresh-install permission checklist extends below the screen.
             # Move only within the observed scrollable panel to expose the rest.
@@ -126,7 +126,7 @@ def startup():
                 adb("shell", "input", "swipe", str(x), str(top + (bottom - top) * 3 // 4), str(x), str(top + (bottom - top) // 4), "300")
                 time.sleep(0.5)
                 continue
-        if not click(root, ["Tasker", "Accept", "I Agree", "I accept", "I understand", "Agree", "Start Trial", "Continue", "Get Started", "Next", "OK", "Got it", "Allow", "Skip", "Cancel", "Later", "No"]):
+        if not click(root, ["Tasker", "Accept", "I Agree", "I accept", "I understand", "Agree", "Start Trial", "Proceed", "Continue", "Get Started", "Next", "OK", "Got it", "Allow", "Skip", "Cancel", "Later", "No"]):
             raise RuntimeError("Unhandled Tasker startup UI: " + str(visible(root)))
     raise RuntimeError("Tasker startup did not finish")
 

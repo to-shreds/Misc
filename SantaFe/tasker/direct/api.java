@@ -173,7 +173,7 @@ void sfEnsureSession(boolean explicit) {
     sfCheckAccount();
     if (!explicit && Boolean.TRUE.equals(sfSession.get("authBlocked")))
         sfFail("A previous account or authentication request failed. Check MyHyundai and run SFD Connect. No command was sent.");
-    if (!sfSession.containsKey("token") || sfNow() >= ((Number)sfSession.get("expires")).longValue()) sfLogin();
+    if (Boolean.TRUE.equals(sfSession.get("authBlocked")) || !sfSession.containsKey("token") || sfNow() >= ((Number)sfSession.get("expires")).longValue()) sfLogin();
     else sfSelectVehicle();
 }
 String sfStatus(boolean refresh) {
