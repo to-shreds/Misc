@@ -7,10 +7,10 @@
   const LOG_KEY = 'santafe-diagnostics-v1';
   const COMMAND_KEY = 'santafe-pending-command-v1';
   const commandActions = new Set(['lock','unlock','climate_start','climate_stop','lights','horn_lights']);
-  const VERSION = '0.3.1';
+  const VERSION = '0.3.2';
   const SOURCE = '82801884bdf619c5f2a35ff6bbae1693d2e1a3e8';
   const $ = id => document.getElementById(id);
-  const sensitive = /password|secret|token|authorization|cookie|pin|vin|regid|registration.?id|username|user.?name|user.?id|login.?id|email|e.?mail|address|phone|mobile|contact|customer|subscriber|owner|first.?name|last.?name|full.?name|nick.?name|birth|latitude|longitude|coord|location|gps|tms.?tid|transaction.?id|^tid$|^xid$|^name$|image|photo|postal|zip.?code|^city$|^state$|street|license|licence|account.?id|person/i;
+  const sensitive = /password|secret|token|authorization|cookie|pin|vin|regid|registration.?id|enrollment.?id|nad.?id|package.?id|asset.?number|account.?number|billing.?account|idm.?id|hata.?tid|^guid$|^mit$|^imat$|username|user.?name|user.?id|login.?id|email|e.?mail|address|phone|mobile|contact|customer|subscriber|owner|first.?name|last.?name|full.?name|nick.?name|birth|latitude|longitude|coord|location|gps|tms.?tid|transaction.?id|^tid$|^xid$|^name$|image|photo|postal|zip.?code|^city$|^state$|street|license|licence|account.?id|person/i;
   const privateValues = new Set();
   let session = null, vehicles = [], selected = null, enrollment = null, lastStatus = null, enrollmentFailed = false;
   let busy = false, stopped = false, controller = null, helperAvailable = false, pageLeaving = false;
@@ -80,7 +80,7 @@
     if(!busy) {
       $('vehicleSelect').disabled=!session || vehicles.length===0;
       for(const id of ['runReadTestsBtn','selectVehicleBtn']) $(id).disabled=!session;
-      $('referenceEnrollmentBtn').disabled=!session || Date.now()>=session.expires || !enrollmentFailed || Boolean(session.enrollmentLiteralAt) || Boolean(transaction && !transaction.done);
+      $('referenceEnrollmentBtn').disabled=!session || Date.now()>=session.expires || !enrollmentFailed || Boolean(transaction && !transaction.done);
       for(const id of ['cachedBtn','refreshBtn','capabilitiesBtn']) $(id).disabled=!selected;
       $('commandBtn').disabled=!selected || !statusRead || Boolean(restoredCommand) || Boolean(transaction && !transaction.done);
       $('pollBtn').disabled=!transaction?.id || transaction.done;
@@ -206,9 +206,9 @@
     try {await fn();}catch(e){notice(e.message,'error');result(e.requestLabel?e.requestLabel+' failed':'Test stopped',e.message,'error');}
     finally{controller=null;setBusy(false);if(pageLeaving){privateValues.clear();pageLeaving=false;}}
   }
-  function enrollmentUrl(literalAt=false) {
+  function enrollmentUrl(literalAt=true) {
     const email=encodeURIComponent(session.username);
-    // A manual comparison changes only @. Other delimiters stay encoded.
+    // Only the @ representation varies. Other delimiters stay encoded.
     return API+'enrollment/details/'+(literalAt?email.replace(/%40/g,'@'):email);
   }
   function applyEnrollment(data) {
@@ -231,17 +231,18 @@
       return applyEnrollment(r.data);
     } catch(e) {
       enrollmentFailed=true;statusRead=false;
-      if(session && Date.now()<session.expires && !session.enrollmentLiteralAt && !stopped) e.message+=' The login step succeeded. Tap Test vehicle lookup to compare the email format, or export the log.';
+      if(session && Date.now()<session.expires && !stopped) e.message+=' The login step succeeded. Tap Test alternate lookup to compare the email format, or export the log.';
       throw e;
     }
   }
-  async function testReferenceEnrollment() {
+  async function testAlternateEnrollment() {
     needSession();
-    if(!enrollmentFailed || session.enrollmentLiteralAt || (transaction&&!transaction.done))throw new Error('This lookup test is available after a vehicle-list failure, while no command is awaiting an outcome.');
+    if(!enrollmentFailed || (transaction&&!transaction.done))throw new Error('This lookup test is available after a vehicle-list failure, while no command is awaiting an outcome.');
     statusRead=false;
-    const r=await request('Vehicle enrollment (literal @ test)','GET',enrollmentUrl(true));
+    const alternateLiteralAt=!session.enrollmentLiteralAt;
+    const r=await request('Vehicle enrollment (alternate URL test)','GET',enrollmentUrl(alternateLiteralAt));
     applyEnrollment(r.data);
-    session.enrollmentLiteralAt=true;enrollmentFailed=false;
+    session.enrollmentLiteralAt=alternateLiteralAt;enrollmentFailed=false;
     if(selected){await cached();capabilities();}
     notice('The alternate vehicle lookup returned a vehicle list. This session will use that format. '+(selected?'Read tests finished; check the vehicle timestamp and export the log.':'Choose your vehicle and export the log.'),'success');
   }
@@ -253,8 +254,11 @@
     $('vehicleSummary').replaceChildren(node('p','Returned vehicle data may be cached. Its vehicle timestamp, rather than this test time, controls freshness.'),table);
   }
   async function cached(refresh=false) {
+    const previousTimestamp=lastStatus?.dateTime;
     const r=await request(refresh?'Requested fresh vehicle status':'Cached vehicle status','GET',API+'rcs/rvs/vehicleStatus',null,{'refresh':refresh?'true':'false'},true);
-    showStatus(r.data);result(refresh?'Refresh request':'Cached vehicle status','Status data returned. Check the vehicle timestamp; a refresh request does not guarantee a new observation.');
+    showStatus(r.data);
+    const unchanged=refresh && previousTimestamp!==undefined && previousTimestamp===r.data.vehicleStatus.dateTime;
+    result(refresh?'Refresh request':'Cached vehicle status',unchanged?'Hyundai returned the same vehicle timestamp. A new vehicle observation is not confirmed.':'Status data returned. Check the vehicle timestamp; a refresh request does not guarantee a new observation.',unchanged?'warning':'success');
   }
   function capabilities() {
     if(!selected)throw new Error('Select a vehicle first.');
@@ -272,7 +276,7 @@
     remember(username);remember(password);remember(pin);
     let r;try{r=await request('Login','POST',LOGIN,{username,password}, {}, false, false);}finally{$('password').value='';}
     if(!r.data?.access_token)throw new Error('No access token was returned. This tester does not implement extra authentication challenges. Check MyHyundai and send the sanitized log.');
-    session={username,pin,token:r.data.access_token,expires:Date.now()+Math.max(0,Number(r.data.expires_in)||1800)*1000};
+    session={username,pin,token:r.data.access_token,enrollmentLiteralAt:true,expires:Date.now()+Math.max(0,Number(r.data.expires_in)||1800)*1000};
     $('pin').value='';notice('Signed in. Reading enrolled vehicles; no vehicle command will run.','success');result('Login',nativeAvailable?'Access token received and kept only in this app session.':'Access token received and kept only in this tab.');
     await getEnrollment();if(selected){await cached();capabilities();notice('Connected. Initial read tests finished. Review the results or download the sanitized log.','success');}
     else notice('Connected. Select your vehicle to continue the read tests.','success');
@@ -340,7 +344,7 @@
   function clearCommandMarker() {try{localStorage.removeItem(COMMAND_KEY);return localStorage.getItem(COMMAND_KEY)===null;}catch{return false;}}
   $('loginForm').addEventListener('submit',e=>{e.preventDefault();task(login);});
   $('runReadTestsBtn').addEventListener('click',()=>task(readTests));
-  $('referenceEnrollmentBtn').addEventListener('click',()=>task(testReferenceEnrollment));
+  $('referenceEnrollmentBtn').addEventListener('click',()=>task(testAlternateEnrollment));
   $('selectVehicleBtn').addEventListener('click',()=>task(async()=>{if(transaction&&!transaction.done)throw new Error('Check the current command outcome before switching vehicles.');const v=vehicles[Number($('vehicleSelect').value)];if($('vehicleSelect').value===''||!v)throw new Error('Choose a vehicle.');selected=v;statusRead=false;lastStatus=null;await cached();capabilities();}));
   $('cachedBtn').addEventListener('click',()=>task(()=>cached()));
   $('refreshBtn').addEventListener('click',()=>{if(window.confirm('Request a fresh status from Hyundai? This can wake the vehicle and use a remote request.'))task(()=>cached(true));});
@@ -359,7 +363,7 @@
   $('copyLogBtn').addEventListener('click',async()=>{if(nativePage){notice('Use Export log to save the sanitized log.','warning');return;}try{await navigator.clipboard.writeText(report());notice('Sanitized log copied.');}catch{notice('Clipboard unavailable. Use Download log instead.','warning');}});
   $('clearLogBtn').addEventListener('click',()=>{if(!window.confirm('Delete the saved sanitized test log?'))return;logs=[];evidence=[];try{localStorage.removeItem(LOG_KEY);}catch{}renderLog();notice('Saved test log cleared.');});
   $('transportMode').addEventListener('change',()=>{updateSession();setupNotice();});
-  try{const saved=JSON.parse(localStorage.getItem(LOG_KEY)||'[]');if(Array.isArray(saved))logs=saved.slice(-150).map(v=>redact(v));}catch{}
+  try{const saved=JSON.parse(localStorage.getItem(LOG_KEY)||'[]');if(Array.isArray(saved)){collect(saved);logs=saved.slice(-150).map(v=>redact(v));localStorage.setItem(LOG_KEY,JSON.stringify(logs));}}catch{}
   try{const raw=localStorage.getItem(COMMAND_KEY);if(raw!==null){let marker;try{marker=JSON.parse(raw);}catch{}restoredCommand={action:commandActions.has(marker?.action)?marker.action:'vehicle',at:typeof marker?.at==='string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(marker.at)?marker.at:null};}}catch{ /* Commands independently require a writable persistent guard. */ }
   window.addEventListener('pagehide',()=>{pageLeaving=true;session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;for(const id of ['email','password','pin'])$(id).value='';controller?.abort();if(!busy){privateValues.clear();pageLeaving=false;}});
   if(nativePage){$('connectionSetup').hidden=true;$('appDownload').hidden=true;$('copyLogBtn').hidden=true;$('introCopy').textContent='Connect directly to Bluelink, inspect your vehicle, and keep a sanitized test log. Start with read tests, then try individual controls when you are ready.';$('privacyNote').textContent='Credentials are kept only for this app session and sent directly to Hyundai. Disconnect or leave the app to clear the session. Saved logs remove passwords, PINs, tokens, and vehicle identifiers.';$('logHelp').textContent='Saved locally in this app. Export the sanitized log to share results for the Tasker build. Leaving the app, including opening the file picker, clears your login. Review exported content before sharing.';$('downloadLogBtn').textContent='Export log';}

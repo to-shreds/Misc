@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-10-05T03:14:00.695004Z",
-  "version": "0.3.1",
+  "generated_at": "2026-10-05T03:38:27.914496Z",
+  "version": "0.3.2",
   "application_id": "com.jon.santafelab",
-  "version_code": 4,
+  "version_code": 5,
   "min_sdk": 26,
   "target_sdk": 35,
   "apk": {
-    "path": "SantaFe/android/dist/SantaFe-API-Lab-0.3.1.apk",
+    "path": "SantaFe/android/dist/SantaFe-API-Lab-0.3.2.apk",
     "size_bytes": 54104,
-    "sha256": "83ba8c3d40d41ad2d920d7aacf31312ceceee830e6064004cb71f4c000e83cba",
+    "sha256": "a2fa3efdf2977fc915f16f90d284acf9871935d20c98b1830fc17e0ae43995b4",
     "signature_v2_verified": true,
     "signature_v3_verified": true,
     "zip_alignment_verified": true,
@@ -20,11 +20,11 @@
   },
   "bundled_assets": {
     "index.html": {
-      "sha256": "d84145677156c500184d2fd7fad38221238f9a10ec0318d9be0bf93dfa9b6e77",
+      "sha256": "f8c1eb66936f5cefecd8e08f4faef7568ae84cc29fe5c37c8a6240ee1d8dca60",
       "packaged_bytes_match": true
     },
     "diagnostic.js": {
-      "sha256": "52f8cd01cecb2cffa2b91932e3890d1c7f9073690eaec0ff723a1b060df4c516",
+      "sha256": "4cc4517a5172e14651e22f030edcd1449c8b1506c0a460f9eccda1170af97e1b",
       "packaged_bytes_match": true
     },
     "diagnostic.css": {
@@ -35,18 +35,22 @@
   "checks": {
     "request_policy": {
       "passed": 137,
-      "scope": "Standalone JVM synthetic inputs; no network"
+      "scope": "Standalone JVM synthetic inputs; no network",
+      "rerun_this_change": false,
+      "preserved_from_version": "0.3.1"
     },
     "native_transport": {
       "passed": 61,
-      "scope": "Fixture HttpsURLConnection factory and genuine org.json JVM runtime; no network"
+      "scope": "Fixture HttpsURLConnection factory and genuine org.json JVM runtime; no network",
+      "rerun_this_change": false,
+      "preserved_from_version": "0.3.1"
     },
     "diagnostic_client": {
-      "passed": 47,
+      "passed": 52,
       "scope": "Node VM UI fixture execution of shipped scripts; all HTTP responses mocked; no Hyundai account or vehicle used"
     },
     "chromium_ui": {
-      "passed": 19,
+      "passed": 20,
       "scope": "HTTP UI execution; Hyundai routes, GM transport and Android bridge use fixtures. Native UI uses HTTPS bundled origin with connect-src none. No actual Android WebView, real account login, API availability validation, or physical vehicle command",
       "unexpected_network_requests": 0,
       "browser": "Existing Chromium headless shell. Standard Chrome failed at process-singleton socket creation in this environment; the full suite passed with the headless shell."
@@ -57,14 +61,16 @@
     },
     "runtime_instrumentation_compilation": {
       "passed": true,
-      "scope": "Separate test APK signed with preserved private identity; absent from release APK"
+      "scope": "Separate test APK signed with preserved private identity; absent from release APK",
+      "rerun_this_change": false,
+      "preserved_from_version": "0.3.1"
     }
   },
   "android_runtime": {
     "verified": false,
     "reason": "Android 30 software emulator did not complete boot within the final 180-second bound; host lacks KVM. Earlier attempts encountered stale AVD locks. No Android launch, native handshake, lifecycle or document-picker checks executed.",
     "instrumentation_source": "SantaFe/android/tests/device/",
-    "user_supplied_log": "0.3.0 log demonstrates native Android response callbacks and successful exported JSON;0.3.1 device execution is not yet verified."
+    "user_supplied_log": "0.3.1 export confirms native callbacks, login, enrollment, cached status, refresh response and JSON export. New 0.3.2 execution and independent lifecycle/document-picker instrumentation remain pending."
   },
   "real_hyundai_login_verified": false,
   "real_vehicle_calls_verified": false,
@@ -76,15 +82,17 @@
     "scope": "Python bridge and Tasker generator/XML unchanged"
   },
   "review_fixes": [
-    "Display the failed request label, API subcode and sanitized submessage",
-    "Manual same-session enrollment comparison changes only %40 to @; all other encoding and headers remain unchanged",
-    "Native policy accepts only the two canonical email-path forms and preserves all other restrictions",
-    "Choose the alternate format only after an expected vehicle-list array; never retry automatically",
-    "Invalidate stale status after enrollment failure and disable expired lookup availability",
-    "Export preserves nonprivate enrollment_path_format metadata while structurally redacting both URL forms"
+    "Use confirmed literal-@ enrollment as default; preserve other encoding",
+    "Retain only manually invoked same-session alternate comparison with verified-schema adoption",
+    "Warn when refresh returns the same vehicle timestamp",
+    "Redact newly observed device/account identifiers and opaque echoes",
+    "Re-sanitize and rewrite previously saved logs at startup"
   ],
-  "release_scope": "Signed diagnostic update for account-holder testing. Actual0.3.1phone execution and alternate enrollment lookup success remain pending; no real vehicle feature or command is confirmed.",
+  "release_scope": "Signed diagnostic 0.3.2 update based on confirmed account reads. New version phone execution, fresh physical data, remote controls and Tasker import/runtime remain pending.",
   "real_hyundai_login_verified_from_supplied_log": true,
-  "account_evidence_scope": "Three HTTP200 token responses inspected in Jon's supplied sanitized0.3.0log; no account request submitted independently by the agent. Three enrollment reads failed HTTP502C500. No cached status or command test ran.",
-  "account_log_review": "SantaFe/docs/verification/account-log-review.json"
+  "account_evidence_scope": "Latest supplied 0.3.1 session returned HTTP 200 for login, literal-@ enrollment, cached status and refresh:true. Encoded-@ enrollment failed C500. Status bodies and vehicle timestamps were identical. No independent account request or remote control test was submitted.",
+  "account_log_review": "SantaFe/docs/verification/account-log-review.json",
+  "real_vehicle_calls_verified_from_supplied_log": true,
+  "fresh_physical_status_confirmed": false,
+  "confirmed_api_recipes": "SantaFe/docs/verification/confirmed-api-recipes.json"
 }

@@ -1,0 +1,97 @@
+{
+  "generated_at": "2026-10-05T03:38:27.914496Z",
+  "evidence": "account-log-review.json",
+  "canonical_implementation": "SantaFe/diagnostic.js 0.3.2",
+  "source_commit": "82801884bdf619c5f2a35ff6bbae1693d2e1a3e8",
+  "scope": "Confirmed in the user-supplied 0.3.1 native phone session. Placeholder identities only; no account request submitted by the agent.",
+  "base_url": "https://owners.hyundaiusa.com",
+  "common_headers": {
+    "Content-Type": "application/json;charset=UTF-8",
+    "Accept": "application/json, text/plain, */*",
+    "from": "SPA",
+    "to": "ISS",
+    "language": "0",
+    "offset": "<current local UTC offset in hours>",
+    "refresh": "false",
+    "encryptFlag": "false",
+    "brandIndicator": "H",
+    "client_id": "<existing public client identifier from diagnostic.js>",
+    "clientSecret": "<existing public client value from diagnostic.js>",
+    "Origin": "https://owners.hyundaiusa.com",
+    "Referer": "https://owners.hyundaiusa.com/login"
+  },
+  "authenticated_headers": {
+    "username": "<entered username>",
+    "accessToken": "<current memory-only session token>",
+    "blueLinkServicePin": "<entered PIN>"
+  },
+  "vehicle_headers": {
+    "registrationId": "<selected enrollment regid>",
+    "gen": "<selected vehicleGeneration; observed 3>",
+    "vin": "<selected enrollment vin>"
+  },
+  "recipes": [
+    {
+      "label": "Login",
+      "method": "POST",
+      "path": "/v2/ac/oauth/token",
+      "body": {
+        "username": "<entered username>",
+        "password": "<entered password>"
+      },
+      "authenticated_headers": false,
+      "vehicle_headers": false,
+      "confirmed": "HTTP 200 with access_token; keep only in memory and enforce expires_in"
+    },
+    {
+      "label": "Vehicle enrollment",
+      "method": "GET",
+      "path": "/ac/v2/enrollment/details/<encoded username with only %40 replaced by @>",
+      "body": null,
+      "authenticated_headers": true,
+      "vehicle_headers": false,
+      "confirmed": "HTTP 200 with one active record in enrolledVehicleDetails; the same-session encoded-@ form failed C500",
+      "encoding": "Use encodeURIComponent(username), then replace only %40 with @. Preserve encoding for all other delimiters."
+    },
+    {
+      "label": "Cached vehicle status",
+      "method": "GET",
+      "path": "/ac/v2/rcs/rvs/vehicleStatus",
+      "body": null,
+      "authenticated_headers": true,
+      "vehicle_headers": true,
+      "header_overrides": {
+        "refresh": "false"
+      },
+      "confirmed": "HTTP 200 with vehicleStatus; dateTime determines freshness"
+    },
+    {
+      "label": "Requested fresh vehicle status",
+      "method": "GET",
+      "path": "/ac/v2/rcs/rvs/vehicleStatus",
+      "body": null,
+      "authenticated_headers": true,
+      "vehicle_headers": true,
+      "header_overrides": {
+        "refresh": "true"
+      },
+      "confirmed": "HTTP 200 response, identical to cached body and dateTime",
+      "fresh_physical_observation_confirmed": false
+    }
+  ],
+  "unconfirmed_remote_features": [
+    "lock",
+    "unlock",
+    "climate_start",
+    "climate_stop",
+    "lights",
+    "horn_lights",
+    "transaction polling and physical completion"
+  ],
+  "tasker_constraints": [
+    "Keep credentials and token in volatile Java objects, never ordinary persistent Tasker variables",
+    "Preserve original bridge project; separate direct read-only candidate",
+    "Phone import must show actual actions and runtime reads must be tested",
+    "Remote controls and automatic profiles remain disabled until individually confirmed"
+  ]
+}

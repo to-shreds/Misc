@@ -1,4 +1,21 @@
-# Current benchmark: API Lab 0.3.1 enrollment diagnostics
+# Current benchmark: API Lab 0.3.2 confirmed vehicle reads
+
+The latest supplied 0.3.1 native phone export confirms HTTP 200 login, literal-@ enrollment with one active vehicle, cached status and refresh:true status. The encoded-@ enrollment failed C500 in the same session. Both status responses contained the identical earlier vehicle sample and timestamp, so fresh physical data remains unconfirmed. No remote control request ran. Only derived evidence is published; the private response and its identifiers are not republished.
+
+0.3.2 uses the confirmed lookup by default, retains a manual alternate lookup after failure, warns when a refresh timestamp is unchanged, and scrubs additional identifier fields and opaque echoes from new responses and previously saved logs. All other email delimiters remain encoded. Failed, malformed or cancelled comparisons cannot select a format or run a command.
+
+Verification:
+
+- 52 client regressions and 20 actual Chromium headless-shell scenarios pass with zero unexpected requests. They cover both lookup directions, confirmed-only adoption, session/cancellation/command guards, fresh and saved log redaction, and unchanged versus changed timestamps. All API responses are fixtures.
+- The 412px success and enrollment-failure screens were visually inspected without overflow or clipping.
+- Android 35 compilation/packaging, ZIP alignment, v2/v3 signatures and version 5/0.3.2 metadata verify. All three bundled assets exactly match source. Only Internet permission is requested, the existing signing identity is preserved, and no private key or test fixture is included.
+- Native policy/transport were unchanged and retain the previous 137/61-check benchmark; the Python/Tasker implementation retains its earlier 92 tests. Those suites and the instrumentation compilation were not rerun for this client-only update.
+
+APK: android/dist/SantaFe-API-Lab-0.3.2.apk, 54,104 bytes. SHA-256: a2fa3efdf2977fc915f16f90d284acf9871935d20c98b1830fc17e0ae43995b4. Both prior APKs remain byte-for-byte unchanged. Evidence: verification/android-verification.json, account-log-review.json and confirmed-api-recipes.json.
+
+The supplied phone log establishes 0.3.1 callback/export and real read behavior. New 0.3.2 phone execution and independent Android lifecycle instrumentation remain pending. Fresh physical status, remote controls, transaction completion and actual Tasker phone import/runtime are not established.
+
+# Earlier benchmark: API Lab 0.3.1 enrollment diagnostics
 
 The inspected phone log establishes three successful token responses and three failed enrollment reads (HTTP 502/API 502, C500, getEnrollmentDetailsByUser, NO DATA FOUND TO PERFORM THIS OPERATION). Wrong-password tests returned the separate IDM_401_1 error, also using HTTP 502. No cached status or vehicle command ran. Jon reports that the official MyHyundai app shows his Santa Fe. Only the derived summary is published in verification/account-log-review.json.
 

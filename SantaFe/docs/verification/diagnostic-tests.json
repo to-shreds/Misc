@@ -1,21 +1,21 @@
 {
-  "generated_at": "2026-10-05T03:11:14.002Z",
+  "generated_at": "2026-10-05T03:31:28.601Z",
   "method": "Node VM UI fixture execution of shipped scripts; all HTTP responses mocked; no Hyundai account or vehicle used",
   "results": [
     {
       "test": "Helper-required setup blocks credentials and every programmatic login without direct fallback",
       "passed": true,
-      "elapsed_ms": 12
+      "elapsed_ms": 27
     },
     {
       "test": "Only a valid same-window helper hello enables credentials and Automatic uses the helper",
       "passed": true,
-      "elapsed_ms": 7
+      "elapsed_ms": 6
     },
     {
       "test": "Bundled Android page enables login immediately and exclusively uses native Hyundai transport",
       "passed": true,
-      "elapsed_ms": 4
+      "elapsed_ms": 3
     },
     {
       "test": "Native interface cannot be used on a public origin or an unexpected bundled path",
@@ -25,12 +25,12 @@
     {
       "test": "Absent or incomplete native interface keeps bundled credentials locked even in Direct mode",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 4
     },
     {
       "test": "Native exports pass only sanitized data and distinguish choosing a file from saving it",
       "passed": true,
-      "elapsed_ms": 5
+      "elapsed_ms": 3
     },
     {
       "test": "Native export rejection does not claim a file was written",
@@ -50,22 +50,22 @@
     {
       "test": "Pagehide retains redaction values until an aborted request logs opaque echoed secrets",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 4
     },
     {
       "test": "Native timeout cancels the request and does not fall back or retry",
       "passed": true,
-      "elapsed_ms": 4
+      "elapsed_ms": 2
     },
     {
       "test": "Native callbacks ignore unknown identifiers and reject malformed or failed responses",
       "passed": true,
-      "elapsed_ms": 10
+      "elapsed_ms": 6
     },
     {
       "test": "Native transaction headers reach polling and command acceptance remains distinct from completion",
       "passed": true,
-      "elapsed_ms": 6
+      "elapsed_ms": 7
     },
     {
       "test": "Native command guard and sanitized start record are persisted before transmission",
@@ -75,7 +75,7 @@
     {
       "test": "Native restart preserves unknown-command gate while allowing reads and explicit physical acknowledgement",
       "passed": true,
-      "elapsed_ms": 6
+      "elapsed_ms": 9
     },
     {
       "test": "Definitive native SUCCESS or ERROR clears guard, while pending and unknown polling preserve it",
@@ -98,6 +98,11 @@
       "elapsed_ms": 3
     },
     {
+      "test": "Refresh requests distinguish an unchanged vehicle timestamp from a new returned timestamp without claiming a physical observation",
+      "passed": true,
+      "elapsed_ms": 9
+    },
+    {
       "test": "Logged login success followed by enrollment C500 preserves session and enables only a manual lookup test",
       "passed": true,
       "elapsed_ms": 2
@@ -108,17 +113,22 @@
       "elapsed_ms": 2
     },
     {
-      "test": "Manual literal-at lookup reuses token and PIN once and remembers only a confirmed enrollment format",
+      "test": "Manual encoded-at alternate lookup reuses token and PIN once and remembers only a confirmed enrollment format",
       "passed": true,
-      "elapsed_ms": 6
+      "elapsed_ms": 5
     },
     {
-      "test": "Failed or malformed alternate enrollment never retries or promotes the unconfirmed email format",
+      "test": "A confirmed alternate that later fails can be deliberately compared back to the default form",
       "passed": true,
       "elapsed_ms": 8
     },
     {
-      "test": "Alternate lookup error text and its literal-at URL are sanitized before display, storage and export",
+      "test": "Failed or malformed alternate enrollment never retries or promotes the unconfirmed email format",
+      "passed": true,
+      "elapsed_ms": 9
+    },
+    {
+      "test": "Alternate lookup error text and its encoded-at URL are sanitized before display, storage and export",
       "passed": true,
       "elapsed_ms": 3
     },
@@ -135,12 +145,12 @@
     {
       "test": "Stopping or leaving a delayed alternate lookup rejects its late success without adopting the format or exposing identity",
       "passed": true,
-      "elapsed_ms": 8
+      "elapsed_ms": 9
     },
     {
       "test": "Cached-status failure cannot offer an unrelated alternate enrollment lookup",
       "passed": true,
-      "elapsed_ms": 2
+      "elapsed_ms": 3
     },
     {
       "test": "A later enrollment failure invalidates stale read status and withholds new commands",
@@ -148,9 +158,24 @@
       "elapsed_ms": 3
     },
     {
+      "test": "An enrollment failure cannot enable an alternate lookup while a command awaits its outcome",
+      "passed": true,
+      "elapsed_ms": 4
+    },
+    {
       "test": "Saved and copied logs redact credentials, identifiers, coordinates and echoed secrets",
       "passed": true,
       "elapsed_ms": 4
+    },
+    {
+      "test": "Enrollment device identifiers are sanitized while returned equipment and model details remain inspectable",
+      "passed": true,
+      "elapsed_ms": 4
+    },
+    {
+      "test": "Previously saved enrollment identifier fields are sanitized again when the updated tester loads them",
+      "passed": true,
+      "elapsed_ms": 3
     },
     {
       "test": "Non-JSON authentication errors retain status without raw response text",
@@ -160,7 +185,7 @@
     {
       "test": "Connection check after login sends no account identity, access token or service PIN",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 4
     },
     {
       "test": "Empty HTTP 200 login does not invent an authenticated session or vehicle data",
@@ -170,17 +195,17 @@
     {
       "test": "Malformed enrollment and status response shapes cannot enable vehicle commands",
       "passed": true,
-      "elapsed_ms": 6
+      "elapsed_ms": 5
     },
     {
       "test": "HTTP 429 stops the read sequence and never retries",
       "passed": true,
-      "elapsed_ms": 1
+      "elapsed_ms": 2
     },
     {
       "test": "CORS failure offers actionable helper instructions and sends no retry",
       "passed": true,
-      "elapsed_ms": 1
+      "elapsed_ms": 2
     },
     {
       "test": "Duplicate login submissions while busy produce only one request",
@@ -200,22 +225,22 @@
     {
       "test": "Command is observed first and confirmed only after SUCCESS transaction result",
       "passed": true,
-      "elapsed_ms": 5
+      "elapsed_ms": 9
     },
     {
       "test": "Lights and horn/lights poll with their specific service type",
       "passed": true,
-      "elapsed_ms": 8
+      "elapsed_ms": 7
     },
     {
       "test": "Rereading enrollment after a command preserves polling for the same vehicle identifiers",
       "passed": true,
-      "elapsed_ms": 4
+      "elapsed_ms": 5
     },
     {
       "test": "Climate validation blocks unsafe or unknown engine settings before transmission",
       "passed": true,
-      "elapsed_ms": 7
+      "elapsed_ms": 9
     },
     {
       "test": "Browser helper rejects non-Hyundai, unknown endpoints, invalid methods and injectable headers",

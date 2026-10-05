@@ -74,4 +74,10 @@ The pinned HyundaiBlueLinkApiUSA.py line 388 concatenates the entered username i
 
 RFC 3986 permits @ in a path segment and does not generally guarantee equivalence when reserved characters are percent-encoded: https://www.rfc-editor.org/rfc/rfc3986.html#section-2.2 and https://www.rfc-editor.org/rfc/rfc3986.html#section-3.3
 
-0.3.1 therefore offers a manually triggered comparison that changes only %40 to @ using the same token and unchanged headers. Other delimiters stay encoded. No source or current log proves that this resolves the enrollment failure. A successful expected enrollment response is required before choosing the alternate form for that session. Both compared requests and their nonprivate path-format labels are logged.
+0.3.1 therefore offered a manually triggered comparison that changed only %40 to @ using the same token and unchanged headers. Other delimiters stayed encoded. At that benchmark the comparison was a hypothesis, pending account evidence.
+
+## Confirmed phone comparison, October 5, 2026
+
+Jon's latest 0.3.1 export confirms the encoded form failed with C500, while the same-session literal-@ form returned one active vehicle. Cached status and refresh:true both returned HTTP 200. The status bodies and timestamp were identical, so a new vehicle observation is not established. No command ran. This is direct evidence for this account and session, not a general Hyundai API contract.
+
+0.3.2 uses the successful form by default and retains a manual comparison after failure. Safe derived summaries and header-name-only recipes are in verification/account-log-review.json and verification/confirmed-api-recipes.json. Private account, vehicle and device identifiers from the supplied response are not republished.

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-05T03:10:48.721Z",
+  "generated_at": "2026-10-05T03:31:42.506Z",
   "browser": "Actual headless Chromium",
   "method": "HTTP UI execution; Hyundai routes, GM transport and Android bridge use fixtures. Native UI uses HTTPS bundled origin with connect-src none. No actual Android WebView, real account login, API availability validation, or physical vehicle command",
   "blocked_unexpected_requests": [],
@@ -7,97 +7,102 @@
     {
       "test": "Default Automatic setup precedes login and blocks Enter/programmatic submits without network",
       "passed": true,
-      "elapsed_ms": 197
+      "elapsed_ms": 254
     },
     {
       "test": "Direct desktop login, safe cache reads, sanitized download and disconnect",
       "passed": true,
-      "elapsed_ms": 431
+      "elapsed_ms": 629
     },
     {
       "test": "Bundled Android mobile tester uses native bridge under connect-src none and exports sanitized log",
       "passed": true,
-      "elapsed_ms": 362
+      "elapsed_ms": 447
+    },
+    {
+      "test": "Native enrollment and persisted old logs scrub device identifiers while retaining model and protocol fields",
+      "passed": true,
+      "elapsed_ms": 369
     },
     {
       "test": "Native Stop waiting cancels exactly once and ignores a late success callback",
       "passed": true,
-      "elapsed_ms": 207
+      "elapsed_ms": 236
     },
     {
       "test": "Mobile native login succeeds before enrollment C500 and a deliberate lookup reuses the token once",
       "passed": true,
-      "elapsed_ms": 497
+      "elapsed_ms": 478
     },
     {
       "test": "Native wrong-password 502 preserves IDM_401_1 and the original message without a lookup or retry",
       "passed": true,
-      "elapsed_ms": 191
+      "elapsed_ms": 226
     },
     {
       "test": "Native failed or malformed alternate lookup keeps commands disabled and ordinary reads use the original format",
       "passed": true,
-      "elapsed_ms": 794
+      "elapsed_ms": 741
     },
     {
       "test": "Native cached-status 502 displays its own request label and cannot enable enrollment fallback",
       "passed": true,
-      "elapsed_ms": 217
+      "elapsed_ms": 200
     },
     {
       "test": "Malformed native response and native TLS error do not authenticate, fall back or retry",
       "passed": true,
-      "elapsed_ms": 395
+      "elapsed_ms": 380
     },
     {
       "test": "Native vehicle commands preserve transaction headers and require SUCCESS before releasing command gate",
       "passed": true,
-      "elapsed_ms": 368
+      "elapsed_ms": 411
     },
     {
       "test": "Native reload restores a sanitized unknown-command guard and requires physical acknowledgement",
       "passed": true,
-      "elapsed_ms": 469
+      "elapsed_ms": 613
     },
     {
       "test": "Real postMessage helper handshake, automatic transport, raw transaction headers and SUCCESS",
       "passed": true,
-      "elapsed_ms": 580
+      "elapsed_ms": 656
     },
     {
       "test": "Two-vehicle picker can select the second record and uses its identifiers",
       "passed": true,
-      "elapsed_ms": 263
+      "elapsed_ms": 304
     },
     {
       "test": "HTTP 200 without transaction ID is unresolved and cannot poll or resubmit",
       "passed": true,
-      "elapsed_ms": 353
+      "elapsed_ms": 386
     },
     {
       "test": "429 produces one request and actionable rate-limit response",
       "passed": true,
-      "elapsed_ms": 198
+      "elapsed_ms": 226
     },
     {
       "test": "Direct blocked network response offers helper setup without retry",
       "passed": true,
-      "elapsed_ms": 205
+      "elapsed_ms": 236
     },
     {
       "test": "Empty login response cannot enable authenticated or command buttons",
       "passed": true,
-      "elapsed_ms": 247
+      "elapsed_ms": 199
     },
     {
       "test": "Rapid double submit is gated while login is in flight",
       "passed": true,
-      "elapsed_ms": 164
+      "elapsed_ms": 212
     },
     {
       "test": "412px mobile layout avoids horizontal overflow and supports helper read tests",
       "passed": true,
-      "elapsed_ms": 327
+      "elapsed_ms": 316
     }
   ]
 }

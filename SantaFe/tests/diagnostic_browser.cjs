@@ -23,7 +23,8 @@ const server = http.createServer((req, res) => {
 const basics = (two = false) => [{ data: { access_token: 'fixture-access-secret', refresh_token: 'fixture-refresh-secret', expires_in: 1800 } }, { data: { enrolledVehicleDetails: [V1, ...(two ? [V2] : [])].map(vehicleDetails => ({ vehicleDetails })) } }, { data: { vehicleStatus: { dateTime: '2026-10-04T19:00:00-04:00', doorLock: true, engine: false, fuelLevel: 42, location: { latitude: 42.04684, longitude: -71.11242 } } } }];
 const enrollmentFailure = { status: 502, data: { errorCode: 502, errorMessage: 'Service error', errorSubCode: 'C500', errorSubMessage: 'NO DATA FOUND TO PERFORM THIS OPERATION', functionName: 'getEnrollmentDetailsByUser' } };
 const wrongPassword = { status: 502, data: { errorCode: 502, errorMessage: 'Incorrect username or password', errorSubCode: 'IDM_401_1', errorSubMessage: 'Username or password is incorrect' } };
-const literalEnrollmentUrl = () => API + '/ac/v2/enrollment/details/' + encodeURIComponent(USER).replace(/%40/g, '@');
+const encodedEnrollmentUrl = () => API + '/ac/v2/enrollment/details/' + encodeURIComponent(USER);
+const literalEnrollmentUrl = () => encodedEnrollmentUrl().replace(/%40/g, '@');
 async function scenario(name, fn) { const start = performance.now(); try { await fn(); results.push({ test: name, passed: true, elapsed_ms: Math.round(performance.now() - start) }); } catch (e) { results.push({ test: name, passed: false, error: e.message }); process.stderr.write(`${name}: ${e.message}\n`); } }
 let browser, url;
 async function pageFixture(fixtures, opts = {}) {
@@ -109,16 +110,37 @@ async function exported(page) {
     const h=await pageFixture(basics(),{native:true,mobile:true});try{
       for(const id of ['connectionSetup','appDownload','copyLogBtn'])assert.equal(await h.page.locator('#'+id).isVisible(),false,`${id} should be hidden inside app`);
       for(const id of ['email','password','pin','loginBtn'])assert.equal(await h.page.isEnabled('#'+id),true);
-      await login(h.page);assert.equal((await h.requests()).length,3);assert.equal(h.calls.length,0);assert.equal(await h.page.locator('#sessionStatus').innerText(),'Signed in for this app');
+      await login(h.page);assert.equal((await h.requests()).length,3);assert.equal((await h.requests())[1].url,literalEnrollmentUrl());assert.equal((await h.requests())[1].url.includes('%2B'),true);assert.equal(h.calls.length,0);assert.equal(await h.page.locator('#sessionStatus').innerText(),'Signed in for this app');
       await h.page.click('#downloadLogBtn');assert.match(await h.page.locator('#notice').innerText(),/Choose where to save/);
       const report=await h.page.evaluate(()=>window.__testExports.at(-1)),raw=JSON.stringify(report);
       for(const value of [USER,encodeURIComponent(USER),PASSWORD,PIN,V1.vin,V1.regid,'fixture-access-secret','fixture-refresh-secret','42.04684','-71.11242'])assert.equal(raw.includes(value),false,`Native export leaked ${value}`);
-      assert.equal(report.version,'0.3.1');assert.ok(report.requests.filter(r=>r.transport).every(r=>r.transport==='native Android'));
+      assert.equal(report.version,'0.3.2');assert.ok(report.requests.filter(r=>r.transport).every(r=>r.transport==='native Android'));
       await h.page.evaluate(()=>window.SantaFeAndroid.onExportResult(true,null));assert.equal(await h.page.locator('#notice').innerText(),'Sanitized log saved.');
       const layout=await h.page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));assert.ok(layout.scroll<=layout.client+1);
       await h.page.screenshot({path:path.join(OUT,'diagnostic-android-fixture.png'),fullPage:true});
       await h.page.click('#disconnectBtn');assert.equal(await h.page.inputValue('#email'),'');assert.deepEqual(h.errors,[]);
     }finally{await h.close();}
+  });
+  await scenario('Native enrollment and persisted old logs scrub device identifiers while retaining model and protocol fields', async () => {
+    const privateFields = { enrollmentId: 'browser-fixture-enrollment-741', nadid: 'browser-fixture-nad-153', mit: 'browser-fixture-mit-284', imat: 'browser-fixture-imat-395', hataTID: 'browser-fixture-hata-416', guid: 'browser-fixture-guid-527', packageId: 'browser-fixture-package-638', assetNumber: 'browser-fixture-asset-749', billingAccountNumber: 'browser-fixture-billing-851', idmId: 'browser-fixture-idm-962' };
+    const visibleFields = { ccuCCS2ProtocolSupport: true, trim: 'CALLIGRAPHY', modelYear: '2026' };
+    const fixture = basics(); Object.assign(fixture[1].data.enrolledVehicleDetails[0].vehicleDetails, privateFields, visibleFields, { debugEcho: Object.values(privateFields).join(' ') });
+    const h = await pageFixture(fixture, { native: true, mobile: true }); try {
+      await login(h.page); assert.equal((await h.requests())[1].url, literalEnrollmentUrl());
+      await h.page.click('#downloadLogBtn'); let report = await h.page.evaluate(() => window.__testExports.at(-1));
+      const record = report.requests.find(r => r.label === 'Vehicle enrollment').response.enrolledVehicleDetails[0].vehicleDetails;
+      for (const [key, value] of Object.entries(privateFields)) { assert.equal(record[key], '[REDACTED]'); assert.equal(JSON.stringify(report).includes(value), false, `${key} leaked`); }
+      for (const [key, value] of Object.entries(visibleFields)) assert.equal(record[key], value);
+      assert.equal(report.requests.some(r => r.label === 'Reported capability fields' && r.fields.some(f => f.field === 'vehicleDetails.ccuCCS2ProtocolSupport' && f.value === true)), true);
+      await h.page.evaluate(fields => localStorage.setItem('santafe-diagnostics-v1', JSON.stringify([{ label: 'Old enrollment', debugEcho: Object.values(fields.privateFields).join(' '), response: { ...fields.privateFields, ...fields.visibleFields } }])), { privateFields, visibleFields });
+      await h.page.reload(); await h.page.waitForFunction(() => document.getElementById('sessionStatus').textContent === 'Signed out');
+      await h.page.click('#downloadLogBtn'); report = await h.page.evaluate(() => window.__testExports.at(-1));
+      for (const [key, value] of Object.entries(privateFields)) { assert.equal(report.requests[0].response[key], '[REDACTED]'); assert.equal(JSON.stringify(report).includes(value), false); }
+      const saved = await h.page.evaluate(() => localStorage.getItem('santafe-diagnostics-v1'));
+      for (const value of Object.values(privateFields)) assert.equal(saved.includes(value), false, 'Previously persisted identifier was not removed');
+      for (const [key, value] of Object.entries(visibleFields)) assert.equal(report.requests[0].response[key], value);
+      assert.equal((await h.requests()).length, 0); assert.deepEqual(h.errors, []);
+    } finally { await h.close(); }
   });
   await scenario('Native Stop waiting cancels exactly once and ignores a late success callback',async()=>{
     const h=await pageFixture([{...basics()[0],delay:true}],{native:true});try{
@@ -140,14 +162,14 @@ async function exported(page) {
       await h.page.evaluate(() => { document.getElementById('referenceEnrollmentBtn').dispatchEvent(new Event('click')); document.getElementById('runReadTestsBtn').dispatchEvent(new Event('click')); });
       assert.equal((await h.requests()).length, 3, 'Programmatic competing clicks cannot bypass the busy guard');
       await h.page.evaluate(() => window.__testNativeCallbacks[window.__testRequests[2].id]()); await idle(h.page);
-      let requests = await h.requests(); assert.equal(requests.length, 4); assert.equal(requests[2].url, literalEnrollmentUrl()); assert.equal(requests[2].method, 'GET');
+      let requests = await h.requests(); assert.equal(requests.length, 4); assert.equal(requests[2].url, encodedEnrollmentUrl()); assert.equal(requests[2].method, 'GET');
       assert.equal(requests[2].url.includes('%2B'), true);
       for (const key of ['username', 'accessToken', 'blueLinkServicePin']) assert.equal(requests[2].headers[key], requests[1].headers[key]);
       assert.equal(requests[3].headers.refresh, 'false'); assert.equal(await h.page.isEnabled('#commandBtn'), true); assert.equal(await h.page.isEnabled('#referenceEnrollmentBtn'), false);
-      await h.page.click('#runReadTestsBtn'); await idle(h.page); requests = await h.requests(); assert.equal(requests.length, 6); assert.equal(requests[4].url, literalEnrollmentUrl());
+      await h.page.click('#runReadTestsBtn'); await idle(h.page); requests = await h.requests(); assert.equal(requests.length, 6); assert.equal(requests[4].url, encodedEnrollmentUrl());
       assert.equal(requests.filter(r => r.method === 'POST').length, 1); assert.equal(h.calls.length, 0);
       await h.page.click('#downloadLogBtn'); const report = await h.page.evaluate(() => window.__testExports.at(-1)), raw = JSON.stringify(report);
-      assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['encoded-at', 'literal-at', 'literal-at']);
+      assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['literal-at', 'encoded-at', 'encoded-at']);
       for (const value of [USER, encodeURIComponent(USER), encodeURIComponent(USER).replace(/%40/g, '@'), PASSWORD, PIN, V1.vin, V1.regid, 'fixture-access-secret', 'fixture-refresh-secret']) assert.equal(raw.includes(value), false, `Lookup export leaked ${value}`);
       assert.equal(report.requests.some(r => r.label === 'Reported capability fields'), true); assert.match(raw, /enrollment\/details\/\[REDACTED\]/);
       const layout = await h.page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth })); assert.ok(layout.scroll <= layout.client + 1);
@@ -167,11 +189,11 @@ async function exported(page) {
     for (const failure of [enrollmentFailure, { data: { vehicles: [V1] } }]) {
       const fixture = basics(), h = await pageFixture([fixture[0], enrollmentFailure, failure, fixture[1], fixture[2]], { native: true }); try {
         await login(h.page); await h.page.click('#referenceEnrollmentBtn'); await idle(h.page);
-        assert.equal((await h.requests()).length, 3); assert.equal((await h.requests())[2].url, literalEnrollmentUrl());
+        assert.equal((await h.requests()).length, 3); assert.equal((await h.requests())[2].url, encodedEnrollmentUrl());
         assert.equal(await h.page.locator('#sessionStatus').innerText(), 'Signed in for this app'); assert.equal(await h.page.isEnabled('#commandBtn'), false); assert.equal(await h.page.isEnabled('#referenceEnrollmentBtn'), true);
         await h.page.click('#runReadTestsBtn'); await idle(h.page); const requests = await h.requests(); assert.equal(requests.length, 5);
-        assert.equal(requests[3].url, API + '/ac/v2/enrollment/details/' + encodeURIComponent(USER)); assert.equal(requests.filter(r => r.method === 'POST').length, 1);
-        await h.page.click('#downloadLogBtn'); const report = await h.page.evaluate(() => window.__testExports.at(-1)); assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['encoded-at', 'literal-at', 'encoded-at']);
+        assert.equal(requests[3].url, literalEnrollmentUrl()); assert.equal(requests.filter(r => r.method === 'POST').length, 1);
+        await h.page.click('#downloadLogBtn'); const report = await h.page.evaluate(() => window.__testExports.at(-1)); assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['literal-at', 'encoded-at', 'literal-at']);
         assert.deepEqual(h.errors, []);
       } finally { await h.close(); }
     }

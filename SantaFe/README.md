@@ -1,6 +1,6 @@
 # Santa Fe
 
-Install **[Santa Fe API Lab for Android](https://to-shreds.github.io/Misc/SantaFe/android/dist/SantaFe-API-Lab-0.3.1.apk)** and open it. The [GitHub page](https://to-shreds.github.io/Misc/SantaFe/) links the app; the lowercase `/Misc/santafe/` address still redirects there.
+Install **[Santa Fe API Lab for Android](https://to-shreds.github.io/Misc/SantaFe/android/dist/SantaFe-API-Lab-0.3.2.apk)** and open it. The [GitHub page](https://to-shreds.github.io/Misc/SantaFe/) links the app; the lowercase `/Misc/santafe/` address still redirects there.
 
 The HTML tester is bundled inside the APK and talks directly to Hyundai using a restricted native HTTPS component. No Tampermonkey, cloud relay, computer, Termux or server setup is required. The app takes your MyHyundai email, password, and four-digit Bluelink service PIN. Connect reads enrollment and cached status; **Run read tests** repeats the reads and capability inspection. It records sanitized requests/responses automatically. **Export log** exports JSON using Android's file picker. Credentials and session tokens remain in memory and are cleared when you leave the app, including when you open the file picker. Sanitized logs remain locally.
 

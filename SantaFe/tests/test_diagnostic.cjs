@@ -96,7 +96,8 @@ function loginFixtures(extra = {}) {
 }
 const enrollmentFailure = { status: 502, data: { errorCode: 502, errorMessage: 'Service error', errorSubCode: 'C500', errorSubMessage: 'NO DATA FOUND TO PERFORM THIS OPERATION', functionName: 'getEnrollmentDetailsByUser' } };
 const wrongPassword = { status: 502, data: { errorCode: 502, errorMessage: 'Incorrect username or password', errorSubCode: 'IDM_401_1', errorSubMessage: 'Username or password is incorrect' } };
-const literalEnrollmentUrl = username => API + 'enrollment/details/' + encodeURIComponent(username).replace(/%40/g, '@');
+const encodedEnrollmentUrl = username => API + 'enrollment/details/' + encodeURIComponent(username);
+const literalEnrollmentUrl = username => encodedEnrollmentUrl(username).replace(/%40/g, '@');
 async function login(h) {
   h.get('email').value = creds.username; h.get('password').value = creds.password; h.get('pin').value = creds.pin;
   await h.action('loginForm', 'submit');
@@ -173,7 +174,7 @@ check('Native exports pass only sanitized data and distinguish choosing a file f
   const h=harness(fixtures,{native:true});t.after(()=>h.close());await login(h);
   const report=await h.exported(),raw=JSON.stringify(report);
   for(const value of [...Object.values(creds),vehicle.vin,vehicle.regid,'private-access-987654','private-refresh-456789','42.04684','-71.11242'])assert.equal(raw.includes(value),false,`Native export leaked ${value}`);
-  assert.equal(report.version,'0.3.1');assert.match(h.get('notice').textContent,/Choose where to save/);
+  assert.equal(report.version,'0.3.2');assert.match(h.get('notice').textContent,/Choose where to save/);
   h.window.SantaFeAndroid.onExportResult(true,null);assert.equal(h.get('notice').textContent,'Sanitized log saved.');
   h.window.SantaFeAndroid.onExportResult(false,'Log export cancelled.');assert.match(h.get('notice').textContent,/cancelled/);
   await h.action('copyLogBtn');assert.equal(h.context.copied,undefined,'Native app must not copy secrets through a separate clipboard path');
@@ -273,12 +274,26 @@ check('Malformed persisted guard remains conservative and acknowledgement cannot
 
 check('Login, enrollment and cached status run in order and clear credentials', async t => {
   const h = harness(loginFixtures()); t.after(() => h.close()); await login(h);
-  assert.equal(h.requests.length, 3); assert.deepEqual(h.requests.map(r => r.url), [BASE + '/v2/ac/oauth/token', API + 'enrollment/details/' + encodeURIComponent(creds.username), API + 'rcs/rvs/vehicleStatus']);
+  assert.equal(h.requests.length, 3); assert.deepEqual(h.requests.map(r => r.url), [BASE + '/v2/ac/oauth/token', literalEnrollmentUrl(creds.username), API + 'rcs/rvs/vehicleStatus']);
   assert.equal(h.get('password').value, ''); assert.equal(h.get('pin').value, '');
   assert.equal(h.get('sessionStatus').textContent, 'Signed in for this tab');
   assert.equal(h.get('vehicleSelect').disabled, false, 'A signed-in user must be able to select an enrolled vehicle');
   assert.equal(h.get('commandBtn').disabled, false); assert.match(h.get('vehicleSummary').textContent, /cached|timestamp/i);
   assert.equal(h.requests.filter(r => r.method === 'POST').length, 1, 'Login must never trigger remote commands');
+});
+
+check('Refresh requests distinguish an unchanged vehicle timestamp from a new returned timestamp without claiming a physical observation', async t => {
+  for (const changed of [false, true]) {
+    const fixtures = loginFixtures(), refreshed = structuredClone(fixtures[2]);
+    if (changed) refreshed.data.vehicleStatus.dateTime = '2026-10-04T19:05:00-04:00';
+    const h = harness([...fixtures, refreshed], { native: true }); t.after(() => h.close()); await login(h); await h.action('refreshBtn');
+    assert.equal(h.requests.length, 4); assert.equal(h.requests[3].method, 'GET'); assert.equal(h.requests[3].headers.refresh, 'true');
+    const card = h.get('results').firstChild; assert.match(card.textContent, /Refresh request/);
+    if (changed) { assert.match(card.className, /success/); assert.match(card.textContent, /does not guarantee a new observation/); assert.doesNotMatch(card.textContent, /same vehicle timestamp/); }
+    else { assert.match(card.className, /warning/); assert.match(card.textContent, /same vehicle timestamp/); assert.match(card.textContent, /new vehicle observation is not confirmed/i); }
+    const report = await h.exported(); assert.equal(report.evidence.some(e => /physical.*confirmed|fresh.*confirmed|new observation confirmed/i.test(e.scope)), false);
+    assert.equal(h.requests.filter(r => r.method === 'POST').length, 1, 'Refresh must not submit a vehicle command');
+  }
 });
 
 check('Logged login success followed by enrollment C500 preserves session and enables only a manual lookup test', async t => {
@@ -305,42 +320,55 @@ check('HTTP 502 with IDM_401_1 identifies incorrect credentials and never enable
   await h.action('referenceEnrollmentBtn'); assert.equal(h.requests.length, 1, 'A programmatic lookup click must not bypass the missing-session guard');
 });
 
-check('Manual literal-at lookup reuses token and PIN once and remembers only a confirmed enrollment format', async t => {
+check('Manual encoded-at alternate lookup reuses token and PIN once and remembers only a confirmed enrollment format', async t => {
   const fixtures = loginFixtures();
   const h = harness([fixtures[0], enrollmentFailure, fixtures[1], fixtures[2], fixtures[1], fixtures[2]], { native: true }); t.after(() => h.close());
   await login(h); await h.action('referenceEnrollmentBtn');
   assert.equal(h.requests.length, 4, 'The click sends one enrollment GET and then cached status for the returned vehicle');
-  assert.equal(h.requests[2].method, 'GET'); assert.equal(h.requests[2].url, literalEnrollmentUrl(creds.username));
+  assert.equal(h.requests[2].method, 'GET'); assert.equal(h.requests[2].url, encodedEnrollmentUrl(creds.username));
   assert.equal(h.requests[2].url.includes('%2B'), true, 'Only the at-sign changes; plus signs remain escaped');
   for (const key of ['username', 'accessToken', 'blueLinkServicePin']) assert.equal(h.requests[2].headers[key], h.requests[1].headers[key], `${key} changed during the comparison`);
   assert.equal(h.requests[3].url, API + 'rcs/rvs/vehicleStatus'); assert.equal(h.requests[3].headers.refresh, 'false');
   assert.equal(h.get('commandBtn').disabled, false); assert.equal(h.get('referenceEnrollmentBtn').disabled, true);
   await h.action('runReadTestsBtn');
-  assert.equal(h.requests.length, 6); assert.equal(h.requests[4].url, literalEnrollmentUrl(creds.username));
+  assert.equal(h.requests.length, 6); assert.equal(h.requests[4].url, encodedEnrollmentUrl(creds.username));
   assert.equal(h.requests.filter(r => r.method === 'POST').length, 1, 'Lookup tests must never repeat login or send a vehicle command');
   const report = await h.exported(), raw = JSON.stringify(h.report()) + JSON.stringify(report);
-  assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['encoded-at', 'literal-at', 'literal-at']);
+  assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['literal-at', 'encoded-at', 'encoded-at']);
+  assert.equal(report.requests.filter(r => r.label === 'Vehicle enrollment (alternate URL test)').length, 1);
   for (const value of [...Object.values(creds), encodeURIComponent(creds.username), encodeURIComponent(creds.username).replace(/%40/g, '@'), vehicle.vin, vehicle.regid, 'private-access-987654', 'private-refresh-456789']) assert.equal(raw.includes(value), false, `Lookup export leaked ${value}`);
   assert.match(raw, /enrollment\/details\/\[REDACTED\]/);
   assert.equal(h.report().some(r => r.label === 'Reported capability fields'), true);
+});
+
+check('A confirmed alternate that later fails can be deliberately compared back to the default form', async t => {
+  const fixtures = loginFixtures();
+  const h = harness([fixtures[0], enrollmentFailure, fixtures[1], fixtures[2], enrollmentFailure, fixtures[1], fixtures[2], fixtures[1], fixtures[2]], { native: true }); t.after(() => h.close());
+  await login(h); await h.action('referenceEnrollmentBtn'); await h.action('runReadTestsBtn');
+  assert.equal(h.requests.length, 5); assert.equal(h.get('referenceEnrollmentBtn').disabled, false); assert.equal(h.get('commandBtn').disabled, true);
+  await h.action('referenceEnrollmentBtn'); assert.equal(h.requests.length, 7); assert.equal(h.requests[5].url, literalEnrollmentUrl(creds.username));
+  await h.action('runReadTestsBtn'); assert.equal(h.requests.length, 9); assert.equal(h.requests[7].url, literalEnrollmentUrl(creds.username));
+  assert.equal(h.requests.filter(r => r.method === 'POST').length, 1); assert.equal(h.get('commandBtn').disabled, false);
+  const report = await h.exported();
+  assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['literal-at', 'encoded-at', 'encoded-at', 'literal-at', 'literal-at']);
 });
 
 check('Failed or malformed alternate enrollment never retries or promotes the unconfirmed email format', async t => {
   for (const failed of [enrollmentFailure, { data: { vehicles: [vehicle] } }]) {
     const fixtures = loginFixtures(), h = harness([fixtures[0], enrollmentFailure, failed, fixtures[1], fixtures[2]], { native: true }); t.after(() => h.close());
     await login(h); await h.action('referenceEnrollmentBtn');
-    assert.equal(h.requests.length, 3); assert.equal(h.requests[2].url, literalEnrollmentUrl(creds.username));
+    assert.equal(h.requests.length, 3); assert.equal(h.requests[2].url, encodedEnrollmentUrl(creds.username));
     assert.equal(h.get('sessionStatus').textContent, 'Signed in for this app'); assert.equal(h.get('commandBtn').disabled, true);
     assert.equal(h.get('referenceEnrollmentBtn').disabled, false, 'Only a deliberate click may test again after failure');
     await h.action('runReadTestsBtn');
-    assert.equal(h.requests.length, 5); assert.equal(h.requests[3].url, API + 'enrollment/details/' + encodeURIComponent(creds.username));
+    assert.equal(h.requests.length, 5); assert.equal(h.requests[3].url, literalEnrollmentUrl(creds.username));
     assert.equal(h.requests.filter(r => r.method === 'POST').length, 1);
-    const report = await h.exported(); assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['encoded-at', 'literal-at', 'encoded-at']);
+    const report = await h.exported(); assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['literal-at', 'encoded-at', 'literal-at']);
   }
 });
 
-check('Alternate lookup error text and its literal-at URL are sanitized before display, storage and export', async t => {
-  const echoed = { ...enrollmentFailure, data: { ...enrollmentFailure.data, errorSubMessage: 'NO DATA FOUND TO PERFORM THIS OPERATION ' + literalEnrollmentUrl(creds.username) + ' ' + Object.values(creds).join(' ') + ' private-access-987654' } };
+check('Alternate lookup error text and its encoded-at URL are sanitized before display, storage and export', async t => {
+  const echoed = { ...enrollmentFailure, data: { ...enrollmentFailure.data, errorSubMessage: 'NO DATA FOUND TO PERFORM THIS OPERATION ' + encodedEnrollmentUrl(creds.username) + ' ' + Object.values(creds).join(' ') + ' private-access-987654' } };
   const h = harness([loginFixtures()[0], enrollmentFailure, echoed], { native: true }); t.after(() => h.close()); await login(h); await h.action('referenceEnrollmentBtn');
   const raw = h.get('notice').textContent + JSON.stringify(h.report()) + JSON.stringify(await h.exported());
   for (const value of [...Object.values(creds), encodeURIComponent(creds.username), encodeURIComponent(creds.username).replace(/%40/g, '@'), 'private-access-987654']) assert.equal(raw.includes(value), false, `Alternate error exposed ${value}`);
@@ -376,13 +404,13 @@ check('Stopping or leaving a delayed alternate lookup rejects its late success w
     assert.equal(h.requests.length, 3, 'The cancelled lookup must not trigger a cached-status request');
     const report = await h.exported(), raw = JSON.stringify(h.report()) + JSON.stringify(report);
     for (const value of [...Object.values(creds), encodeURIComponent(creds.username), encodeURIComponent(creds.username).replace(/%40/g, '@'), vehicle.vin, vehicle.regid, 'private-access-987654']) assert.equal(raw.includes(value), false, `${action} leaked ${value}`);
-    assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['encoded-at', 'literal-at']);
+    assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['literal-at', 'encoded-at']);
     if (action === 'pagehide') {
       assert.equal(h.get('sessionStatus').textContent, 'Signed out'); assert.equal(h.get('referenceEnrollmentBtn').disabled, true); assert.equal(h.get('email').value, '');
-      h.responses.push(...loginFixtures()); await login(h); assert.equal(h.requests[4].url, API + 'enrollment/details/' + encodeURIComponent(creds.username)); assert.equal(h.requests.length, 6);
+      h.responses.push(...loginFixtures()); await login(h); assert.equal(h.requests[4].url, literalEnrollmentUrl(creds.username)); assert.equal(h.requests.length, 6);
     } else {
       assert.equal(h.get('sessionStatus').textContent, 'Signed in for this app'); h.responses.push(fixtures[1], fixtures[2]); await h.action('runReadTestsBtn');
-      assert.equal(h.requests[3].url, API + 'enrollment/details/' + encodeURIComponent(creds.username)); assert.equal(h.requests.length, 5); assert.equal(h.requests.filter(r => r.method === 'POST').length, 1);
+      assert.equal(h.requests[3].url, literalEnrollmentUrl(creds.username)); assert.equal(h.requests.length, 5); assert.equal(h.requests.filter(r => r.method === 'POST').length, 1);
     }
   }
 });
@@ -401,6 +429,14 @@ check('A later enrollment failure invalidates stale read status and withholds ne
   h.get('confirmCommand').checked = true; await h.action('commandBtn'); assert.equal(h.requests.length, 4, 'A programmatic command cannot use stale success after enrollment failure');
 });
 
+check('An enrollment failure cannot enable an alternate lookup while a command awaits its outcome', async t => {
+  const h = harness([...loginFixtures(), { text: '', headers: { TmsTid: 'fixture-pending-guard-592' } }, enrollmentFailure], { native: true }); t.after(() => h.close());
+  await login(h); h.get('confirmCommand').checked = true; await h.action('commandBtn'); await h.action('runReadTestsBtn');
+  assert.equal(h.requests.length, 5); assert.equal(h.get('referenceEnrollmentBtn').disabled, true); assert.equal(h.get('commandBtn').disabled, true);
+  await h.action('referenceEnrollmentBtn'); assert.equal(h.requests.length, 5, 'Programmatic alternate lookup must respect the unresolved command guard');
+  assert.equal(h.get('pollBtn').disabled, false); assert.equal(h.storage.has('santafe-pending-command-v1'), true);
+});
+
 check('Saved and copied logs redact credentials, identifiers, coordinates and echoed secrets', async t => {
   const secretId = 'private-tms-id-394385';
   const fixtures = loginFixtures(); fixtures[2].data.vehicleStatus.message = `Echo ${creds.username} ${creds.password} ${creds.pin} ${vehicle.vin} ${vehicle.regid} private-access-987654 private-refresh-456789 coordinates 42.04684,-71.11242`;
@@ -411,6 +447,37 @@ check('Saved and copied logs redact credentials, identifiers, coordinates and ec
     assert.equal(saved.includes(value), false, `Saved log leaked ${value}`); assert.equal(exported.includes(value), false, `Export leaked ${value}`);
   }
   assert.equal(exported.includes('[REDACTED]'), true); assert.equal(h.get('notice').textContent.includes(creds.username), false);
+});
+
+check('Enrollment device identifiers are sanitized while returned equipment and model details remain inspectable', async t => {
+  // Use invented values to exercise the field names observed in enrollment data.
+  const privateFields = { enrollmentId: 'fixture-enrollment-id-721', nadid: 'fixture-nad-identity-381', mit: 'fixture-mit-identity-592', imat: 'fixture-imat-identity-614', hataTID: 'fixture-hata-transaction-917', guid: 'fixture-guid-identity-485', packageId: 'fixture-package-identity-158', assetNumber: 'fixture-asset-identity-219', billingAccountNumber: 'fixture-billing-identity-347', idmId: 'fixture-idm-identity-426' };
+  const extra = { ...privateFields, ccuCCS2ProtocolSupport: true, trim: 'CALLIGRAPHY', modelYear: '2026' };
+  const fixtures = loginFixtures(extra);
+  fixtures[1].data.enrolledVehicleDetails[0].vehicleDetails.debugEcho = Object.values(privateFields).join(' ');
+  const h = harness(fixtures, { native: true }); t.after(() => h.close()); await login(h);
+  assert.equal(h.requests[1].url, literalEnrollmentUrl(creds.username));
+  const saved = h.report(), exported = await h.exported();
+  for (const records of [saved, exported.requests]) {
+    const record = records.find(r => r.label === 'Vehicle enrollment').response.enrolledVehicleDetails[0].vehicleDetails;
+    for (const key of Object.keys(privateFields)) assert.equal(record[key], '[REDACTED]', `${key} was retained`);
+    assert.equal(record.ccuCCS2ProtocolSupport, true); assert.equal(record.trim, 'CALLIGRAPHY'); assert.equal(record.modelYear, '2026');
+    for (const value of Object.values(privateFields)) assert.equal(JSON.stringify(records).includes(value), false, `Enrollment log leaked ${value}`);
+  }
+  assert.equal(exported.requests.some(r => r.label === 'Reported capability fields' && r.fields.some(f => f.field === 'vehicleDetails.ccuCCS2ProtocolSupport' && f.value === true)), true);
+});
+
+check('Previously saved enrollment identifier fields are sanitized again when the updated tester loads them', async t => {
+  const privateFields = { enrollmentId: 'old-fixture-enrollment-71', nadid: 'old-fixture-nad-43', mit: 'old-fixture-mit-26', imat: 'old-fixture-imat-35', hataTID: 'old-fixture-hata-64', guid: 'old-fixture-guid-89', packageId: 'old-fixture-package-57', assetNumber: 'old-fixture-asset-48', billingAccountNumber: 'old-fixture-billing-95', idmId: 'old-fixture-idm-62' };
+  const oldCredentials = { username: 'old-fixture.user@example.com', password: 'old-fixture-private-password', access_token: 'old-fixture-private-token' };
+  const oldEcho = [...Object.values(privateFields), ...Object.values(oldCredentials)].join(' ');
+  const storage = new Map([['santafe-diagnostics-v1', JSON.stringify([{ label: 'Vehicle enrollment', debugEcho: oldEcho, request: oldCredentials, response: { vehicleDetails: { ...privateFields, ccuCCS2ProtocolSupport: true, trim: 'CALLIGRAPHY', modelYear: '2026' } } }])]]);
+  const h = harness([], { native: true, initialStorage: storage }); t.after(() => h.close());
+  const exported = await h.exported(), record = exported.requests[0].response.vehicleDetails;
+  for (const [key, value] of Object.entries(privateFields)) { assert.equal(record[key], '[REDACTED]'); assert.equal(JSON.stringify(exported).includes(value), false); }
+  for (const value of [...Object.values(privateFields), ...Object.values(oldCredentials)]) for (const raw of [JSON.stringify(exported), storage.get('santafe-diagnostics-v1')]) assert.equal(raw.includes(value), false, `Old persisted secret was retained: ${value}`);
+  assert.equal(record.ccuCCS2ProtocolSupport, true); assert.equal(record.trim, 'CALLIGRAPHY'); assert.equal(record.modelYear, '2026');
+  assert.equal(h.requests.length, 0);
 });
 
 check('Non-JSON authentication errors retain status without raw response text', async t => {

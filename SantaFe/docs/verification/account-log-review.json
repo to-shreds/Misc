@@ -1,31 +1,70 @@
 {
-  "reviewed_at": "2026-10-05T03:14:00.695004Z",
-  "source": "User-supplied sanitized export; raw attachment is not republished",
-  "attachment_sha256": "53a582d5157fb728548ff60d880169ceeebca52d767701e6ed30818608c67ff9",
-  "app_version": "0.3.0",
+  "reviewed_at": "2026-10-05T03:38:27.914496Z",
+  "source": "User-supplied sanitized export; private raw attachment is not republished",
+  "attachment_sha256": "9ed7fb49fc5fd0ea521713e5e25b0af35a54b2d62fb70347f44e6fb7b01c5ab4",
+  "app_version": "0.3.1",
+  "exported_at": "2026-10-05T03:23:51.508Z",
   "transport": "native Android",
-  "successful_token_responses": 3,
-  "vehicle_enrollment_failures": 3,
-  "incorrect_credential_responses": 2,
-  "enrollment_error": {
-    "http_status": 502,
-    "errorCode": 502,
-    "errorSubCode": "C500",
-    "functionName": "getEnrollmentDetailsByUser",
-    "errorSubMessage": "NO DATA FOUND TO PERFORM THIS OPERATION"
+  "latest_session": {
+    "login": {
+      "at": "2026-10-05T03:23:01.989Z",
+      "http_status": 200,
+      "access_token_received": true
+    },
+    "encoded_at_enrollment": {
+      "at": "2026-10-05T03:23:02.588Z",
+      "http_status": 502,
+      "errorSubCode": "C500",
+      "errorSubMessage": "NO DATA FOUND TO PERFORM THIS OPERATION"
+    },
+    "literal_at_enrollment": {
+      "at": "2026-10-05T03:23:10.930Z",
+      "http_status": 200,
+      "vehicles_returned": 1,
+      "active_vehicles": 1,
+      "same_session": true
+    },
+    "cached_status": {
+      "at": "2026-10-05T03:23:11.672Z",
+      "http_status": 200,
+      "vehicle_timestamp": "2026-10-05T01:21:36Z"
+    },
+    "refresh_status": {
+      "at": "2026-10-05T03:23:42.959Z",
+      "http_status": 200,
+      "refresh_header": "true",
+      "vehicle_timestamp": "2026-10-05T01:21:36Z",
+      "body_identical_to_cached": true,
+      "fresh_physical_observation_confirmed": false
+    },
+    "remote_control_requests": 0
   },
-  "incorrect_credential_error": {
-    "http_status": 502,
-    "errorCode": 502,
-    "errorSubCode": "IDM_401_1",
-    "functionName": "customerLogin",
-    "errorSubMessage": "Username or password is incorrect"
+  "safe_vehicle_classification": {
+    "series": "SANTA FE HYBRID",
+    "model_year": "2026",
+    "trim": "CALLIGRAPHY HEV",
+    "hma_model": "MX5H",
+    "vehicle_generation": "3",
+    "service_ev_status": "N",
+    "enrollment": "ACTIVE"
   },
-  "cached_status_requests": 0,
-  "physical_command_requests": 0,
-  "official_app_shows_vehicle": true,
-  "official_app_evidence": "Jon answered Yes to whether MyHyundai currently shows the Santa Fe",
-  "confirmed": "The supplied log records successful token receipt, followed by failed account enrollment reads. It does not establish why that read failed.",
-  "hypothesis": "Changing only the enrollment email path from %40 to literal @ tests a discrepancy with the pinned primary library; it is not a confirmed remedy.",
-  "next_test": "Install0.3.1, Connect, then manually tap Test vehicle lookup after enrollment failure, and export the same-session comparison."
+  "confirmed": "Login, same-session literal-@ vehicle enrollment and status reads succeeded for this account. Encoded-@ enrollment failed. A refresh request was accepted but returned the earlier identical sample.",
+  "not_confirmed": [
+    "Fresh physical status sample",
+    "Remote controls or transaction completion",
+    "Tasker phone import/runtime",
+    "0.3.2 phone execution"
+  ],
+  "privacy_followup": "0.3.2 also redacts enrollmentId, nadid, mit, imat, packageId, assetNumber, billingAccountNumber, idmId, hataTID and guid, including opaque echoes and previously saved logs. Identifier semantics are conservatively treated as private.",
+  "previous_review": {
+    "app_version": "0.3.0",
+    "attachment_sha256": "53a582d5157fb728548ff60d880169ceeebca52d767701e6ed30818608c67ff9",
+    "successful_token_responses": 3,
+    "vehicle_enrollment_failures": 3,
+    "incorrect_credential_responses": 2,
+    "incorrect_credential_subcode": "IDM_401_1",
+    "cached_status_requests": 0,
+    "physical_command_requests": 0
+  },
+  "next_step": "Use literal @ as the enrollment default; establish individual command outcomes before implementing remote Tasker controls."
 }

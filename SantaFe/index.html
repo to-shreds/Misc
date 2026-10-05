@@ -23,7 +23,7 @@
           <p class="eyebrow">CONFIRM THE CALLS. CAPTURE THE RESULTS.</p>
           <h1 id="pageTitle">Test your Santa Fe connection.</h1>
           <p id="introCopy" class="intro-copy">Use the Android app to connect directly to Bluelink, inspect your vehicle, and keep a useful test log. Start with read tests, then try individual controls when you are ready.</p>
-          <p id="appDownload"><a class="button primary" href="./android/dist/SantaFe-API-Lab-0.3.1.apk" download>Download Android app</a></p>
+          <p id="appDownload"><a class="button primary" href="./android/dist/SantaFe-API-Lab-0.3.2.apk" download>Download Android app</a></p>
         </div>
         <div class="connection-indicators" aria-label="Connection status">
           <div><span class="indicator-label">Connection</span><span id="transportStatus" class="status-pill">Checking connection method</span></div>
@@ -39,7 +39,7 @@
           <details id="connectionSetup" class="setup-details" open>
             <summary>Connection setup <span class="details-hint">Use the Android app</span></summary>
             <div class="details-body">
-              <p><a href="./android/dist/SantaFe-API-Lab-0.3.1.apk" download>Download the Android app</a>, install it, and open <strong>Santa Fe API Lab</strong>. The same tester runs inside the app and sends requests directly to Hyundai. No Tampermonkey or cloud relay is needed.</p>
+              <p><a href="./android/dist/SantaFe-API-Lab-0.3.2.apk" download>Download the Android app</a>, install it, and open <strong>Santa Fe API Lab</strong>. The same tester runs inside the app and sends requests directly to Hyundai. No Tampermonkey or cloud relay is needed.</p>
               <p>The app handles your login credentials locally. They are not saved. Sanitized test logs can be exported using Android's file picker.</p>
               <details id="manualBrowserSetup"><summary>Manual browser testing</summary>
               <p>For existing browser-helper users only: the helper extension handles your credentials while sending requests to Hyundai. Ordinary browser requests were blocked in testing. The Android app avoids this extension dependency.</p>
@@ -81,8 +81,8 @@
           <section class="panel" aria-labelledby="testsTitle">
             <div class="panel-heading"><span class="step-number">02</span><div><p class="eyebrow">START WITH READ TESTS</p><h2 id="testsTitle">See what works</h2></div></div>
             <p class="section-copy">After connecting, checks enrolled vehicles, cached vehicle status, and reported capabilities. Each request and response is added to the log.</p>
-            <div class="button-row wrap"><button id="runReadTestsBtn" class="button primary" type="button">Run read tests</button><button id="referenceEnrollmentBtn" class="button secondary" type="button" disabled>Test vehicle lookup</button><button id="stopBtn" class="button quiet" type="button" disabled>Stop waiting</button></div>
-            <p class="field-help">If login succeeds but the vehicle list fails, <strong>Test vehicle lookup</strong> checks a different email format using the same login. No vehicle command is sent.</p>
+            <div class="button-row wrap"><button id="runReadTestsBtn" class="button primary" type="button">Run read tests</button><button id="referenceEnrollmentBtn" class="button secondary" type="button" disabled>Test alternate lookup</button><button id="stopBtn" class="button quiet" type="button" disabled>Stop waiting</button></div>
+            <p class="field-help">If login succeeds but the vehicle list fails, <strong>Test alternate lookup</strong> checks the other email URL format using the same login. No vehicle command is sent.</p>
             <p class="field-help">Read tests do not send remote vehicle commands. Stopping ends this page's wait; a request already sent may still finish.</p>
             <div id="results" class="results" aria-live="polite"><div class="empty-state compact"><span class="empty-icon" aria-hidden="true">↗</span><p>Your test results will appear here.</p></div></div>
           </section>
