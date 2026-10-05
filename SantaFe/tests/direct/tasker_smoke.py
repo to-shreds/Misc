@@ -160,7 +160,7 @@ def import_project():
                 return root
         if click(root, ["Santa_Fe_Direct.prj.xml", "Santa_Fe_Direct", "Download", "Downloads", "projects"]):
             continue
-        if not click(root, ["Yes", "Import", "OK", "Continue", "Done", "No"]):
+        if not click(root, ["Allow", "Allow all", "Yes", "Import", "OK", "Continue", "Done", "No"]):
             raise RuntimeError("Unhandled import UI: " + str(visible(root)))
     raise RuntimeError("Import did not expose tasks")
 
@@ -246,12 +246,26 @@ def read_result_variables():
     REPORT["observed_result_variables"] = found
     return found
 
+def capture_native_configuration():
+    listing = adb("shell", "find", "/data/data/" + PACKAGE + "/files", "-maxdepth", "3", "-type", "f", check=False).decode()
+    for index, path in enumerate(listing.splitlines()):
+        if not path.endswith(".xml"):
+            continue
+        data = adb("exec-out", "cat", path, check=False)
+        try:
+            root = E.fromstring(data)
+        except E.ParseError:
+            continue
+        if root.tag == "TaskerData":
+            (RESULTS / f"native-config-{index}.xml").write_bytes(data)
+
 def run():
     adb("root", check=False)
     adb("wait-for-device", timeout=60)
     for operation in ["SYSTEM_ALERT_WINDOW", "WRITE_SETTINGS", "MANAGE_EXTERNAL_STORAGE"]:
         adb("shell", "appops", "set", PACKAGE, operation, "allow", check=False)
     adb("shell", "pm", "grant", PACKAGE, "android.permission.POST_NOTIFICATIONS", check=False)
+    adb("shell", "pm", "grant", PACKAGE, "android.permission.READ_MEDIA_AUDIO", check=False)
     adb("shell", "dumpsys", "deviceidle", "whitelist", "+" + PACKAGE, check=False)
     startup()
     import_project()
@@ -307,6 +321,10 @@ if __name__ == "__main__":
             last = screen()
             REPORT["last_ui"] = visible(last)
             REPORT["last_ui_nodes"] = [dict(n.attrib) for n in nodes(last)]
+        except Exception:
+            pass
+        try:
+            capture_native_configuration()
         except Exception:
             pass
         raise
