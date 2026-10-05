@@ -231,6 +231,16 @@ def play(root):
         return
     raise RuntimeError("No observed task Run control: " + str(visible(root)))
 
+def wait_for(text):
+    # First Java-action compilation and scene transitions can outlast the
+    # fixture's short delay. Observe until the target exists; never retap.
+    for _ in range(15):
+        root = screen()
+        if matching(root, text) is not None:
+            return root
+        time.sleep(1)
+    return root
+
 def back_to_tasks():
     adb("shell", "input", "keyevent", "4")
     time.sleep(0.8)
@@ -405,14 +415,13 @@ def run():
     back_to_tasks()
     root = open_task("SFD Open")
     play(root)
-    time.sleep(2)
-    root = screen()
+    root = wait_for("Santa Fe / Home")
     check(matching(root, "Santa Fe / Home") is not None, "Actual Tasker opens the native Home scene")
     check(not any("%SFDGui" in n.get("text", "") for n in nodes(root)), "Scene labels resolve their display variables")
     (RESULTS / "scene-home.png").write_bytes(adb("exec-out", "screencap", "-p"))
     for page in ["Controls", "Status", "Account", "Climate", "Command", "Help"]:
         check(click(root, [page]), "Home navigation opens " + page)
-        root = screen()
+        root = wait_for("Santa Fe / " + page)
         check(matching(root, "Santa Fe / " + page) is not None, "Native " + page + " scene is visible")
         (RESULTS / ("scene-" + page.lower() + ".png")).write_bytes(adb("exec-out", "screencap", "-p"))
         if page == "Controls":
@@ -420,23 +429,21 @@ def run():
             check(not any("horn" in n.get("text", "").lower() or "lights" in n.get("text", "").lower() for n in nodes(root)), "Control scene contains no unconfirmed controls")
         if page == "Account":
             check(click(root, ["Edit account"]), "Scene account button runs the saved settings form")
-            root = screen()
+            root = wait_for("Santa Fe account")
             inputs = [n for n in nodes(root) if n.get("class") == "android.widget.EditText"]
             check(len(inputs) == 4 and inputs[0].get("text") == "fixture@example.invalid" and sum(n.get("password") == "true" for n in inputs) == 2, "Account scene retains the saved synthetic account and masks secrets")
             check(click(root, ["Cancel"]), "Scene account edit can be cancelled")
-            time.sleep(1)
-            root = screen()
+            root = wait_for("Santa Fe / Account")
             check(matching(root, "Santa Fe / Account") is not None, "Cancelled account form returns to its scene")
         if page == "Climate":
             check(click(root, ["Edit climate"]), "Scene climate button opens settings without a command")
-            root = screen()
+            root = wait_for("Remote start settings")
             check(matching(root, "Remote start settings") is not None, "Scene opens the native climate form")
             check(click(root, ["Cancel"]), "Scene climate edit can be cancelled")
-            time.sleep(1)
-            root = screen()
+            root = wait_for("Santa Fe / Climate")
             check(matching(root, "Santa Fe / Climate") is not None, "Cancelled climate form returns to its scene")
         check(click(root, ["Home"]), "Native scene returns to Home from " + page)
-        root = screen()
+        root = wait_for("Santa Fe / Home")
         check(matching(root, "Santa Fe / Home") is not None, "Home is restored after " + page)
     check(click(root, ["Close"]), "Native Close button dismisses the GUI")
     check(matching(screen(), "Santa Fe / Home") is None, "GUI closes without any vehicle operation")
