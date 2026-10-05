@@ -12,8 +12,8 @@ def test_native_action_shapes_and_membership():
     fixture = E.parse(ROOT / "tests/fixtures/tasker/native-action-shapes.xml").getroot()
     shapes = {a.findtext("code"): [(c.tag, c.get("sr")) for c in a if c.get("sr", "").startswith("arg")] for a in fixture.iter("Action")}
     tasks = root.findall("Task")
-    assert len(tasks) == 41 and len(list(root.iter("Action"))) == 89
-    assert not root.findall("Profile") and len(root.findall("Scene")) == 7
+    assert len(tasks) == 61 and len(list(root.iter("Action"))) == 128
+    assert len(root.findall("Profile")) == 1 and len(root.findall("Scene")) == 8
     assert root.find("Project").findtext("name") == "Santa Fe Direct"
     assert set(root.find("Project").findtext("tids").split(",")) == {t.findtext("id") for t in tasks}
     names = {t.findtext("nme") for t in tasks}
@@ -34,7 +34,7 @@ def test_native_action_shapes_and_membership():
         assert slots == sorted(slots)
 
 def test_embedded_source_and_reproducible_export(tmp_path):
-    expected = "\n\n".join((ROOT / "tasker/direct" / name).read_text() for name in ["api.java", "ui.java", "core.java"])
+    expected = "\n\n".join((ROOT / "tasker/direct" / name).read_text() for name in ["api.java", "ui.java", "watch.java", "location.java", "core.java"])
     root = E.parse(PROJECT).getroot()
     core = root.find('Task/Action[code="474"]')
     assert core.findtext('Str[@sr="arg0"]') == expected
@@ -67,7 +67,7 @@ def test_scene_navigation_and_control_wiring():
     tasks = {t.findtext("nme"): t for t in root.findall("Task")}
     by_id = {t.findtext("id"): t.findtext("nme") for t in tasks.values()}
     scenes = {s.findtext("nme"): s for s in root.findall("Scene")}
-    assert set(scenes) == {"SFD " + p for p in ["Home", "Controls", "Status", "Account", "Climate", "Command", "Help"]}
+    assert set(scenes) == {"SFD " + p for p in ["Home", "Controls", "Status", "Account", "Climate", "Command", "Help", "Location"]}
     assert set(root.find("Project").findtext("scenes").split(",")) == set(scenes)
     assert tasks["SFD Open"].findtext('Action/Str[@sr="arg0"]') == "SFD Open Home"
     assert not list(root.iter("WebElement"))
@@ -80,10 +80,42 @@ def test_scene_navigation_and_control_wiring():
             x,y,w,h,lx,ly,lw,lh = map(int, element.findtext("geom").split(","))
             assert min(x,y,lx,ly) >= 0 and min(w,h,lw,lh) > 0
             assert x+w <= 1320 and y+h <= 2200 and lx+lw <= 2200 and ly+lh <= 1180
-    for title, operation in [("Lock", "lock"), ("Unlock", "unlock"), ("Start", "start"), ("Stop", "stop")]:
+    for title, operation in [("Lock", "lock"), ("Unlock", "unlock"), ("Start", "start"), ("Stop", "stop"), ("Start cold", "start_cold"), ("Start hot", "start_hot")]:
         actions = tasks["SFD GUI " + title].findall("Action")
         assert actions[0].findtext('Str[@sr="arg0"]') == "SFD Close GUI"
         assert actions[1].findtext('Str[@sr="arg0"]') == "SFD Core"
         assert actions[1].findtext('Str[@sr="arg2"]') == operation
         assert actions[1].findtext('Str[@sr="arg3"]') == "gui"
         assert actions[2].findtext('Str[@sr="arg0"]') == "SFD Open Command"
+
+def test_update_preserves_existing_task_ids_and_reduces_scene_type():
+    old = E.parse(ROOT / "tasker/Santa_Fe_Direct_1_1_0_SCENES.prj.xml").getroot()
+    new = E.parse(PROJECT).getroot()
+    tasks = {t.findtext("nme"): t.findtext("id") for t in new.findall("Task")}
+    for task in old.findall("Task"):
+        assert tasks[task.findtext("nme")] == task.findtext("id")
+    for scene in new.findall("Scene"):
+        for element in list(scene.findall("TextElement")) + list(scene.findall("ButtonElement")):
+            size = int(element.find('Int[@sr="arg2"]').get("val"))
+            assert size <= (20 if element.findtext('Str[@sr="arg0"]') == "Title" else 14)
+    texts = [b.findtext('Str[@sr="arg1"]') for s in new.findall("Scene") for b in s.findall("ButtonElement")]
+    assert {"Start regular", "Start cold", "Start hot", "Edit cold", "Edit hot", "Watch settings"} <= set(texts)
+
+def test_join_event_uses_signed_receiver_without_guessed_plugin_xml():
+    root = E.parse(PROJECT).getroot()
+    tasks = {t.findtext("nme"): t for t in root.findall("Task")}
+    receive = tasks["SFD Join Event"].find("Action")
+    assert receive.findtext('Str[@sr="arg0"]') == "SFD Core"
+    assert receive.findtext('Str[@sr="arg2"]') == "watch"
+    assert receive.findtext('Str[@sr="arg3"]') == "%jointext"
+    assert "SFDWatchKey" not in " ".join(s.findtext('Str[@sr="arg1"]', "") for s in root.iter("TextElement"))
+
+def test_periodic_location_has_an_opt_in_guard_and_existing_task_target():
+    root = E.parse(PROJECT).getroot()
+    profile = root.find("Profile")
+    assert root.find("Project").findtext("pids") == profile.findtext("id")
+    target = next(t for t in root.findall("Task") if t.findtext("nme") == "SFD Periodic Location")
+    assert profile.findtext("mid0") == target.findtext("id")
+    assert profile.findtext("Time/rep") == "3" and profile.findtext("Time/repval") == "1"
+    assert profile.findtext("State/ConditionList/Condition/lhs") == "%SFDAutoLocation"
+    assert profile.findtext("State/ConditionList/Condition/rhs") == "1"

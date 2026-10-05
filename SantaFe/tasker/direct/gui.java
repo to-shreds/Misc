@@ -18,7 +18,12 @@ String pin = sfGuiValue("SFDPin", "");
 tasker.setVariable("SFDGuiAccount", email.length() > 0 && password.length() > 0 && pin.length() == 4 ? "Account saved. Edit account to update it." : "Account not saved. Tap Edit account.");
 String vin = sfGuiValue("SFDVin", "");
 tasker.setVariable("SFDGuiVehicle", vin.length() > 7 ? "Selected vehicle: VIN ending " + vin.substring(vin.length() - 8) : "No vehicle selected. Connect, then choose if asked.");
-tasker.setVariable("SFDGuiClimate", "Temperature: " + sfGuiValue("SFDTemperature", "72") + " F\nDuration: " + sfGuiValue("SFDDuration", "10") + " minutes\nDefrost: " + (sfGuiValue("SFDDefrost", "0").equals("1") ? "On" : "Off") + "\nSeat and steering-wheel heat: off");
+String sfGuiPreset(String prefix, String name, String temperature, String defrost) {
+    return name + ": " + sfGuiValue(prefix + "Temperature", temperature) + " F / " + sfGuiValue(prefix + "Duration", "10") + " min / defrost " + (sfGuiValue(prefix + "Defrost", defrost).equals("1") ? "on" : "off");
+}
+tasker.setVariable("SFDGuiClimate", sfGuiPreset("SFD", "Regular", "72", "0") + "\n\n" + sfGuiPreset("SFDCold", "Cold", "62", "0") + "\n\n" + sfGuiPreset("SFDHot", "Hot", "81", "1"));
+tasker.setVariable("SFDGuiLocation", sfGuiValue("SFDLocationResult", "No comparison yet. Read car GPS, then compare with your phone.") + "\n\nLast comparison: " + sfGuiValue("SFDLocationCheckedAt", "Never"));
+tasker.setVariable("SFDGuiLocationSchedule", "Periodic checks: " + (sfGuiValue("SFDAutoLocation", "0").equals("1") ? "on" : "off") + " / every " + sfGuiValue("SFDLocationHours", "1") + " hour(s)\nNear threshold: " + sfGuiValue("SFDNearMeters", "150") + " m");
 boolean pending = new File(context.getNoBackupFilesDir(), "santa-fe-direct-pending.json").exists();
 tasker.setVariable("SFDGuiPending", pending ? "Outcome unresolved. Check the command or physically check the car before resolving it." : "No unresolved command.");
 return "DISPLAY READY";

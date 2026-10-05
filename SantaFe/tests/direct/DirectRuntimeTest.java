@@ -7,7 +7,7 @@ import org.json.*;
 
 /** Executes the delivered BeanShell, with real OkHttp request construction and intercepted replies. */
 public class DirectRuntimeTest {
-    static int checks;
+    static int checks, scenarios;
     static Path sources;
     static final String VIN = "KM8S5DA11TU000001";
     static final String VIN2 = "KM8S5DA11TU000002";
@@ -53,14 +53,20 @@ public class DirectRuntimeTest {
         final List<Long> delays=new ArrayList<>();
         final String entry;
         public String confirmation="yes";
+        public int confirmationRequests;
         public String chosen="cancel";
         public JSONObject account=new JSONObject().put("cancel", true);
         public JSONObject climate=new JSONObject().put("cancel", true);
+        public JSONObject watchSettings=new JSONObject().put("cancel", true);
+        public JSONObject locationSettings=new JSONObject().put("cancel", true);
+        public JSONObject phone=new JSONObject();
         Fixture() throws Exception {
             context=new Context(Files.createTempDirectory("sfd-runtime-").toFile());
             interpreter.set("tasker", tasker); interpreter.set("context", context); interpreter.set("fixture", this);
             interpreter.eval(Files.readString(sources.resolve("api.java")));
             interpreter.eval(Files.readString(sources.resolve("ui.java")));
+            interpreter.eval(Files.readString(sources.resolve("watch.java")));
+            interpreter.eval(Files.readString(sources.resolve("location.java")));
             String core=Files.readString(sources.resolve("core.java"));
             int cut=core.indexOf("// ENTRY:");
             interpreter.eval(core.substring(0,cut));
@@ -82,9 +88,9 @@ public class DirectRuntimeTest {
             }).build();
             interpreter.set("sfFixtureClient",client);
             interpreter.eval("sfMakeClient() { return sfFixtureClient; }\nlong sfNow() { return fixture.now; }\nvoid sfDelay(long value) { fixture.delay(value); }\n"
-                +"String sfConfirm(String a, String b, String c) { return fixture.confirmation; }\n"
+                +"String sfConfirm(String a, String b, String c) { fixture.confirmationRequests++; return fixture.confirmation; }\n"
                 +"void sfMessage(String a, String b) {}\nString sfChoose(String a, String[] b, String[] c) { return fixture.chosen; }\n"
-                +"JSONObject sfAccountForm() { return fixture.account; }\nJSONObject sfClimateForm() { return fixture.climate; }");
+                +"JSONObject sfAccountForm() { return fixture.account; }\nJSONObject sfClimateForm(String a, String b, int c, boolean d) { return fixture.climate; }\nJSONObject sfWatchForm() { return fixture.watchSettings; }\nJSONObject sfLocationForm() { return fixture.locationSettings; }\nJSONObject sfPhoneFix() { return fixture.phone; }");
         }
         public void delay(long value) { delays.add(value); now+=value; }
         void credentials() { tasker.variables.put("SFDEmail",EMAIL); tasker.variables.put("SFDPassword",PASSWORD); tasker.variables.put("SFDPin",PIN); }
@@ -100,6 +106,14 @@ public class DirectRuntimeTest {
             return String.valueOf(result);
         }
         String state() { return tasker.variables.get("SFDState"); }
+        void pairWatch() { tasker.setVariable("SFDWatchKey", "00".repeat(32)); tasker.setVariable("SFDWatchEnabled", "1"); }
+        String watchMessage(String operation, boolean safe, String id, long issued) throws Exception {
+            String content="sfd1|"+id+"|"+issued+"|"+operation+"|"+(safe?"1":"0");
+            javax.crypto.Mac mac=javax.crypto.Mac.getInstance("HmacSHA256");
+            mac.init(new javax.crypto.spec.SecretKeySpec(new byte[32],"HmacSHA256"));
+            return content+"|"+java.util.HexFormat.of().formatHex(mac.doFinal(content.getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
+        }
+        String runWatch(String message) throws Exception { tasker.setVariable("par2",message); return run("watch"); }
         void login() { expected.add(new Expected("POST","/v2/ac/oauth/token",200,"{\"access_token\":\"fixture-token\",\"expires_in\":1800}").check(r -> {
             JSONObject body=body(r); check(body.keySet().equals(Set.of("username","password")) && body.getString("username").equals(EMAIL) && body.getString("password").equals(PASSWORD),"login JSON escaping and exact fields");
             check(r.header("accessToken")==null && r.header("username")==null && r.header("blueLinkServicePin")==null,"login contains no session headers");
@@ -114,6 +128,14 @@ public class DirectRuntimeTest {
             common(r); vehicleHeaders(r,VIN,"reg-fixture"); check(r.body()==null && r.header("refresh").equals(fresh?"true":"false"),"status refresh/header/body");
         })); }
         void connect() throws Exception { credentials(); login(); enroll(); status(false); run("connect"); check(state().equals("READ"),"connect succeeds"); }
+        void location(JSONObject location) {
+            expected.add(new Expected("GET", "/ac/v2/rcs/rfc/findMyCar", 200, location.toString()).check(r -> { common(r); vehicleHeaders(r,VIN,"reg-fixture"); check(r.body()==null,"location request is a bodyless GET"); }));
+        }
+        void locationReady() throws Exception {
+            connect(); phone=new JSONObject().put("lat",0).put("lon",0).put("time",now).put("accuracy",15);
+            location(new JSONObject().put("coord",new JSONObject().put("lat",0).put("lon",0)).put("time",java.time.Instant.ofEpochMilli(now).toString()));
+            run("location");
+        }
         Expected command(String operation, int http, String content, String tid) {
             String endpoint=Map.of("lock","/ac/v2/rcs/rdo/off","unlock","/ac/v2/rcs/rdo/on","start","/ac/v2/rcs/rsc/start","stop","/ac/v2/rcs/rsc/stop").get(operation);
             Expected item=new Expected("POST",endpoint,http,content).tid(tid).check(r -> {
@@ -154,11 +176,11 @@ public class DirectRuntimeTest {
     }
     static void check(boolean value,String label) { checks++; if(!value) throw new AssertionError(label); }
     static Fixture f() throws Exception { return new Fixture(); }
-    static void test(String name, RunnableWithException test) throws Exception { test.run(); System.out.println("PASS "+name); }
+    static void test(String name, RunnableWithException test) throws Exception { test.run(); scenarios++; System.out.println("PASS "+name); }
     interface RunnableWithException { void run() throws Exception; }
     public static void main(String[] args) throws Exception {
         sources=Path.of(args[0]);
-        test("offline imported action self-check",()->{Fixture f=f();check(f.run("verify").startsWith("Santa Fe Direct 1.1.0 loaded."),"BeanShell returns the reported result");check(f.state().equals("READY") && f.seen.isEmpty(),"verify is offline");});
+        test("offline imported action self-check",()->{Fixture f=f();check(f.run("verify").startsWith("Santa Fe Direct 1.2.0 loaded."),"BeanShell returns the reported result");check(f.state().equals("READY") && f.seen.isEmpty(),"verify is offline");});
         test("setup remembers account without network",()->{Fixture f=f();f.account=new JSONObject().put("email",EMAIL).put("password",PASSWORD).put("pin",PIN).put("vin","");f.run("setup");check(f.state().equals("SAVED") && f.tasker.getVariable("SFDPassword").equals(PASSWORD),"setup saved");});
         test("initial login and cached status",()->{Fixture f=f();f.connect();check(f.session().get("token").equals("fixture-token") && !f.tasker.variables.containsValue("fixture-token"),"token only Java object");check(f.tasker.getVariable("SFDDoorLock").equals("Locked") && f.tasker.getVariable("SFDEngine").equals("Off") && f.tasker.getVariable("SFDClimate").equals("Off"),"boolean status values render correctly: " + f.tasker.getVariable("SFDStatus"));});
         test("status labels cover both boolean states",()->{Fixture f=f();f.connect();f.expected.add(new Expected("GET","/ac/v2/rcs/rvs/vehicleStatus",200,"{\"vehicleStatus\":{\"dateTime\":\"2026-10-05T18:00:43Z\",\"doorLock\":false,\"engine\":true,\"airCtrlOn\":true}}"));f.run("status");check(f.tasker.getVariable("SFDDoorLock").equals("Unlocked") && f.tasker.getVariable("SFDEngine").equals("Running") && f.tasker.getVariable("SFDClimate").equals("On"),"false and true map to the displayed labels");check(f.tasker.getVariable("SFDVehicleTime").equals("2026-10-05T18:00:43Z"),"vehicle timestamp retained");});
@@ -210,6 +232,36 @@ public class DirectRuntimeTest {
             finally {release.countDown();other.join();}
             f.run("verify");check(f.state().equals("READY"),"lock remains reusable");
         });
-        System.out.println("PASS "+checks+" runtime assertions; 43 scenarios; zero real network requests or vehicle operations.");
+        test("cold and hot defaults use unchanged start endpoint and preserve regular preset",()->{
+            for(String op:List.of("start_cold","start_hot")) {
+                Fixture f=f();f.connect();f.tasker.setVariable("SFDTemperature","70");f.tasker.setVariable("SFDDuration","5");f.status(false);
+                Expected command=f.command("start",200,"","fixture-tid");var original=command.inspect;
+                command.inspect=r->{original.accept(r);JSONObject b=body(r);check(b.getJSONObject("airTemp").getInt("value")== (op.equals("start_cold")?62:81) && b.getBoolean("defrost")==op.equals("start_hot") && b.getInt("igniOnDuration")==10,"preset values only");};
+                f.poll("SUCCESS");f.run(op);check(f.state().equals("SUCCESS") && f.tasker.getVariable("SFDTemperature").equals("70") && f.tasker.getVariable("SFDDuration").equals("5"),"regular preset unchanged");
+            }
+        });
+        test("editable preset saves without sending commands",()->{Fixture f=f();f.tasker.setVariable("SFDTemperature","70");f.climate=new JSONObject().put("temperature",66).put("duration",6).put("defrost",false);f.run("climate_cold");check(f.seen.isEmpty() && f.tasker.getVariable("SFDColdTemperature").equals("66") && f.tasker.getVariable("SFDTemperature").equals("70"),"independent cold settings");});
+        test("custom cold preset affects only its submitted request",()->{Fixture f=f();f.connect();f.tasker.setVariable("SFDColdTemperature","65");f.tasker.setVariable("SFDColdDuration","6");f.tasker.setVariable("SFDColdDefrost","1");f.status(false);Expected c=f.command("start",200,"","fixture-tid");var original=c.inspect;c.inspect=r->{original.accept(r);JSONObject b=body(r);check(b.getJSONObject("airTemp").getInt("value")==65 && b.getInt("igniOnDuration")==6 && b.getBoolean("defrost"),"editable preset body");};f.poll("SUCCESS");f.run("start_cold");});
+        test("cancelled cold and hot starts never submitted",()->{for(String op:List.of("start_cold","start_hot")){Fixture f=f();f.connect();int count=f.seen.size();f.confirmation="no";f.run(op);check(f.seen.size()==count && f.state().equals("CANCELLED") && f.confirmationRequests==1,"preset confirmation retained");}});
+        test("invalid preset values fail before any status or control request",()->{Fixture f=f();f.connect();int count=f.seen.size();f.tasker.setVariable("SFDHotTemperature","82");f.run("start_hot");check(f.state().equals("FAILED") && f.seen.size()==count && !f.marker().exists(),"out-of-range hot withheld");});
+        test("watch setup is offline and disabled until enabled",()->{Fixture f=f();f.watchSettings=new JSONObject().put("enabled",false).put("key","00".repeat(32));f.run("watch_settings");check(f.seen.isEmpty() && f.tasker.getVariable("SFDWatchEnabled").equals("0"),"offline disabled setup");f.runWatch(f.watchMessage("lock",false,"fixture_request_01",f.now));check(f.seen.isEmpty() && f.state().equals("FAILED"),"disabled receiver ignores signed message");});
+        test("signed watch test authenticates without car credentials or network",()->{Fixture f=f();f.pairWatch();f.runWatch(f.watchMessage("ping",false,"fixture_request_01",f.now));check(f.state().equals("WATCH PAIRED") && f.seen.isEmpty() && f.confirmationRequests==0,"pairing test is offline");});
+        test("tampered and malformed watch pushes cannot authenticate",()->{for(String message:List.of("sfd1|bad", "sfd1|fixture_request_01|1791172800000|lock|0|"+"00".repeat(32), "sfd1|fixture_request_01|1791172800000|unlock;lock|0|"+"00".repeat(32))){Fixture f=f();f.pairWatch();f.runWatch(message);check(f.seen.isEmpty() && f.state().equals("FAILED") && !new File(f.context.root,"santa-fe-direct-watch-seen.json").exists(),"invalid push has no network or receipt");}});
+        test("expired future and unconfirmed watch starts are withheld",()->{Fixture f=f();f.pairWatch();for(long issued:List.of(f.now-90001,f.now+10001)){f.runWatch(f.watchMessage("lock",false,"fixture_request_01",issued));check(f.seen.isEmpty()&&f.state().equals("FAILED"),"age limits");}f.runWatch(f.watchMessage("start",false,"fixture_request_01",f.now));check(f.seen.isEmpty()&&f.state().equals("FAILED"),"signed start without confirmation blocked");});
+        test("valid signed watch cold start uses watch confirmation and normal guarded core",()->{Fixture f=f();f.connect();f.pairWatch();f.confirmation="no";f.status(false);f.command("start",200,"","fixture-tid");f.poll("SUCCESS");String message=f.watchMessage("start_cold",true,"fixture_request_01",f.now);f.runWatch(message);check(f.state().equals("SUCCESS")&&f.confirmationRequests==0,"watch confirmation avoids phone dialog only after authentication");int count=f.seen.size();f.runWatch(message);check(f.seen.size()==count&&f.state().equals("FAILED"),"successful command never replayed");f.confirmation="no";f.run("start");check(f.state().equals("CANCELLED")&&f.confirmationRequests==1,"manual task still confirms after watch call");});
+        test("watch replay receipt survives process loss",()->{Fixture f=f();f.pairWatch();String message=f.watchMessage("ping",false,"fixture_request_01",f.now);f.runWatch(message);f.tasker.objects.clear();f.runWatch(message);check(f.state().equals("FAILED")&&f.seen.isEmpty(),"durable deduplication");});
+        test("watch controls cannot bypass unresolved outcome guard",()->{Fixture f=f();f.pairWatch();Files.writeString(f.marker().toPath(),"{}");f.runWatch(f.watchMessage("unlock",false,"fixture_request_01",f.now));check(f.state().equals("UNKNOWN")&&f.marker().exists()&&f.seen.isEmpty(),"pending guard blocks signed command before login");});
+        test("invalid replay storage fails closed before commands",()->{Fixture f=f();f.pairWatch();Files.writeString(new File(f.context.root,"santa-fe-direct-watch-seen.json").toPath(),"bad JSON");f.runWatch(f.watchMessage("unlock",false,"fixture_request_01",f.now));check(f.seen.isEmpty()&&f.state().equals("FAILED"),"invalid durable receipts stop request");});
+        test("manual GPS read returns valid zero coordinates and approximate near state",()->{Fixture f=f();f.locationReady();check(f.tasker.getVariable("SFDCarLat").equals("0.0")&&f.tasker.getVariable("SFDProximity").equals("Near")&&f.tasker.getVariable("SFDDistanceMeters").equals("0"),"valid equator/prime meridian not treated as missing");check(f.tasker.getVariable("SFDLocationVerified").equals(VIN)&&!f.marker().exists(),"successful read verified without command guard");});
+        test("GPS time parsing rejects malformed dates and supports known UTC formats",()->{Fixture f=f();for(String date:List.of("20261005180043","2026-10-05T18:00:43Z","2026-10-05T14:00:43-04:00")){f.interpreter.set("date",date);check(((Number)f.interpreter.eval("sfLocationMillis(date);")).longValue()==java.time.Instant.parse("2026-10-05T18:00:43Z").toEpochMilli(),"UTC formats agree");}for(String date:List.of("20260230000000","2026-10-05T18:00:43","untrusted")){f.interpreter.set("date",date);check(((Number)f.interpreter.eval("sfLocationMillis(date);")).longValue()==0,"ambiguous or invalid time withheld");}});
+        test("location distance handles dateline and antipodes",()->{Fixture f=f();double oneDegree=((Number)f.interpreter.eval("sfDistanceMeters(0,0,0,1);")).doubleValue();check(Math.abs(oneDegree-111195)<2,"known equatorial distance");double dateline=((Number)f.interpreter.eval("sfDistanceMeters(0,179.9,0,-179.9);")).doubleValue();check(Math.abs(dateline-22239)<3,"dateline uses short route");double opposite=((Number)f.interpreter.eval("sfDistanceMeters(90,0,-90,0);")).doubleValue();check(Double.isFinite(opposite)&&Math.abs(opposite-20015114)<3,"antipodal finite");});
+        test("stale car position never produces current near or apart verdict",()->{Fixture f=f();f.locationReady();f.now+=900001;f.phone.put("time",f.now);int seen=f.seen.size();f.run("compare_location");check(f.tasker.getVariable("SFDProximity").equals("Unknown")&&f.tasker.getVariable("SFDLocationResult").contains("Stale")&&f.seen.size()==seen,"stale comparison is offline and labelled");});
+        test("missing phone GPS retains timestamp but clears old distance verdict",()->{Fixture f=f();f.locationReady();f.phone=new JSONObject();int seen=f.seen.size();f.run("compare_location");check(f.tasker.getVariable("SFDDistanceMeters").isEmpty()&&f.tasker.getVariable("SFDProximity").equals("Unknown")&&f.tasker.getVariable("SFDLocationResult").contains("unavailable")&&f.seen.size()==seen,"permission or missing fix is unknown without Hyundai request");});
+        test("inaccurate phone fix cannot produce near or apart verdict",()->{Fixture f=f();f.locationReady();f.phone.put("accuracy",200);f.run("compare_location");check(f.tasker.getVariable("SFDProximity").equals("Unknown"),"poor accuracy withheld");f.phone.put("accuracy",15).put("lon",0.0013);f.run("compare_location");check(f.tasker.getVariable("SFDProximity").equals("Uncertain"),"threshold crossing accuracy is uncertain");f.phone.put("lon",1);f.run("compare_location");check(f.tasker.getVariable("SFDProximity").equals("Apart"),"separated fresh positions");});
+        test("invalid car GPS response retains the last sample without stale verdict",()->{Fixture f=f();f.locationReady();String original=f.tasker.getVariable("SFDCarTime");f.location(new JSONObject().put("coord",new JSONObject().put("lat",91).put("lon",0)));f.run("location");check(f.tasker.getVariable("SFDCarTime").equals(original)&&f.tasker.getVariable("SFDProximity").equals("Unknown")&&f.tasker.getVariable("SFDDistanceMeters").isEmpty(),"invalid range fails without corrupting cache or current verdict");});
+        test("periodic GPS disabled and cannot enable without a successful lookup",()->{Fixture f=f();f.run("periodic_location");check(f.seen.isEmpty(),"disabled task is offline");f.locationSettings=new JSONObject().put("enabled",true).put("hours",1).put("meters",150);f.run("location_settings");check(!"1".equals(f.tasker.getVariable("SFDAutoLocation"))&&f.seen.isEmpty(),"unverified location cannot start schedule");});
+        test("periodic GPS interval survives live-session loss and never submits controls",()->{Fixture f=f();f.locationReady();f.tasker.setVariable("SFDAutoLocation","1");f.tasker.setVariable("SFDLocationHours","2");f.location(new JSONObject().put("coord",new JSONObject().put("lat",0).put("lon",0)).put("time",java.time.Instant.ofEpochMilli(f.now).toString()));f.run("periodic_location");int seen=f.seen.size();f.tasker.objects.clear();f.now+=3600000;f.run("periodic_location");check(f.seen.size()==seen&&!f.marker().exists(),"not due after one hour despite lost session");check(f.seen.stream().filter(r->r.method().equals("POST")).allMatch(r->r.url().encodedPath().equals("/v2/ac/oauth/token")),"only authentication POST, never control");});
+        test("locations cannot be compared across vehicles or credential identities",()->{Fixture f=f();f.locationReady();int seen=f.seen.size();f.tasker.setVariable("SFDVin",VIN2);f.run("compare_location");check(f.tasker.getVariable("SFDProximity").equals("Unknown")&&f.seen.size()==seen,"old VIN invalidated offline");f.tasker.setVariable("SFDVin","");f.tasker.setVariable("SFDPassword","different");f.run("compare_location");check(f.tasker.getVariable("SFDLocationResult").contains("selected account/car"),"different account cannot reuse coordinates");});
+        System.out.println("PASS "+checks+" runtime assertions; "+scenarios+" scenarios; zero real network requests or vehicle operations.");
     }
 }

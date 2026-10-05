@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Observe the real Tasker 1.0.0 -> 1.1.0 import flow with synthetic settings."""
+"""Observe the real Tasker 1.1.0 -> 1.2.0 import flow with synthetic settings."""
 import argparse
 import hashlib
 import json
@@ -26,7 +26,7 @@ def configuration(label):
     raise RuntimeError('No saved native Tasker configuration')
 
 def import_update():
-    name='Santa_Fe_Direct_1_1_0_SCENES.prj.xml'
+    name='Santa_Fe_Direct_1_2_0_PRESETS_WATCH_GPS.prj.xml'
     for directory in ['/sdcard/Tasker/projects/','/sdcard/Download/']:
         m.adb('push',str(m.ROOT/'tasker/Santa_Fe_Direct.prj.xml'),directory+name)
     root=m.screen(); node=m.matching(root,'Default Project')
@@ -84,7 +84,7 @@ def run(old):
         new.write_bytes(old.read_bytes());m.import_project()
     finally: new.write_bytes(original)
     before=configuration('before_update')
-    m.check(before=={'tasks':17,'actions':17,'scenes':0},'Baseline actually has 17 old tasks and no scenes')
+    m.check(before=={'tasks':41,'actions':89,'scenes':7},'Baseline actually has 41 old tasks and seven scenes')
     m.startup();m.play(m.open_task('SFD Setup'));time.sleep(1)
     for i,value in enumerate(['fixture@example.invalid','fixture-test-only','1357']):
         root=m.screen();inputs=[n for n in m.nodes(root) if n.get('class')=='android.widget.EditText']
@@ -102,10 +102,10 @@ def run(old):
         remove_old_project()
         import_update()
     after=configuration('after_update')
-    m.check(after=={'tasks':41,'actions':89,'scenes':7},'Updating existing project imports all 41 tasks, 89 actions and seven scenes')
+    m.check(after=={'tasks':61,'actions':128,'scenes':8},'Updating existing project imports all 61 tasks, 128 actions and eight scenes')
     m.startup();m.play(m.open_task('SFD Verify Actions'))
     root=m.wait_for('Santa Fe Direct verification')
-    m.check(any('1.1.0' in n.get('text','') for n in m.nodes(root)),'Updated verification task actually reports 1.1.0')
+    m.check(any('1.2.0' in n.get('text','') for n in m.nodes(root)),'Updated verification task actually reports 1.2.0')
     m.check(any('Status parser verified: Locked / Off / Off' in n.get('text','') for n in m.nodes(root)),'Updated native status reader executes after replacement')
     m.click(root,['OK']);m.back_to_tasks();m.play(m.open_task('SFD Setup'))
     root=m.wait_for('Santa Fe account');inputs=[n for n in m.nodes(root) if n.get('class')=='android.widget.EditText']

@@ -44,7 +44,7 @@ String sfEnrollmentPath(String email) {
 }
 boolean sfAllowedPath(String method, String path) {
     if (method.equals("GET")) return path.startsWith("/ac/v2/enrollment/details/")
-        || path.equals("/ac/v2/rcs/rvs/vehicleStatus") || path.equals("/ac/v2/rmt/getRunningStatus");
+        || path.equals("/ac/v2/rcs/rvs/vehicleStatus") || path.equals("/ac/v2/rcs/rfc/findMyCar") || path.equals("/ac/v2/rmt/getRunningStatus");
     if (method.equals("POST")) return path.equals("/v2/ac/oauth/token")
         || path.equals("/ac/v2/rcs/rdo/on") || path.equals("/ac/v2/rcs/rdo/off")
         || path.equals("/ac/v2/rcs/rsc/start") || path.equals("/ac/v2/rcs/rsc/stop");
@@ -196,6 +196,7 @@ String sfStatus(boolean refresh) {
     String engine = sfStatusFlag(status, "engine", "Running", "Off");
     String climate = sfStatusFlag(status, "airCtrlOn", "On", "Off");
     tasker.setVariable("SFDDoorLock", lock); tasker.setVariable("SFDEngine", engine); tasker.setVariable("SFDClimate", climate);
+    sfStoreCarLocation(status.optJSONObject("vehicleLocation"), "Hyundai status sample");
     String summary = "Doors: " + lock + "\nEngine: " + engine + "\nClimate: " + climate + "\nVehicle timestamp: " + timestamp
         + "\nHyundai may return cached data, including after a refresh request.";
     tasker.setVariable("SFDStatus", summary); return summary;
@@ -208,20 +209,23 @@ JSONObject sfCommandRecipe(String operation) {
         path = operation.equals("lock") ? "/ac/v2/rcs/rdo/off" : "/ac/v2/rcs/rdo/on";
         body = new JSONObject().put("userName", sfSession.get("email")).put("vin", selected.getString("vin"));
         extra.put("APPCLOUD-VIN", selected.getString("vin"));
-    } else if (operation.equals("start") || operation.equals("stop")) {
+    } else if (Arrays.asList(new String[]{"start", "start_cold", "start_hot", "stop"}).contains(operation)) {
         // This project targets the confirmed non-EV Santa Fe Hybrid recipe only.
         if (!selected.optString("evStatus").equals("N") || selected.optInt("vehicleGeneration") != 3)
             sfFail("The selected vehicle does not match the confirmed Santa Fe Hybrid generation 3 recipe. No command was sent.");
-        path = operation.equals("start") ? "/ac/v2/rcs/rsc/start" : "/ac/v2/rcs/rsc/stop";
-        if (operation.equals("start")) {
-            int temperature = 72; int duration = 10;
+        path = operation.equals("stop") ? "/ac/v2/rcs/rsc/stop" : "/ac/v2/rcs/rsc/start";
+        if (!operation.equals("stop")) {
+            String prefix = operation.equals("start_cold") ? "SFDCold" : operation.equals("start_hot") ? "SFDHot" : "SFD";
+            int temperature = operation.equals("start_cold") ? 62 : operation.equals("start_hot") ? 81 : 72;
+            int duration = 10;
             try {
-                if (sfValue("SFDTemperature").length() > 0) temperature = Integer.parseInt(sfValue("SFDTemperature"));
-                if (sfValue("SFDDuration").length() > 0) duration = Integer.parseInt(sfValue("SFDDuration"));
+                if (sfValue(prefix + "Temperature").length() > 0) temperature = Integer.parseInt(sfValue(prefix + "Temperature"));
+                if (sfValue(prefix + "Duration").length() > 0) duration = Integer.parseInt(sfValue(prefix + "Duration"));
             } catch (Exception invalid) { sfFail("Use whole-number climate temperature and duration. No command was sent."); }
             if (temperature < 62 || temperature > 81 || duration < 1 || duration > 10)
                 sfFail("Climate temperature must be 62 to 81 F and duration 1 to 10 minutes. No command was sent.");
-            String defrost = sfValue("SFDDefrost");
+            String defrost = sfValue(prefix + "Defrost");
+            if (defrost.length() == 0) defrost = operation.equals("start_hot") ? "1" : "0";
             if (defrost.length() > 0 && !defrost.equals("0") && !defrost.equals("1")) sfFail("Defrost must be 0 or 1. No command was sent.");
             JSONObject seat = new JSONObject().put("drvSeatHeatState", 0).put("astSeatHeatState", 0).put("rlSeatHeatState", 0).put("rrSeatHeatState", 0);
             body = new JSONObject().put("Ims", 0).put("airCtrl", 1).put("airTemp", new JSONObject().put("unit", 1).put("value", temperature))
