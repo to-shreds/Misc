@@ -51,6 +51,27 @@ def import_update():
         raise RuntimeError('Unhandled update UI: '+str(texts))
     raise RuntimeError('Update import did not return to Tasks')
 
+def remove_old_project():
+    root=m.screen();m.click(root,['OK']);root=m.screen()
+    node=m.matching(root,'Santa Fe Direct')
+    if node is None: raise RuntimeError('Old project tab is not visible for scoped removal: '+str(m.visible(root)))
+    left,top,right,bottom=[int(x) for x in re.findall(r'\d+',node.get('bounds',''))]
+    x,y=str((left+right)//2),str((top+bottom)//2)
+    m.adb('shell','input','swipe',x,y,x,y,'1000');time.sleep(.8)
+    root=m.screen();m.REPORT.setdefault('removal_windows',[]).append(m.visible(root))
+    m.check(m.click(root,['Delete']),'Only the existing Santa Fe Direct project is selected for removal')
+    for _ in range(12):
+        root=m.screen();texts=m.visible(root);m.REPORT['removal_windows'].append(texts)
+        if m.matching(root,'Santa Fe Direct') is None and m.matching(root,'Tasks') is not None and m.matching(root,'Yes') is None:
+            m.REPORT['update_requires_removal']=True
+            return
+        contents=next((n for n in m.nodes(root) if 'contents' in n.get('text','').lower() and not any(w in n.get('text','').lower() for w in ['without','keep'])),None)
+        if contents is not None:
+            m.tap(contents);continue
+        if m.click(root,['Yes','OK','Delete','Confirm']):continue
+        raise RuntimeError('Unhandled scoped project removal: '+str(texts))
+    raise RuntimeError('Old project removal did not complete')
+
 def run(old):
     new=m.ROOT/'tasker/Santa_Fe_Direct.prj.xml'; original=new.read_bytes()
     m.REPORT['project_sha256']=hashlib.sha256(original).hexdigest()
@@ -73,7 +94,13 @@ def run(old):
             m.adb('shell','input','keyevent','4');time.sleep(.5)
     m.check(m.click(m.screen(),['Save']),'Old project saves synthetic account before update')
     time.sleep(2);m.back_to_tasks();configuration('saved_old_account');m.startup()
-    import_update()
+    try:
+        import_update()
+    except RuntimeError as error:
+        if 'a project with that name already exists' not in str(error): raise
+        m.REPORT['existing_project_import_error']=str(error)
+        remove_old_project()
+        import_update()
     after=configuration('after_update')
     m.check(after=={'tasks':41,'actions':89,'scenes':7},'Updating existing project imports all 41 tasks, 89 actions and seven scenes')
     m.startup();m.play(m.open_task('SFD Verify Actions'))
