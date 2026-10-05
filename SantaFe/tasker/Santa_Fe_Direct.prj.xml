@@ -251,6 +251,7 @@ import android.content.DialogInterface;
 import android.view.WindowManager;
 import android.widget.*;
 import android.text.InputType;
+import android.text.method.PasswordTransformationMethod;
 import java.util.function.Consumer;
 import io.reactivex.subjects.SingleSubject;
 
@@ -313,8 +314,8 @@ JSONObject sfAccountForm() {
             LinearLayout layout = new LinearLayout(activity); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(24, 12, 24, 12);
             TextView explanation = new TextView(activity); explanation.setText("Enter once. Blank password or PIN keeps the saved value. Leave VIN blank to select the only active vehicle."); layout.addView(explanation);
             EditText email = new EditText(activity); email.setHint("MyHyundai email"); email.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS); email.setSingleLine(true); email.setText(sfValue("SFDEmail")); layout.addView(email);
-            EditText password = new EditText(activity); password.setHint("Password"); password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD); password.setSingleLine(true); layout.addView(password);
-            EditText pin = new EditText(activity); pin.setHint("Four-digit Bluelink PIN"); pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD); pin.setSingleLine(true); layout.addView(pin);
+            EditText password = new EditText(activity); password.setHint("Password"); password.setSingleLine(true); password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD); password.setTransformationMethod(PasswordTransformationMethod.getInstance()); layout.addView(password);
+            EditText pin = new EditText(activity); pin.setHint("Four-digit Bluelink PIN"); pin.setSingleLine(true); pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD); pin.setTransformationMethod(PasswordTransformationMethod.getInstance()); layout.addView(pin);
             EditText vin = new EditText(activity); vin.setHint("VIN (optional)"); vin.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS); vin.setSingleLine(true); vin.setText(sfValue("SFDVin")); layout.addView(vin);
             ScrollView scroll = new ScrollView(activity); scroll.addView(layout);
             AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Santa Fe account").setView(scroll).setCancelable(false).setPositiveButton("Save", null)
