@@ -1,0 +1,61 @@
+import pathlib
+import re
+import subprocess
+import sys
+import xml.etree.ElementTree as E
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+PROJECT = ROOT / "tasker/Santa_Fe_Direct.prj.xml"
+
+def test_native_action_shapes_and_membership():
+    root = E.parse(PROJECT).getroot()
+    fixture = E.parse(ROOT / "tests/fixtures/tasker/native-action-shapes.xml").getroot()
+    shapes = {a.findtext("code"): [(c.tag, c.get("sr")) for c in a if c.get("sr", "").startswith("arg")] for a in fixture.iter("Action")}
+    tasks = root.findall("Task")
+    assert len(tasks) == 17 and len(list(root.iter("Action"))) == 17
+    assert not root.findall("Profile") and not root.findall("Scene")
+    assert root.find("Project").findtext("name") == "Santa Fe Direct"
+    assert set(root.find("Project").findtext("tids").split(",")) == {t.findtext("id") for t in tasks}
+    names = {t.findtext("nme") for t in tasks}
+    assert len(names) == len(tasks)
+    for task in tasks:
+        actions = task.findall("Action")
+        assert actions and [a.get("sr") for a in actions] == ["act0"]
+        for action in actions:
+            assert list(action.attrib) == ["sr", "ve"]
+            assert [(c.tag, c.get("sr")) for c in action if c.get("sr", "").startswith("arg")] == shapes[action.findtext("code")]
+            if action.findtext("code") == "130":
+                assert action.findtext('Str[@sr="arg0"]') == "SFD Core"
+    for node in root.iter():
+        if node.get("sr") is not None:
+            assert next(iter(node.attrib)) == "sr"
+        slots = [c.get("sr") for c in node if c.get("sr") is not None]
+        assert slots == sorted(slots)
+
+def test_embedded_source_and_reproducible_export(tmp_path):
+    expected = "\n\n".join((ROOT / "tasker/direct" / name).read_text() for name in ["api.java", "ui.java", "core.java"])
+    root = E.parse(PROJECT).getroot()
+    core = root.find('Task/Action[code="474"]')
+    assert core.findtext('Str[@sr="arg0"]') == expected
+    output = tmp_path / "direct.prj.xml"
+    subprocess.run([sys.executable, str(ROOT / "tools/build_tasker_direct.py"), "--output", str(output)], check=True)
+    assert output.read_bytes() == PROJECT.read_bytes()
+
+def test_fixed_origin_confirmed_controls_and_secret_handling():
+    content = PROJECT.read_text()
+    assert "https://api.telematics.hyundaiusa.com" in content
+    for prohibited in ["127.0.0.1", "com.termux", "SantaFeNative", "AutoInput", "Shizuku", "/rcs/rhl/", "/evc/fatc/"]:
+        assert prohibited not in content
+    assert 'getVariable("SFDPassword")' not in content  # getVariable is centralized, never substituted into source text
+    assert 'sfValue("SFDPassword")' in content
+    assert not re.search(r'tasker\.setVariable\("[^" ]+",\s*(token|id)\)', content)
+    assert 'tasker.setJavaVariable("sfDirectSession"' in content
+    assert "retryOnConnectionFailure(false)" in content and "followRedirects(false)" in content
+    assert "santa-fe-direct-pending.json" in content
+
+def test_preserved_bridge_project_has_distinct_identifiers():
+    old = E.parse(ROOT / "tasker/Santa_Fe_Control_Center.prj.xml").getroot()
+    new = E.parse(PROJECT).getroot()
+    assert old.find("Project").findtext("id") != new.find("Project").findtext("id")
+    assert not {t.findtext("id") for t in old.findall("Task")} & {t.findtext("id") for t in new.findall("Task")}
+    assert not {t.findtext("nme") for t in old.findall("Task")} & {t.findtext("nme") for t in new.findall("Task")}
