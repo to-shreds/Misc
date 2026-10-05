@@ -113,8 +113,12 @@ def startup():
         if matching(root, "Before We Get Started") is not None:
             unchecked = [n for n in nodes(root) if n.get("checkable") == "true" and n.get("checked") == "false" and n.get("enabled") == "true"]
             if unchecked:
-                tap(unchecked[0])
-                continue
+                left, top, right, bottom = [int(v) for v in re.findall(r"\d+", unchecked[0].get("bounds", ""))]
+                # A clipped square checkbox can sit behind the bottom button.
+                # Scroll it fully into view before activating it.
+                if bottom - top >= right - left:
+                    tap(unchecked[0])
+                    continue
             if click(root, ["Proceed", "Get Started", "Continue", "Next"]):
                 continue
             # The fresh-install permission checklist extends below the screen.
@@ -163,6 +167,12 @@ def import_project():
             root = screen()
             if any(n.get("text", "").startswith("SFD ") for n in nodes(root)):
                 return root
+            explanation = next((n for n in nodes(root) if n.get("text", "").startswith("Profiles link contexts")), None)
+            if explanation is not None:
+                left, top, right, bottom = [int(v) for v in re.findall(r"\d+", explanation.get("bounds", ""))]
+                y = str((top + bottom) // 2)
+                adb("shell", "input", "swipe", str(left + (right - left) * 3 // 4), y, str(left + (right - left) // 4), y, "350")
+                time.sleep(0.8)
             # Import/apply can replace the pager after a tab tap. Re-observe and
             # select Tasks again within the bound instead of treating a main
             # screen transition as an XML failure.
