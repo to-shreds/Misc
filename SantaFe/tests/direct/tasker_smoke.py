@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Import the delivered XML into an isolated, official Tasker trial on Android.
 
-Only offline verification and cancelled forms run. No account details are entered
-and no control task runs. Failures retain observed UI evidence for diagnosis.
+Only offline verification, synthetic account save/restore and cancelled forms
+run. No real account is entered and no control task runs. Failures retain UI
+evidence for diagnosis.
 """
 import argparse
 import hashlib
@@ -48,6 +49,13 @@ def screen():
 
 def nodes(root):
     return list(root.iter("node"))
+
+def native_xml(data):
+    # Tasker's internal autobackup omits whitespace between quoted attributes.
+    # Normalize tag spacing only; preserve every stored value and code string.
+    source = data.decode("utf-8")
+    source = re.sub(r"<[^>]+>", lambda match: re.sub(r"(?<=[\"'])(?=[A-Za-z_][\w.:-]*\s*=)", " ", match.group()), source)
+    return E.fromstring(source)
 
 def matching(root, text):
     return next((n for n in nodes(root) if n.get("text", "").casefold() == text.casefold() or n.get("content-desc", "").casefold() == text.casefold()), None)
@@ -225,19 +233,24 @@ def save_and_read():
             data = adb("exec-out", "cat", path, check=False)
             if b"Santa Fe Direct" in data and b"<Task" in data:
                 try:
-                    root = E.fromstring(data)
+                    root = native_xml(data)
                 except E.ParseError:
                     continue
                 candidates.append((path, root, data))
     if not candidates:
         raise RuntimeError("Could not read Tasker's parsed configuration; files: " + listing)
     path, root, data = candidates[0]
-    (RESULTS / "tasker-roundtrip.xml").write_bytes(data)
+    (RESULTS / "tasker-roundtrip.data").write_bytes(data)
+    E.ElementTree(root).write(RESULTS / "tasker-roundtrip.xml", encoding="utf-8")
     REPORT["roundtrip_source"] = path
     tasks = [t for t in root.iter("Task") if t.findtext("nme", "").startswith("SFD ")]
     counts = {t.findtext("nme"): len(t.findall("Action")) for t in tasks}
     check(len(counts) == 17 and all(count == 1 for count in counts.values()), "Actual Tasker import retains all 17 tasks and 17 executable actions")
     REPORT["imported_action_counts"] = counts
+    delivered = E.parse(ROOT / "tasker/Santa_Fe_Direct.prj.xml").getroot()
+    original = next(t for t in delivered.iter("Task") if t.findtext("nme") == "SFD Core").findtext('Action/Str[@sr="arg0"]')
+    imported = next(t for t in root.iter("Task") if t.findtext("nme") == "SFD Core").findtext('Action/Str[@sr="arg0"]')
+    check(original.strip() == imported.strip(), "Tasker retains the complete delivered Java core without changing its source")
     return root, data
 
 def read_result_variables():
@@ -295,11 +308,16 @@ def run():
     root = open_task("SFD Core")
     check(any("Java Code" in n.get("text", "") for n in nodes(root)), "Tasker editor displays the Core Java Code action")
     play(root)  # Core defaults to offline verification.
-    time.sleep(2)
+    for _ in range(15):
+        root = screen()
+        if matching(root, "Santa Fe Direct verification") is not None:
+            break
+        time.sleep(1)
+    check(matching(root, "Santa Fe Direct verification") is not None and any("Core has 1 executable action(s)" in n.get("text", "") for n in nodes(root)), "Actual Tasker executes offline Core verification and reports one executable action")
+    check(click(root, ["OK"]), "Offline verification dialog closes normally")
+    time.sleep(1)
     back_to_tasks()
     root, data = save_and_read()
-    result = read_result_variables()
-    check(result.get("SFDState") == "READY" and result.get("SFDResult", "").startswith("Santa Fe Direct 1.0.0 loaded. Core has 1 executable action(s)."), "Actual Tasker executes offline Core verification successfully")
     startup()
     root = open_task("SFD Setup")
     check(any("Perform Task" in n.get("text", "") for n in nodes(root)), "Tasker editor displays the executable setup wrapper")
@@ -311,6 +329,41 @@ def run():
     check(len(editable) == 4 and sum(n.get("password") == "true" for n in editable) == 2, "Account form contains four inputs and masks password and PIN")
     check(click(root, ["Cancel"]), "Account setup can be cancelled without credentials or network calls")
     time.sleep(1)
+    back_to_tasks()
+    root = open_task("SFD Setup")
+    play(root)
+    time.sleep(1)
+    for index, value in enumerate(["fixture@example.invalid", "fixture-test-only", "1357"]):
+        root = screen()
+        editable = [n for n in nodes(root) if n.get("class") == "android.widget.EditText"]
+        if len(editable) <= index:
+            raise RuntimeError("Synthetic account input not visible")
+        tap(editable[index])
+        adb("shell", "input", "text", value)
+        # Hide the input view so the next field retains its observed geometry.
+        keyboard = adb("shell", "dumpsys", "input_method").decode()
+        if "mInputShown=true" in keyboard or "isInputViewShown=true" in keyboard:
+            adb("shell", "input", "keyevent", "4")
+            time.sleep(0.5)
+    check(click(screen(), ["Save"]), "Synthetic account can be saved without a login or vehicle command")
+    time.sleep(2)
+    check(matching(screen(), "Santa Fe account") is None, "Account save validates the entered fields and closes normally")
+    back_to_tasks()
+    adb("shell", "input", "keyevent", "4")
+    time.sleep(1)
+    adb("shell", "am", "force-stop", PACKAGE)
+    startup()
+    root = open_task("SFD Setup")
+    play(root)
+    time.sleep(1)
+    root = screen()
+    editable = [n for n in nodes(root) if n.get("class") == "android.widget.EditText"]
+    check(len(editable) == 4 and editable[0].get("text") == "fixture@example.invalid", "Saved Tasker account is restored after actual process restart")
+    check(editable[1].get("text") in ["", "Password"] and editable[2].get("text") in ["", "Four-digit Bluelink PIN"], "Saved password and PIN remain hidden and are not visibly prefilled")
+    check(click(root, ["Save"]), "Blank password and PIN can retain the saved synthetic credentials")
+    time.sleep(2)
+    check(matching(screen(), "Santa Fe account") is None, "Saved password and PIN survive process restart and pass setup validation")
+    REPORT["synthetic_account_saved"] = True
     back_to_tasks()
     root = open_task("SFD Climate Settings")
     play(root)

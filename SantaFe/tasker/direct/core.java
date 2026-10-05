@@ -91,7 +91,9 @@ String sfDispatch(String operation) {
     if (operation.equals("verify")) {
         int actions = tasker.getTask().getActionCount();
         if (actions < 1) sfFail("Tasker reports no executable actions.");
-        return sfReport("READY", "Santa Fe Direct 1.0.0 loaded. Core has " + actions + " executable action(s). Java, JSON and HTTP libraries are available. No network request was made.");
+        String message = sfReport("READY", "Santa Fe Direct 1.0.0 loaded. Core has " + actions + " executable action(s). Java, JSON and HTTP libraries are available. No network request was made.");
+        sfMessage("Santa Fe Direct verification", message);
+        return message;
     }
     if (operation.equals("setup")) {
         if (sfMarkerFile.exists()) sfFail("Check the pending command before changing account settings. Use SFD Check Command or SFD Resolve Unknown.");
