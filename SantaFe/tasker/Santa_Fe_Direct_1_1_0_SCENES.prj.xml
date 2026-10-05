@@ -1,0 +1,3269 @@
+<TaskerData sr="" dvi="1" tv="6.7.6-beta">
+	<dmetric>1440.0,3120.0</dmetric>
+	<Project sr="proj0" ve="2">
+		<cdate>1791223200000</cdate>
+		<id>6a226f09-759f-44e2-8bf8-92f407b7b021</id>
+		<name>Santa Fe Direct</name>
+		<psort>Alpha</psort>
+		<scenes>SFD Home,SFD Controls,SFD Status,SFD Account,SFD Climate,SFD Command,SFD Help</scenes>
+		<tids>34001,34002,34003,34004,34005,34006,34007,34008,34009,34010,34011,34012,34013,34014,34015,34016,34017,34018,34019,34020,34021,34022,34023,34024,34025,34026,34027,34028,34029,34030,34031,34032,34033,34034,34035,34036,34037,34038,34039,34040,34041</tids>
+	</Project>
+	<Scene sr="sceneSFD Account">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<heightLand>1180</heightLand>
+		<heightPort>2200</heightPort>
+		<nme>SFD Account</nme>
+		<widthLand>2200</widthLand>
+		<widthPort>1320</widthPort>
+		<TextElement sr="elements0" ve="3">
+			<flags>4</flags>
+			<geom>50,35,1220,115,50,35,2100,115</geom>
+			<Str sr="arg0" ve="3">Title</Str>
+			<Str sr="arg1" ve="3">Santa Fe / Account</Str>
+			<Int sr="arg2" val="28" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements1" ve="3">
+			<flags>4</flags>
+			<geom>50,180,1220,380,50,170,2100,230</geom>
+			<Str sr="arg0" ve="3">Account</Str>
+			<Str sr="arg1" ve="3">%SFDGuiAccount
+
+%SFDGuiVehicle</Str>
+			<Int sr="arg2" val="21" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements10" ve="3">
+			<clickTask>34019</clickTask>
+			<flags>4</flags>
+			<geom>670,1490,600,140,1640,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button7</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<TextElement sr="elements2" ve="3">
+			<flags>4</flags>
+			<geom>50,590,1220,270,50,415,2100,155</geom>
+			<Str sr="arg0" ve="3">Notice</Str>
+			<Str sr="arg1" ve="3">Edit account opens the masked settings form. Blank password/PIN retain saved values. Clear session keeps the saved account. Forget removes it. Tasker backups can contain credentials.</Str>
+			<Int sr="arg2" val="18" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements3" ve="3">
+			<clickTask>34037</clickTask>
+			<flags>4</flags>
+			<geom>50,980,600,140,50,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button0</Str>
+			<Str sr="arg1" ve="3">Edit account</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements4" ve="3">
+			<clickTask>34028</clickTask>
+			<flags>4</flags>
+			<geom>670,980,600,140,580,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button1</Str>
+			<Str sr="arg1" ve="3">Connect</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements5" ve="3">
+			<clickTask>34039</clickTask>
+			<flags>4</flags>
+			<geom>50,1150,600,140,1110,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button2</Str>
+			<Str sr="arg1" ve="3">Choose vehicle</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements6" ve="3">
+			<clickTask>34040</clickTask>
+			<flags>4</flags>
+			<geom>670,1150,600,140,1640,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button3</Str>
+			<Str sr="arg1" ve="3">Clear session</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements7" ve="3">
+			<clickTask>34041</clickTask>
+			<flags>4</flags>
+			<geom>50,1320,600,140,50,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button4</Str>
+			<Str sr="arg1" ve="3">Forget account</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements8" ve="3">
+			<clickTask>34026</clickTask>
+			<flags>4</flags>
+			<geom>670,1320,600,140,580,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button5</Str>
+			<Str sr="arg1" ve="3">Help</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements9" ve="3">
+			<clickTask>34020</clickTask>
+			<flags>4</flags>
+			<geom>50,1490,600,140,1110,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button6</Str>
+			<Str sr="arg1" ve="3">Home</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF102024</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SFD Account</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSFD Climate">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<heightLand>1180</heightLand>
+		<heightPort>2200</heightPort>
+		<nme>SFD Climate</nme>
+		<widthLand>2200</widthLand>
+		<widthPort>1320</widthPort>
+		<TextElement sr="elements0" ve="3">
+			<flags>4</flags>
+			<geom>50,35,1220,115,50,35,2100,115</geom>
+			<Str sr="arg0" ve="3">Title</Str>
+			<Str sr="arg1" ve="3">Santa Fe / Climate</Str>
+			<Int sr="arg2" val="28" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements1" ve="3">
+			<flags>4</flags>
+			<geom>50,180,1220,410,50,170,2100,250</geom>
+			<Str sr="arg0" ve="3">Climate</Str>
+			<Str sr="arg1" ve="3">%SFDGuiClimate</Str>
+			<Int sr="arg2" val="22" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements2" ve="3">
+			<flags>4</flags>
+			<geom>50,610,1220,260,50,435,2100,135</geom>
+			<Str sr="arg0" ve="3">Notice</Str>
+			<Str sr="arg1" ve="3">Editing these settings sends no car command. Start uses the saved settings and asks for outdoor/safe-to-start confirmation.
+%SFDGuiPending</Str>
+			<Int sr="arg2" val="18" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements3" ve="3">
+			<clickTask>34038</clickTask>
+			<flags>4</flags>
+			<geom>50,980,600,140,50,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button0</Str>
+			<Str sr="arg1" ve="3">Edit climate</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements4" ve="3">
+			<clickTask>34033</clickTask>
+			<flags>4</flags>
+			<geom>670,980,600,140,580,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button1</Str>
+			<Str sr="arg1" ve="3">Remote start</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements5" ve="3">
+			<clickTask>34034</clickTask>
+			<flags>4</flags>
+			<geom>50,1150,600,140,1110,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button2</Str>
+			<Str sr="arg1" ve="3">Remote stop</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements6" ve="3">
+			<clickTask>34025</clickTask>
+			<flags>4</flags>
+			<geom>670,1150,600,140,1640,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button3</Str>
+			<Str sr="arg1" ve="3">Command result</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements7" ve="3">
+			<clickTask>34020</clickTask>
+			<flags>4</flags>
+			<geom>50,1320,600,140,50,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button4</Str>
+			<Str sr="arg1" ve="3">Home</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements8" ve="3">
+			<clickTask>34019</clickTask>
+			<flags>4</flags>
+			<geom>670,1320,600,140,580,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button5</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF102024</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SFD Climate</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSFD Command">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<heightLand>1180</heightLand>
+		<heightPort>2200</heightPort>
+		<nme>SFD Command</nme>
+		<widthLand>2200</widthLand>
+		<widthPort>1320</widthPort>
+		<TextElement sr="elements0" ve="3">
+			<flags>4</flags>
+			<geom>50,35,1220,115,50,35,2100,115</geom>
+			<Str sr="arg0" ve="3">Title</Str>
+			<Str sr="arg1" ve="3">Santa Fe / Command</Str>
+			<Int sr="arg2" val="28" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements1" ve="3">
+			<flags>4</flags>
+			<geom>50,180,1220,410,50,170,2100,250</geom>
+			<Str sr="arg0" ve="3">Result</Str>
+			<Str sr="arg1" ve="3">State: %SFDGuiState
+%SFDGuiResult
+
+HTTP: %SFDGuiHttp</Str>
+			<Int sr="arg2" val="21" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements2" ve="3">
+			<flags>4</flags>
+			<geom>50,610,1220,280,50,435,2100,145</geom>
+			<Str sr="arg0" ve="3">Notice</Str>
+			<Str sr="arg1" ve="3">%SFDGuiPending
+Accepted is different from completed. Check command follows the existing transaction. Resolve unknown requires checking the car and never resends it.</Str>
+			<Int sr="arg2" val="18" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements3" ve="3">
+			<clickTask>34035</clickTask>
+			<flags>4</flags>
+			<geom>50,980,600,140,50,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button0</Str>
+			<Str sr="arg1" ve="3">Check command</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements4" ve="3">
+			<clickTask>34036</clickTask>
+			<flags>4</flags>
+			<geom>670,980,600,140,580,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button1</Str>
+			<Str sr="arg1" ve="3">Resolve unknown</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements5" ve="3">
+			<clickTask>34022</clickTask>
+			<flags>4</flags>
+			<geom>50,1150,600,140,1110,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button2</Str>
+			<Str sr="arg1" ve="3">Vehicle status</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements6" ve="3">
+			<clickTask>34021</clickTask>
+			<flags>4</flags>
+			<geom>670,1150,600,140,1640,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button3</Str>
+			<Str sr="arg1" ve="3">Controls</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements7" ve="3">
+			<clickTask>34020</clickTask>
+			<flags>4</flags>
+			<geom>50,1320,600,140,50,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button4</Str>
+			<Str sr="arg1" ve="3">Home</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements8" ve="3">
+			<clickTask>34019</clickTask>
+			<flags>4</flags>
+			<geom>670,1320,600,140,580,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button5</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF102024</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SFD Command</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSFD Controls">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<heightLand>1180</heightLand>
+		<heightPort>2200</heightPort>
+		<nme>SFD Controls</nme>
+		<widthLand>2200</widthLand>
+		<widthPort>1320</widthPort>
+		<TextElement sr="elements0" ve="3">
+			<flags>4</flags>
+			<geom>50,35,1220,115,50,35,2100,115</geom>
+			<Str sr="arg0" ve="3">Title</Str>
+			<Str sr="arg1" ve="3">Santa Fe / Controls</Str>
+			<Int sr="arg2" val="28" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements1" ve="3">
+			<flags>4</flags>
+			<geom>50,180,1220,380,50,170,2100,230</geom>
+			<Str sr="arg0" ve="3">Status</Str>
+			<Str sr="arg1" ve="3">%SFDGuiStatus</Str>
+			<Int sr="arg2" val="21" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements10" ve="3">
+			<clickTask>34019</clickTask>
+			<flags>4</flags>
+			<geom>670,1490,600,140,1640,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button7</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<TextElement sr="elements2" ve="3">
+			<flags>4</flags>
+			<geom>50,590,1220,270,50,415,2100,145</geom>
+			<Str sr="arg0" ve="3">Notice</Str>
+			<Str sr="arg1" ve="3">One manual command at a time. Remote start asks you to confirm the car is outdoors.
+%SFDGuiPending</Str>
+			<Int sr="arg2" val="18" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements3" ve="3">
+			<clickTask>34031</clickTask>
+			<flags>4</flags>
+			<geom>50,980,600,140,50,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button0</Str>
+			<Str sr="arg1" ve="3">Lock</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements4" ve="3">
+			<clickTask>34032</clickTask>
+			<flags>4</flags>
+			<geom>670,980,600,140,580,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button1</Str>
+			<Str sr="arg1" ve="3">Unlock</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements5" ve="3">
+			<clickTask>34033</clickTask>
+			<flags>4</flags>
+			<geom>50,1150,600,140,1110,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button2</Str>
+			<Str sr="arg1" ve="3">Remote start</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements6" ve="3">
+			<clickTask>34034</clickTask>
+			<flags>4</flags>
+			<geom>670,1150,600,140,1640,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button3</Str>
+			<Str sr="arg1" ve="3">Remote stop</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements7" ve="3">
+			<clickTask>34024</clickTask>
+			<flags>4</flags>
+			<geom>50,1320,600,140,50,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button4</Str>
+			<Str sr="arg1" ve="3">Climate settings</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements8" ve="3">
+			<clickTask>34025</clickTask>
+			<flags>4</flags>
+			<geom>670,1320,600,140,580,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button5</Str>
+			<Str sr="arg1" ve="3">Command result</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements9" ve="3">
+			<clickTask>34020</clickTask>
+			<flags>4</flags>
+			<geom>50,1490,600,140,1110,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button6</Str>
+			<Str sr="arg1" ve="3">Home</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF102024</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SFD Controls</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSFD Help">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<heightLand>1180</heightLand>
+		<heightPort>2200</heightPort>
+		<nme>SFD Help</nme>
+		<widthLand>2200</widthLand>
+		<widthPort>1320</widthPort>
+		<TextElement sr="elements0" ve="3">
+			<flags>4</flags>
+			<geom>50,35,1220,115,50,35,2100,115</geom>
+			<Str sr="arg0" ve="3">Title</Str>
+			<Str sr="arg1" ve="3">Santa Fe / Help</Str>
+			<Int sr="arg2" val="28" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements1" ve="3">
+			<flags>4</flags>
+			<geom>50,180,1220,1200,50,160,2100,590</geom>
+			<Str sr="arg0" ve="3">Help</Str>
+			<Str sr="arg1" ve="3">FIRST USE
+Account &gt; Edit account &gt; Connect. Choose your car if asked.
+
+DAILY USE
+Controls has lock, unlock, remote start and stop. Climate stores the start settings.
+
+RESULTS
+Status is the last vehicle sample. Command shows the latest operation result. If an outcome is unresolved, check the command or the actual car before resolving it.
+
+Opening pages does not contact Hyundai. Horn, lights and automatic profiles are absent.</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements2" ve="3">
+			<clickTask>34023</clickTask>
+			<flags>4</flags>
+			<geom>50,1470,600,140,50,785,510,130</geom>
+			<Str sr="arg0" ve="3">Button0</Str>
+			<Str sr="arg1" ve="3">Account</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements3" ve="3">
+			<clickTask>34025</clickTask>
+			<flags>4</flags>
+			<geom>670,1470,600,140,580,785,510,130</geom>
+			<Str sr="arg0" ve="3">Button1</Str>
+			<Str sr="arg1" ve="3">Command result</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements4" ve="3">
+			<clickTask>34020</clickTask>
+			<flags>4</flags>
+			<geom>50,1640,600,140,1110,785,510,130</geom>
+			<Str sr="arg0" ve="3">Button2</Str>
+			<Str sr="arg1" ve="3">Home</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements5" ve="3">
+			<clickTask>34019</clickTask>
+			<flags>4</flags>
+			<geom>670,1640,600,140,1640,785,510,130</geom>
+			<Str sr="arg0" ve="3">Button3</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF102024</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SFD Help</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSFD Home">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<heightLand>1180</heightLand>
+		<heightPort>2200</heightPort>
+		<nme>SFD Home</nme>
+		<widthLand>2200</widthLand>
+		<widthPort>1320</widthPort>
+		<TextElement sr="elements0" ve="3">
+			<flags>4</flags>
+			<geom>50,35,1220,115,50,35,2100,115</geom>
+			<Str sr="arg0" ve="3">Title</Str>
+			<Str sr="arg1" ve="3">Santa Fe / Home</Str>
+			<Int sr="arg2" val="28" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements1" ve="3">
+			<flags>4</flags>
+			<geom>50,180,1220,380,50,170,2100,230</geom>
+			<Str sr="arg0" ve="3">Status</Str>
+			<Str sr="arg1" ve="3">%SFDGuiStatus</Str>
+			<Int sr="arg2" val="21" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements10" ve="3">
+			<clickTask>34019</clickTask>
+			<flags>4</flags>
+			<geom>670,1490,600,140,1640,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button7</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<TextElement sr="elements2" ve="3">
+			<flags>4</flags>
+			<geom>50,590,1220,260,50,415,2100,145</geom>
+			<Str sr="arg0" ve="3">State</Str>
+			<Str sr="arg1" ve="3">Last result: %SFDGuiState
+%SFDGuiPending</Str>
+			<Int sr="arg2" val="18" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements3" ve="3">
+			<clickTask>34021</clickTask>
+			<flags>4</flags>
+			<geom>50,980,600,140,50,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button0</Str>
+			<Str sr="arg1" ve="3">Controls</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements4" ve="3">
+			<clickTask>34022</clickTask>
+			<flags>4</flags>
+			<geom>670,980,600,140,580,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button1</Str>
+			<Str sr="arg1" ve="3">Status</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements5" ve="3">
+			<clickTask>34023</clickTask>
+			<flags>4</flags>
+			<geom>50,1150,600,140,1110,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button2</Str>
+			<Str sr="arg1" ve="3">Account</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements6" ve="3">
+			<clickTask>34024</clickTask>
+			<flags>4</flags>
+			<geom>670,1150,600,140,1640,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button3</Str>
+			<Str sr="arg1" ve="3">Climate</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements7" ve="3">
+			<clickTask>34025</clickTask>
+			<flags>4</flags>
+			<geom>50,1320,600,140,50,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button4</Str>
+			<Str sr="arg1" ve="3">Command</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements8" ve="3">
+			<clickTask>34026</clickTask>
+			<flags>4</flags>
+			<geom>670,1320,600,140,580,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button5</Str>
+			<Str sr="arg1" ve="3">Help</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements9" ve="3">
+			<clickTask>34028</clickTask>
+			<flags>4</flags>
+			<geom>50,1490,600,140,1110,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button6</Str>
+			<Str sr="arg1" ve="3">Connect</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF102024</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SFD Home</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="sceneSFD Status">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<heightLand>1180</heightLand>
+		<heightPort>2200</heightPort>
+		<nme>SFD Status</nme>
+		<widthLand>2200</widthLand>
+		<widthPort>1320</widthPort>
+		<TextElement sr="elements0" ve="3">
+			<flags>4</flags>
+			<geom>50,35,1220,115,50,35,2100,115</geom>
+			<Str sr="arg0" ve="3">Title</Str>
+			<Str sr="arg1" ve="3">Santa Fe / Status</Str>
+			<Int sr="arg2" val="28" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements1" ve="3">
+			<flags>4</flags>
+			<geom>50,180,1220,410,50,170,2100,250</geom>
+			<Str sr="arg0" ve="3">Status</Str>
+			<Str sr="arg1" ve="3">%SFDGuiStatus</Str>
+			<Int sr="arg2" val="22" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<TextElement sr="elements2" ve="3">
+			<flags>4</flags>
+			<geom>50,610,1220,260,50,435,2100,135</geom>
+			<Str sr="arg0" ve="3">Notice</Str>
+			<Str sr="arg1" ve="3">This is the last status sample Hyundai returned. A refresh request can still return cached data. Unknown means no recognized value.
+%SFDGuiVehicle</Str>
+			<Int sr="arg2" val="18" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFF3F6F7</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="0" />
+			<Int sr="arg8" val="0" />
+		</TextElement>
+		<ButtonElement sr="elements3" ve="3">
+			<clickTask>34029</clickTask>
+			<flags>4</flags>
+			<geom>50,980,600,140,50,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button0</Str>
+			<Str sr="arg1" ve="3">Read status</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements4" ve="3">
+			<clickTask>34030</clickTask>
+			<flags>4</flags>
+			<geom>670,980,600,140,580,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button1</Str>
+			<Str sr="arg1" ve="3">Request refresh</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements5" ve="3">
+			<clickTask>34028</clickTask>
+			<flags>4</flags>
+			<geom>50,1150,600,140,1110,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button2</Str>
+			<Str sr="arg1" ve="3">Connect</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements6" ve="3">
+			<clickTask>34039</clickTask>
+			<flags>4</flags>
+			<geom>670,1150,600,140,1640,625,510,130</geom>
+			<Str sr="arg0" ve="3">Button3</Str>
+			<Str sr="arg1" ve="3">Choose vehicle</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements7" ve="3">
+			<clickTask>34020</clickTask>
+			<flags>4</flags>
+			<geom>50,1320,600,140,50,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button4</Str>
+			<Str sr="arg1" ve="3">Home</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<ButtonElement sr="elements8" ve="3">
+			<clickTask>34019</clickTask>
+			<flags>4</flags>
+			<geom>670,1320,600,140,580,775,510,130</geom>
+			<Str sr="arg0" ve="3">Button5</Str>
+			<Str sr="arg1" ve="3">Close</Str>
+			<Int sr="arg2" val="19" />
+			<Int sr="arg3" val="100" />
+			<Str sr="arg4" ve="3">#FFDBFAE9</Str>
+			<Str sr="arg5" ve="3" />
+			<Int sr="arg6" val="0" />
+			<Img sr="arg7" ve="2" />
+		</ButtonElement>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="1" />
+			<Int sr="arg1" val="0" />
+			<Str sr="arg2" ve="3">#FF102024</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">SFD Status</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+		</PropertiesElement>
+	</Scene>
+	<Task sr="task34001">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34001</id>
+		<nme>SFD Core</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>474</code>
+			<Str sr="arg0" ve="3">// Shared BeanShell API implementation for Santa Fe Direct. Installed inside Tasker.
+// Request recipes match the working API Lab 0.3.3. No external script is loaded.
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.security.MessageDigest;
+import org.json.*;
+import okhttp3.*;
+
+String sfValue(String name) {
+    String value = tasker.getVariable(name);
+    return value == null ? "" : value;
+}
+void sfFail(String message) { throw new IOException("SF: " + message); }
+long sfNow() { return System.currentTimeMillis(); }
+void sfDelay(long milliseconds) { Thread.sleep(milliseconds); }
+OkHttpClient sfMakeClient() {
+    return new OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS).writeTimeout(20, TimeUnit.SECONDS)
+        .callTimeout(45, TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false)
+        .retryOnConnectionFailure(false).cookieJar(CookieJar.NO_COOKIES).cache(null).build();
+}
+String sfIdentity(String email, String password, String pin) {
+    JSONObject identity = new JSONObject().put("email", email).put("password", password).put("pin", pin);
+    byte[] bytes = MessageDigest.getInstance("SHA-256").digest(identity.toString().getBytes("UTF-8"));
+    StringBuilder encoded = new StringBuilder();
+    for (int i = 0; i &lt; bytes.length; i++) encoded.append(String.format("%02x", new Object[]{Integer.valueOf(bytes[i] &amp; 255)}));
+    return encoded.toString();
+}
+String sfHeader(Object value) {
+    if (value == null) sfFail("An API header is missing. Run SFD Connect. No command was sent.");
+    String text = String.valueOf(value);
+    if (text.length() == 0 || text.length() &gt; 8192 || text.indexOf('\r') &gt;= 0 || text.indexOf('\n') &gt;= 0)
+        sfFail("An API header is invalid. No command was sent.");
+    return text;
+}
+String sfEnrollmentPath(String email) {
+    // Match encodeURIComponent, preserving literal @ only. Encode other delimiters.
+    String encoded = URLEncoder.encode(email, "UTF-8").replace("+", "%20")
+        .replace("%21", "!").replace("%27", "'").replace("%28", "(")
+        .replace("%29", ")").replace("%7E", "~").replace("%40", "@");
+    return "/ac/v2/enrollment/details/" + encoded;
+}
+boolean sfAllowedPath(String method, String path) {
+    if (method.equals("GET")) return path.startsWith("/ac/v2/enrollment/details/")
+        || path.equals("/ac/v2/rcs/rvs/vehicleStatus") || path.equals("/ac/v2/rmt/getRunningStatus");
+    if (method.equals("POST")) return path.equals("/v2/ac/oauth/token")
+        || path.equals("/ac/v2/rcs/rdo/on") || path.equals("/ac/v2/rcs/rdo/off")
+        || path.equals("/ac/v2/rcs/rsc/start") || path.equals("/ac/v2/rcs/rsc/stop");
+    return false;
+}
+JSONObject sfRequest(String method, String path, JSONObject body, boolean auth, boolean vehicle, Map extra) {
+    if (!sfAllowedPath(method, path) || path.indexOf('?') &gt;= 0 || path.indexOf('#') &gt;= 0)
+        sfFail("This API operation is not allowed. No request was sent.");
+    long until = 0;
+    try { until = Long.parseLong(sfValue("SFDWaitUntil")); } catch (Exception ignored) {}
+    if (sfNow() &lt; until) sfFail("Hyundai rate limited requests. Wait five minutes before trying again.");
+    Request.Builder builder = new Request.Builder().url("https://api.telematics.hyundaiusa.com" + path);
+    int offsetMillis = TimeZone.getDefault().getOffset(sfNow());
+    String offset = offsetMillis % 3600000 == 0 ? String.valueOf(offsetMillis / 3600000) : String.valueOf(offsetMillis / 3600000.0);
+    builder.header("Content-Type", "application/json;charset=UTF-8")
+        .header("Accept", "application/json, text/plain, */*").header("from", "SPA").header("to", "ISS")
+        .header("language", "0").header("offset", offset)
+        .header("refresh", "false").header("encryptFlag", "false").header("brandIndicator", "H")
+        .header("client_id", "m66129Bb-em93-SPAHYN-bZ91-am4540zp19920")
+        .header("clientSecret", "v558o935-6nne-423i-baa8")
+        .header("Origin", "https://api.telematics.hyundaiusa.com")
+        .header("Referer", "https://api.telematics.hyundaiusa.com/login");
+    if (auth) {
+        if (!sfSession.containsKey("token") || sfNow() &gt;= ((Number)sfSession.get("expires")).longValue())
+            sfFail("Login expired. Run SFD Connect. No command was sent.");
+        builder.header("username", sfHeader(sfSession.get("email")))
+            .header("accessToken", sfHeader(sfSession.get("token")))
+            .header("blueLinkServicePin", sfHeader(sfSession.get("pin")));
+    }
+    if (vehicle) {
+        JSONObject selected = (JSONObject)sfSession.get("vehicle");
+        if (selected == null) sfFail("No vehicle is selected. Run SFD Choose Vehicle.");
+        builder.header("registrationId", sfHeader(selected.optString("regid")))
+            .header("gen", sfHeader(selected.optString("vehicleGeneration", "2")))
+            .header("vin", sfHeader(selected.optString("vin")));
+    }
+    if (extra != null) for (Object key : extra.keySet()) builder.header(sfHeader(key), sfHeader(extra.get(key)));
+    if (method.equals("GET")) builder.get();
+    else {
+        byte[] bytes = body == null ? new byte[0] : body.toString().getBytes("UTF-8");
+        builder.post(RequestBody.create(MediaType.parse("application/json;charset=UTF-8"), bytes));
+    }
+    Response response = null; JSONObject result = null;
+    try {
+        response = sfClient.newCall(builder.build()).execute();
+        int status = response.code();
+        tasker.setVariable("SFDLastHttp", String.valueOf(status));
+        if (status == 429) {
+            tasker.setVariable("SFDWaitUntil", String.valueOf(sfNow() + 300000));
+            sfFail("Hyundai rate limited requests. Wait five minutes before trying again. No retry was sent.");
+        }
+        if (status == 401 || status == 403) {
+            sfSession.remove("token"); sfSession.put("expires", Long.valueOf(0)); sfSession.put("authBlocked", Boolean.TRUE);
+        }
+        if (status &lt; 200 || status &gt;= 300)
+            sfFail("Hyundai returned HTTP " + status + ". No retry was sent. Check SFDLastHttp and your account if needed.");
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        InputStream stream = response.body() == null ? null : response.body().byteStream();
+        if (stream != null) {
+            byte[] block = new byte[4096]; int count;
+            while ((count = stream.read(block)) != -1) {
+                if (bytes.size() + count &gt; 1048576) sfFail("Hyundai response exceeded the size limit. No retry was sent.");
+                bytes.write(block, 0, count);
+            }
+        }
+        String content = new String(bytes.toByteArray(), "UTF-8").trim();
+        JSONObject data = content.length() == 0 ? new JSONObject() : new JSONObject(content);
+        if (data.has("errorCode") || data.has("error")) sfFail("Hyundai reported an API error. No retry was sent.");
+        String id = response.header("tmstid");
+        if (id == null) id = response.header("transactionid");
+        if (id == null) id = response.header("xid");
+        result = new JSONObject().put("data", data).put("http", status);
+        if (id != null) result.put("tid", id);
+    } finally { if (response != null) response.close(); }
+    // Older BeanShell versions lose a return value when finally ends in void.
+    return result;
+}
+void sfCheckAccount() {
+    String email = sfValue("SFDEmail").trim(); String password = sfValue("SFDPassword"); String pin = sfValue("SFDPin").trim();
+    if (email.length() == 0 || email.length() &gt; 320 || password.length() == 0 || password.length() &gt; 4096 || !pin.matches("[0-9]{4}"))
+        sfFail("Run SFD Setup once to enter your email, password and four-digit Bluelink PIN.");
+    sfHeader(email); sfHeader(pin);
+    String identity = sfIdentity(email, password, pin);
+    if (!identity.equals(sfSession.get("identity"))) {
+        if (sfMarkerFile.exists()) sfFail("Account changed while a command outcome is unresolved. Check the vehicle, then run SFD Resolve Unknown.");
+        sfSession.clear(); sfSession.put("identity", identity);
+    }
+    sfSession.put("email", email); sfSession.put("pin", pin);
+}
+void sfSelectVehicle() {
+    JSONArray list = (JSONArray)sfSession.get("vehicles"); String preferred = sfValue("SFDVin").trim().toUpperCase(Locale.US);
+    JSONObject selected = null;
+    if (list != null) for (int i = 0; i &lt; list.length(); i++) {
+        JSONObject vehicle = list.getJSONObject(i);
+        if (preferred.length() &gt; 0 &amp;&amp; preferred.equals(vehicle.optString("vin"))) selected = vehicle;
+        else if (preferred.length() == 0 &amp;&amp; list.length() == 1) selected = vehicle;
+    }
+    if (selected == null) {
+        sfSession.remove("vehicle");
+        sfFail("Choose your active Santa Fe using SFD Choose Vehicle. No vehicle command was sent.");
+    }
+    sfSession.put("vehicle", selected);
+}
+void sfLogin() {
+    sfSession.remove("token"); sfSession.put("expires", Long.valueOf(0)); sfSession.put("authBlocked", Boolean.TRUE);
+    JSONObject body = new JSONObject().put("username", sfSession.get("email")).put("password", sfValue("SFDPassword"));
+    JSONObject result = sfRequest("POST", "/v2/ac/oauth/token", body, false, false, null).getJSONObject("data");
+    String token = result.optString("access_token"); long expires = result.optLong("expires_in", 1800);
+    if (token.length() == 0 || expires &lt;= 0) sfFail("Hyundai did not return a usable login. Check MyHyundai, then run SFD Connect.");
+    sfHeader(token);
+    sfSession.put("token", token); sfSession.put("expires", Long.valueOf(sfNow() + Math.min(expires, 86400) * 1000 - Math.min(30000, expires * 100)));
+    JSONObject enrollment = sfRequest("GET", sfEnrollmentPath((String)sfSession.get("email")), null, true, false, null).getJSONObject("data");
+    JSONArray source = enrollment.optJSONArray("enrolledVehicleDetails");
+    if (source == null) sfFail("Hyundai returned no expected vehicle list. No command was sent.");
+    JSONArray vehicles = new JSONArray();
+    for (int i = 0; i &lt; source.length(); i++) {
+        JSONObject item = source.optJSONObject(i); JSONObject vehicle = item == null ? null : item.optJSONObject("vehicleDetails");
+        if (vehicle != null &amp;&amp; vehicle.optString("vin").matches("[A-HJ-NPR-Z0-9]{17}") &amp;&amp; vehicle.optString("regid").length() &gt; 0
+                &amp;&amp; vehicle.optString("enrollmentStatus").equals("ACTIVE")) vehicles.put(vehicle);
+    }
+    sfSession.put("vehicles", vehicles); sfSession.remove("vehicle");
+    sfSession.put("authBlocked", Boolean.FALSE);
+    sfSelectVehicle();
+}
+void sfEnsureSession(boolean explicit) {
+    sfCheckAccount();
+    if (!explicit &amp;&amp; Boolean.TRUE.equals(sfSession.get("authBlocked")))
+        sfFail("A previous account or authentication request failed. Check MyHyundai and run SFD Connect. No command was sent.");
+    if (Boolean.TRUE.equals(sfSession.get("authBlocked")) || !sfSession.containsKey("token") || sfNow() &gt;= ((Number)sfSession.get("expires")).longValue()) sfLogin();
+    else sfSelectVehicle();
+}
+String sfStatusFlag(JSONObject status, String key, String yes, String no) {
+    // Read the JSON value directly. Tasker's interpreter can represent a
+    // returned Boolean differently from a boxed java.lang.Boolean type check.
+    if (!status.has(key) || status.isNull(key)) return "Unknown";
+    try { return status.getBoolean(key) ? yes : no; }
+    catch (Exception unrecognized) { return "Unknown"; }
+}
+String sfStatus(boolean refresh) {
+    Map extra = new HashMap(); extra.put("refresh", refresh ? "true" : "false");
+    JSONObject data = sfRequest("GET", "/ac/v2/rcs/rvs/vehicleStatus", null, true, true, extra).getJSONObject("data");
+    JSONObject status = data.optJSONObject("vehicleStatus");
+    if (status == null) sfFail("Hyundai returned no expected vehicle status. No command was sent.");
+    sfSession.put("statusRead", Boolean.TRUE);
+    String timestamp = status.optString("dateTime", "Unknown");
+    if (timestamp.length() &gt; 60 || !timestamp.matches("[0-9TtZz:+ .\\-/]*")) timestamp = "Unknown";
+    tasker.setVariable("SFDVehicleTime", timestamp);
+    String lock = sfStatusFlag(status, "doorLock", "Locked", "Unlocked");
+    String engine = sfStatusFlag(status, "engine", "Running", "Off");
+    String climate = sfStatusFlag(status, "airCtrlOn", "On", "Off");
+    tasker.setVariable("SFDDoorLock", lock); tasker.setVariable("SFDEngine", engine); tasker.setVariable("SFDClimate", climate);
+    String summary = "Doors: " + lock + "\nEngine: " + engine + "\nClimate: " + climate + "\nVehicle timestamp: " + timestamp
+        + "\nHyundai may return cached data, including after a refresh request.";
+    tasker.setVariable("SFDStatus", summary); return summary;
+}
+JSONObject sfCommandRecipe(String operation) {
+    JSONObject selected = (JSONObject)sfSession.get("vehicle");
+    if (selected == null || !selected.optString("enrollmentStatus").equals("ACTIVE")) sfFail("Select an active vehicle first. No command was sent.");
+    Map extra = new HashMap(); JSONObject body = null; String path = "";
+    if (operation.equals("lock") || operation.equals("unlock")) {
+        path = operation.equals("lock") ? "/ac/v2/rcs/rdo/off" : "/ac/v2/rcs/rdo/on";
+        body = new JSONObject().put("userName", sfSession.get("email")).put("vin", selected.getString("vin"));
+        extra.put("APPCLOUD-VIN", selected.getString("vin"));
+    } else if (operation.equals("start") || operation.equals("stop")) {
+        // This project targets the confirmed non-EV Santa Fe Hybrid recipe only.
+        if (!selected.optString("evStatus").equals("N") || selected.optInt("vehicleGeneration") != 3)
+            sfFail("The selected vehicle does not match the confirmed Santa Fe Hybrid generation 3 recipe. No command was sent.");
+        path = operation.equals("start") ? "/ac/v2/rcs/rsc/start" : "/ac/v2/rcs/rsc/stop";
+        if (operation.equals("start")) {
+            int temperature = 72; int duration = 10;
+            try {
+                if (sfValue("SFDTemperature").length() &gt; 0) temperature = Integer.parseInt(sfValue("SFDTemperature"));
+                if (sfValue("SFDDuration").length() &gt; 0) duration = Integer.parseInt(sfValue("SFDDuration"));
+            } catch (Exception invalid) { sfFail("Use whole-number climate temperature and duration. No command was sent."); }
+            if (temperature &lt; 62 || temperature &gt; 81 || duration &lt; 1 || duration &gt; 10)
+                sfFail("Climate temperature must be 62 to 81 F and duration 1 to 10 minutes. No command was sent.");
+            String defrost = sfValue("SFDDefrost");
+            if (defrost.length() &gt; 0 &amp;&amp; !defrost.equals("0") &amp;&amp; !defrost.equals("1")) sfFail("Defrost must be 0 or 1. No command was sent.");
+            JSONObject seat = new JSONObject().put("drvSeatHeatState", 0).put("astSeatHeatState", 0).put("rlSeatHeatState", 0).put("rrSeatHeatState", 0);
+            body = new JSONObject().put("Ims", 0).put("airCtrl", 1).put("airTemp", new JSONObject().put("unit", 1).put("value", temperature))
+                .put("defrost", defrost.equals("1")).put("heating1", 0).put("igniOnDuration", duration).put("seatHeaterVentInfo", seat)
+                .put("username", sfSession.get("email")).put("vin", selected.getString("regid"));
+        }
+    } else sfFail("This control is unavailable. No command was sent.");
+    return new JSONObject().put("path", path).put("body", body == null ? JSONObject.NULL : body).put("extra", new JSONObject(extra));
+}
+
+
+// Native dialogs. Tasker supplies its Activity and bundled RxJava2 library.
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.view.WindowManager;
+import android.widget.*;
+import android.text.InputType;
+import android.text.method.PasswordTransformationMethod;
+import java.util.function.Consumer;
+import io.reactivex.subjects.SingleSubject;
+
+String sfConfirm(String title, String message, String button) {
+    signal = SingleSubject.create();
+    tasker.doWithActivity(new Consumer() {
+        accept(Object object) {
+            final Activity activity = (Activity)object;
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity).setTitle(title).setMessage(message).setCancelable(false);
+            builder.setPositiveButton(button, new DialogInterface.OnClickListener() {
+                onClick(DialogInterface dialog, int which) { signal.onSuccess("yes"); activity.finish(); }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                onClick(DialogInterface dialog, int which) { signal.onSuccess("no"); activity.finish(); }
+            });
+            builder.show();
+        }
+    });
+    return (String)signal.blockingGet();
+}
+void sfMessage(String title, String message) {
+    signal = SingleSubject.create();
+    tasker.doWithActivity(new Consumer() {
+        accept(Object object) {
+            final Activity activity = (Activity)object;
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            new AlertDialog.Builder(activity).setTitle(title).setMessage(message).setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    onClick(DialogInterface dialog, int which) { signal.onSuccess("ok"); activity.finish(); }
+                }).show();
+        }
+    });
+    signal.blockingGet();
+}
+String sfChoose(String title, String[] choices, String[] values) {
+    signal = SingleSubject.create();
+    tasker.doWithActivity(new Consumer() {
+        accept(Object object) {
+            final Activity activity = (Activity)object;
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity).setTitle(title).setCancelable(false);
+            builder.setItems(choices, new DialogInterface.OnClickListener() {
+                onClick(DialogInterface dialog, int which) { signal.onSuccess(values[which]); activity.finish(); }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                onClick(DialogInterface dialog, int which) { signal.onSuccess("cancel"); activity.finish(); }
+            });
+            builder.show();
+        }
+    });
+    return (String)signal.blockingGet();
+}
+JSONObject sfAccountForm() {
+    signal = SingleSubject.create();
+    tasker.doWithActivity(new Consumer() {
+        accept(Object object) {
+            final Activity activity = (Activity)object;
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            LinearLayout layout = new LinearLayout(activity); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(24, 12, 24, 12);
+            TextView explanation = new TextView(activity); explanation.setText("Enter once. Blank password or PIN keeps the saved value. Leave VIN blank to select the only active vehicle."); layout.addView(explanation);
+            EditText email = new EditText(activity); email.setHint("MyHyundai email"); email.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS); email.setSingleLine(true); email.setText(sfValue("SFDEmail")); layout.addView(email);
+            EditText password = new EditText(activity); password.setHint("Password"); password.setSingleLine(true); password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD); password.setTransformationMethod(PasswordTransformationMethod.getInstance()); layout.addView(password);
+            EditText pin = new EditText(activity); pin.setHint("Four-digit Bluelink PIN"); pin.setSingleLine(true); pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD); pin.setTransformationMethod(PasswordTransformationMethod.getInstance()); layout.addView(pin);
+            EditText vin = new EditText(activity); vin.setHint("VIN (optional)"); vin.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS); vin.setSingleLine(true); vin.setText(sfValue("SFDVin")); layout.addView(vin);
+            ScrollView scroll = new ScrollView(activity); scroll.addView(layout);
+            AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Santa Fe account").setView(scroll).setCancelable(false).setPositiveButton("Save", null)
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    onClick(DialogInterface dialog, int which) { signal.onSuccess(new JSONObject().put("cancel", true)); activity.finish(); }
+                }).create();
+            dialog.show();
+            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new android.view.View.OnClickListener() {
+                onClick(android.view.View view) {
+                    String enteredEmail = email.getText().toString().trim(); String enteredPassword = password.getText().toString(); String enteredPin = pin.getText().toString().trim();
+                    String enteredVin = vin.getText().toString().trim().toUpperCase(Locale.US);
+                    if (enteredPassword.length() == 0) enteredPassword = sfValue("SFDPassword");
+                    if (enteredPin.length() == 0) enteredPin = sfValue("SFDPin");
+                    if (enteredEmail.length() == 0 || enteredEmail.length() &gt; 320 || enteredEmail.indexOf('\n') &gt;= 0 || enteredEmail.indexOf('\r') &gt;= 0) { email.setError("Enter your email"); return; }
+                    if (enteredPassword.length() == 0 || enteredPassword.length() &gt; 4096) { password.setError("Enter your password"); return; }
+                    if (!enteredPin.matches("[0-9]{4}")) { pin.setError("Use four digits"); return; }
+                    if (enteredVin.length() &gt; 0 &amp;&amp; !enteredVin.matches("[A-HJ-NPR-Z0-9]{17}")) { vin.setError("Use a 17-character VIN, or leave blank"); return; }
+                    signal.onSuccess(new JSONObject().put("email", enteredEmail).put("password", enteredPassword).put("pin", enteredPin).put("vin", enteredVin));
+                    password.setText(""); pin.setText(""); dialog.dismiss(); activity.finish();
+                }
+            });
+        }
+    });
+    return (JSONObject)signal.blockingGet();
+}
+JSONObject sfClimateForm() {
+    signal = SingleSubject.create();
+    tasker.doWithActivity(new Consumer() {
+        accept(Object object) {
+            final Activity activity = (Activity)object;
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            LinearLayout layout = new LinearLayout(activity); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(24, 12, 24, 12);
+            TextView explanation = new TextView(activity); explanation.setText("Temperature: 62 to 81 F. Duration: 1 to 10 minutes. Seats and steering-wheel heat remain off."); layout.addView(explanation);
+            EditText temperature = new EditText(activity); temperature.setHint("Temperature (F)"); temperature.setInputType(InputType.TYPE_CLASS_NUMBER); temperature.setText(sfValue("SFDTemperature").length() == 0 ? "72" : sfValue("SFDTemperature")); layout.addView(temperature);
+            EditText duration = new EditText(activity); duration.setHint("Minutes"); duration.setInputType(InputType.TYPE_CLASS_NUMBER); duration.setText(sfValue("SFDDuration").length() == 0 ? "10" : sfValue("SFDDuration")); layout.addView(duration);
+            CheckBox defrost = new CheckBox(activity); defrost.setText("Defrost"); defrost.setChecked(sfValue("SFDDefrost").equals("1")); layout.addView(defrost);
+            AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Remote start settings").setView(layout).setCancelable(false).setPositiveButton("Save", null)
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    onClick(DialogInterface dialog, int which) { signal.onSuccess(new JSONObject().put("cancel", true)); activity.finish(); }
+                }).create();
+            dialog.show();
+            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new android.view.View.OnClickListener() {
+                onClick(android.view.View view) {
+                    int temp = 0; int minutes = 0;
+                    try { temp = Integer.parseInt(temperature.getText().toString()); } catch (Exception ignored) {}
+                    try { minutes = Integer.parseInt(duration.getText().toString()); } catch (Exception ignored) {}
+                    if (temp &lt; 62 || temp &gt; 81) { temperature.setError("Use 62 to 81"); return; }
+                    if (minutes &lt; 1 || minutes &gt; 10) { duration.setError("Use 1 to 10"); return; }
+                    signal.onSuccess(new JSONObject().put("temperature", temp).put("duration", minutes).put("defrost", defrost.isChecked()));
+                    dialog.dismiss(); activity.finish();
+                }
+            });
+        }
+    });
+    return (JSONObject)signal.blockingGet();
+}
+
+
+// Santa Fe Direct 1.1.0 entry and command state. Credentials are Tasker settings.
+// Tokens and transaction details stay in a volatile global Java object.
+import java.nio.channels.*;
+import java.util.concurrent.locks.ReentrantLock;
+
+void sfSaveMarker(String operation) {
+    JSONObject marker = new JSONObject().put("action", operation).put("time", sfNow());
+    File temporary = new File(sfMarkerFile.getPath() + ".tmp");
+    FileOutputStream out = new FileOutputStream(temporary);
+    try { out.write(marker.toString().getBytes("UTF-8")); out.getFD().sync(); } finally { out.close(); }
+    if (!temporary.renameTo(sfMarkerFile)) sfFail("Could not save the pending-command guard. No command was sent.");
+    if (!sfMarkerFile.isFile() || sfMarkerFile.length() == 0) sfFail("Could not verify the pending-command guard. No command was sent.");
+}
+void sfClearMarker() {
+    if (sfMarkerFile.exists() &amp;&amp; !sfMarkerFile.delete()) sfFail("Could not clear the pending-command guard. Check the vehicle before running SFD Resolve Unknown.");
+    if (sfMarkerFile.exists()) sfFail("The pending-command guard is still present. No further command will be sent.");
+    sfSession.remove("pending");
+}
+String sfPollOnce() {
+    if (!sfMarkerFile.exists()) sfFail("No command is waiting for a result.");
+    JSONObject pending = (JSONObject)sfSession.get("pending");
+    if (pending == null || pending.optString("tid").length() == 0)
+        sfFail("The previous command has no readable transaction in this session. Check the vehicle, then run SFD Resolve Unknown. It will not be retried.");
+    JSONObject selected = (JSONObject)sfSession.get("vehicle");
+    if (!pending.optString("vin").equals(selected.optString("vin")) || !pending.optString("regid").equals(selected.optString("regid"))
+        || !pending.optString("identity").equals(sfSession.get("identity")))
+        sfFail("Return to the account and vehicle that received the pending command. No command was sent.");
+    Map extra = new HashMap(); extra.put("tid", pending.getString("tid")); extra.put("login_id", sfSession.get("email")); extra.put("service_type", "REMOTE_POLL");
+    JSONObject data = sfRequest("GET", "/ac/v2/rmt/getRunningStatus", null, true, true, extra).getJSONObject("data");
+    if (data.has("tid") &amp;&amp; !pending.getString("tid").equals(data.optString("tid"))) sfFail("Hyundai returned a different transaction. The command outcome remains unresolved.");
+    String status = data.optString("status");
+    if (status.equals("SUCCESS")) { sfClearMarker(); return "SUCCESS"; }
+    if (status.equals("ERROR")) { sfClearMarker(); return "FAILED"; }
+    // The upstream client uses a fixed polling delay. The tester establishes
+    // response states, but not the unit of nextPollingInterval. Do not guess it.
+    int interval = 10;
+    pending.put("interval", interval); pending.put("nextAllowedAt", sfNow() + interval * 1000L);
+    return status.equals("PENDING") ? "PENDING" : "UNKNOWN";
+}
+String sfPollBounded(boolean waitFirst) {
+    long deadline = sfNow() + 120000; int count = 0;
+    if (waitFirst) sfDelay(10000);
+    else {
+        JSONObject previous = (JSONObject)sfSession.get("pending");
+        long delay = previous == null ? 0 : previous.optLong("nextAllowedAt", sfNow()) - sfNow();
+        if (delay &gt;= 120000) return "PENDING";
+        if (delay &gt; 0) sfDelay(delay);
+    }
+    String outcome = "PENDING";
+    while (count &lt; 10 &amp;&amp; sfNow() &lt; deadline) {
+        outcome = sfPollOnce(); count++;
+        if (!outcome.equals("PENDING")) return outcome;
+        JSONObject pending = (JSONObject)sfSession.get("pending");
+        long delay = pending.optInt("interval", 10) * 1000L;
+        if (sfNow() + delay &gt;= deadline || count &gt;= 10) break;
+        sfDelay(delay);
+    }
+    return outcome;
+}
+String sfSubmit(String operation) {
+    if (sfMarkerFile.exists()) sfFail("A previous command outcome is unresolved. Run SFD Check Command or check the vehicle and use SFD Resolve Unknown. No new command was sent.");
+    JSONObject recipe = sfCommandRecipe(operation);
+    if (operation.equals("start") &amp;&amp; !sfConfirm("Remote start", "Is the vehicle parked outdoors, clear of people and safe to start?", "Start").equals("yes")) return "CANCELLED";
+    // Obtain an actual status object before control submission, as in the tester.
+    sfStatus(false);
+    JSONObject selected = (JSONObject)sfSession.get("vehicle");
+    JSONObject pending = new JSONObject().put("action", operation).put("vin", selected.getString("vin"))
+        .put("regid", selected.getString("regid")).put("identity", sfSession.get("identity"));
+    sfSaveMarker(operation); sfSession.put("pending", pending);
+    Map extra = new HashMap(); JSONObject values = recipe.getJSONObject("extra");
+    for (Iterator keys = values.keys(); keys.hasNext();) { String key = (String)keys.next(); extra.put(key, values.getString(key)); }
+    JSONObject body = recipe.isNull("body") ? null : recipe.getJSONObject("body");
+    JSONObject result = sfRequest("POST", recipe.getString("path"), body, true, true, extra);
+    String id = result.optString("tid");
+    if (id.length() == 0) return "UNKNOWN";
+    sfHeader(id); pending.put("tid", id);
+    tasker.showToast("Hyundai accepted " + operation + ". Checking completion...");
+    return sfPollBounded(true);
+}
+String sfReport(String state, String message) {
+    tasker.setVariable("SFDState", state); tasker.setVariable("SFDResult", message);
+    tasker.showToast(message); return message;
+}
+
+String sfDispatch(String operation) {
+    if (operation.equals("controls")) {
+        operation = sfChoose("Santa Fe controls", new String[]{"Status", "Refresh status", "Lock", "Unlock", "Remote start", "Remote stop", "Check command", "Account settings", "Climate settings"},
+            new String[]{"status", "refresh", "lock", "unlock", "start", "stop", "poll", "setup", "climate"});
+    }
+    if (operation.equals("cancel")) return sfReport("CANCELLED", "Cancelled. No request was sent.");
+    if (operation.equals("verify")) {
+        int actions = tasker.getTask().getActionCount();
+        if (actions &lt; 1) sfFail("Tasker reports no executable actions.");
+        JSONObject sample = new JSONObject().put("doorLock", true).put("engine", false).put("airCtrlOn", false);
+        String flags = sfStatusFlag(sample, "doorLock", "Locked", "Unlocked") + " / " + sfStatusFlag(sample, "engine", "Running", "Off") + " / " + sfStatusFlag(sample, "airCtrlOn", "On", "Off");
+        if (!flags.equals("Locked / Off / Off")) sfFail("The status parser self-check failed. No request was sent.");
+        String message = sfReport("READY", "Santa Fe Direct 1.1.0 loaded. Core has " + actions + " executable action(s). Java, JSON and HTTP libraries are available. Status parser verified: " + flags + ". No network request was made.");
+        sfMessage("Santa Fe Direct verification", message);
+        return message;
+    }
+    if (operation.equals("setup")) {
+        if (sfMarkerFile.exists()) sfFail("Check the pending command before changing account settings. Use SFD Check Command or SFD Resolve Unknown.");
+        JSONObject account = sfAccountForm();
+        if (account.optBoolean("cancel")) return sfReport("CANCELLED", "Account settings unchanged.");
+        tasker.setVariable("SFDEmail", account.getString("email")); tasker.setVariable("SFDPassword", account.getString("password"));
+        tasker.setVariable("SFDPin", account.getString("pin")); tasker.setVariable("SFDVin", account.getString("vin"));
+        sfSession.clear();
+        return sfReport("SAVED", "Account saved in Tasker. Run SFD Connect once to verify it. No request was sent during setup.");
+    }
+    if (operation.equals("climate")) {
+        JSONObject settings = sfClimateForm();
+        if (settings.optBoolean("cancel")) return sfReport("CANCELLED", "Climate settings unchanged.");
+        tasker.setVariable("SFDTemperature", String.valueOf(settings.getInt("temperature")));
+        tasker.setVariable("SFDDuration", String.valueOf(settings.getInt("duration")));
+        tasker.setVariable("SFDDefrost", settings.getBoolean("defrost") ? "1" : "0");
+        return sfReport("SAVED", "Remote start settings saved. No vehicle command was sent.");
+    }
+    if (operation.equals("clear")) { sfSession.clear(); return sfReport("CLEARED", "Live login cleared. Saved account and any pending-command guard are retained."); }
+    if (operation.equals("forget")) {
+        if (!sfConfirm("Forget account", "Remove the email, password, PIN and selected VIN saved in this Tasker project? A pending command warning will remain.", "Forget").equals("yes")) return sfReport("CANCELLED", "Account settings unchanged.");
+        for (String name : new String[]{"SFDEmail", "SFDPassword", "SFDPin", "SFDVin"}) tasker.setVariable(name, "");
+        sfSession.clear(); return sfReport("FORGOTTEN", "Account cleared from Tasker variables. Any earlier Tasker backups are separate. Pending-command guard retained.");
+    }
+    if (operation.equals("resolve")) {
+        if (!sfMarkerFile.exists()) return sfReport("READY", "No unresolved command is recorded.");
+        if (!sfConfirm("Unresolved command", "Check the car or MyHyundai first. Have you confirmed what the vehicle actually did? This clears the warning only. It does not cancel or repeat a command.", "I checked the vehicle").equals("yes")) return sfReport("CANCELLED", "Pending-command guard retained.");
+        sfClearMarker(); return sfReport("ACKNOWLEDGED", "Physical outcome acknowledged. No API command was sent or retried.");
+    }
+    if (!Arrays.asList(new String[]{"connect", "choose", "status", "refresh", "lock", "unlock", "start", "stop", "poll"}).contains(operation))
+        sfFail("Unknown task operation. No request was sent.");
+    if (operation.equals("choose")) {
+        if (sfMarkerFile.exists()) sfFail("Check the pending command before switching vehicles.");
+        sfCheckAccount();
+        if (!sfSession.containsKey("token") || sfNow() &gt;= ((Number)sfSession.get("expires")).longValue()) {
+            try { sfLogin(); } catch (IOException selectNeeded) {
+                if (!sfSession.containsKey("vehicles") || Boolean.TRUE.equals(sfSession.get("authBlocked"))) throw selectNeeded;
+            }
+        }
+        JSONArray vehicles = (JSONArray)sfSession.get("vehicles");
+        if (vehicles == null || vehicles.length() == 0) sfFail("Hyundai returned no active vehicles.");
+        String[] labels = new String[vehicles.length()]; String[] vins = new String[vehicles.length()];
+        for (int i = 0; i &lt; vehicles.length(); i++) {
+            JSONObject vehicle = vehicles.getJSONObject(i); vins[i] = vehicle.getString("vin");
+            labels[i] = "Vehicle " + (i + 1) + " | VIN ending " + vins[i].substring(13);
+        }
+        String chosen = sfChoose("Choose your Santa Fe", labels, vins);
+        if (chosen.equals("cancel")) return sfReport("CANCELLED", "Vehicle selection unchanged.");
+        tasker.setVariable("SFDVin", chosen); sfSelectVehicle();
+        return sfReport("SELECTED", "Vehicle selected. Run SFD Status.");
+    }
+    // With an unresolved outcome, controls are blocked before even logging in.
+    if (Arrays.asList(new String[]{"lock", "unlock", "start", "stop"}).contains(operation) &amp;&amp; sfMarkerFile.exists())
+        sfFail("A previous command outcome is unresolved. Run SFD Check Command or check the vehicle and use SFD Resolve Unknown. No new request was sent.");
+    if (operation.equals("poll")) {
+        JSONObject previous = (JSONObject)sfSession.get("pending");
+        if (!sfMarkerFile.exists()) sfFail("No command is waiting for a result.");
+        if (previous == null || previous.optString("tid").length() == 0)
+            sfFail("The previous command has no readable transaction in this session. Check the vehicle, then run SFD Resolve Unknown. It will not be retried.");
+    }
+    sfEnsureSession(operation.equals("connect"));
+    if (operation.equals("connect") || operation.equals("status") || operation.equals("refresh")) {
+        String status = sfStatus(operation.equals("refresh"));
+        sfReport("READ", (operation.equals("connect") ? "Connected.\n" : "") + status);
+        if (!operation.equals("connect") &amp;&amp; !sfValue("par2").equals("gui")) sfMessage("Santa Fe status", status);
+        return sfValue("SFDResult");
+    }
+    String state = operation.equals("poll") ? sfPollBounded(false) : sfSubmit(operation);
+    String message = state.equals("SUCCESS") ? "Hyundai confirmed command completion (SUCCESS)."
+        : state.equals("FAILED") ? "Hyundai reported command failure (ERROR). No retry was sent."
+        : state.equals("CANCELLED") ? "Cancelled. No vehicle command was sent."
+        : state.equals("PENDING") ? "Command is still pending. Run SFD Check Command later. It will not be resubmitted."
+        : "Command outcome is unknown. Check the vehicle before SFD Resolve Unknown. It will not be retried.";
+    return sfReport(state, message);
+}
+
+// ENTRY: the generator embeds api.java, ui.java and this file into one action.
+String operation = sfValue("par1");
+if (operation.length() == 0) operation = "verify";
+Map sfSession = null;
+File sfMarkerFile = new File(context.getNoBackupFilesDir(), "santa-fe-direct-pending.json");
+RandomAccessFile sfLockFile = null; FileLock sfLock = null;
+OkHttpClient sfClient = sfMakeClient();
+String sfOutput = "";
+ReentrantLock sfMutex = null; boolean sfMutexHeld = false;
+try {
+    synchronized ("santa.fe.direct.operation".intern()) {
+        sfMutex = (ReentrantLock)tasker.getGlobalJavaVariables().get("sfDirectLock");
+        if (sfMutex == null) { sfMutex = new ReentrantLock(); tasker.setJavaVariable("sfDirectLock", sfMutex); }
+    }
+    sfMutexHeld = sfMutex.tryLock();
+    if (!sfMutexHeld) sfFail("Another Santa Fe task is running. No new request was sent.");
+    sfLockFile = new RandomAccessFile(new File(context.getNoBackupFilesDir(), "santa-fe-direct.lock"), "rw");
+    try { sfLock = sfLockFile.getChannel().tryLock(); } catch (OverlappingFileLockException busy) {}
+    if (sfLock == null) sfOutput = sfReport("BUSY", "Another Santa Fe task is running. No new request was sent.");
+    else {
+        sfSession = (Map)tasker.getGlobalJavaVariables().get("sfDirectSession");
+        if (sfSession == null) { sfSession = new HashMap(); tasker.setJavaVariable("sfDirectSession", sfSession); }
+        tasker.setVariable("SFDLastHttp", "");
+        sfOutput = sfDispatch(operation);
+    }
+
+} catch (Exception failure) {
+    String message = failure.getMessage();
+    if (message == null || !message.startsWith("SF: ")) message = "Connection or response failed. No request was retried.";
+    else message = message.substring(4);
+    boolean unresolved = sfMarkerFile.exists();
+    if (unresolved) message += " A previous command may have reached the car. Run SFD Check Command or check the vehicle before SFD Resolve Unknown.";
+    sfOutput = sfReport(unresolved ? "UNKNOWN" : "FAILED", message);
+} finally {
+    try {
+        if (sfLock != null) sfLock.release();
+    } finally {
+        try { if (sfLockFile != null) sfLockFile.close(); }
+        finally { if (sfMutexHeld) sfMutex.unlock(); }
+    }
+}
+
+return sfOutput;
+</Str>
+			<Str sr="arg1" ve="3">%sfd_return</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task34002">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34002</id>
+		<nme>SFD Verify Actions</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">verify</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34003">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34003</id>
+		<nme>SFD Setup</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">setup</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34004">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34004</id>
+		<nme>SFD Connect</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">connect</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34005">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34005</id>
+		<nme>SFD Choose Vehicle</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">choose</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34006">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34006</id>
+		<nme>SFD Status</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">status</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34007">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34007</id>
+		<nme>SFD Refresh Status</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">refresh</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34008">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34008</id>
+		<nme>SFD Lock</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">lock</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34009">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34009</id>
+		<nme>SFD Unlock</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">unlock</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34010">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34010</id>
+		<nme>SFD Remote Start</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">start</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34011">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34011</id>
+		<nme>SFD Remote Stop</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">stop</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34012">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34012</id>
+		<nme>SFD Check Command</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">poll</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34013">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34013</id>
+		<nme>SFD Resolve Unknown</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">resolve</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34014">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34014</id>
+		<nme>SFD Climate Settings</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">climate</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34015">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34015</id>
+		<nme>SFD Controls</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">controls</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34016">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34016</id>
+		<nme>SFD Clear Session</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">clear</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34017">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34017</id>
+		<nme>SFD Forget Account</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">forget</Str>
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34018">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34018</id>
+		<nme>SFD GUI Prepare</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>474</code>
+			<Str sr="arg0" ve="3">// Scene display preparation only. No login, network request or car command.
+import java.io.File;
+String sfGuiValue(String name, String fallback) {
+    String value = tasker.getVariable(name);
+    return value == null || value.length() == 0 || value.equals("%" + name) ? fallback : value;
+}
+String door = sfGuiValue("SFDDoorLock", "Unknown");
+String engine = sfGuiValue("SFDEngine", "Unknown");
+String climate = sfGuiValue("SFDClimate", "Unknown");
+String timestamp = sfGuiValue("SFDVehicleTime", "Not read yet");
+tasker.setVariable("SFDGuiStatus", "Doors: " + door + "\nEngine: " + engine + "\nClimate: " + climate + "\nVehicle timestamp: " + timestamp);
+tasker.setVariable("SFDGuiResult", sfGuiValue("SFDResult", "No operation yet."));
+tasker.setVariable("SFDGuiState", sfGuiValue("SFDState", "Not connected"));
+tasker.setVariable("SFDGuiHttp", sfGuiValue("SFDLastHttp", "None"));
+String email = sfGuiValue("SFDEmail", "");
+String password = sfGuiValue("SFDPassword", "");
+String pin = sfGuiValue("SFDPin", "");
+tasker.setVariable("SFDGuiAccount", email.length() &gt; 0 &amp;&amp; password.length() &gt; 0 &amp;&amp; pin.length() == 4 ? "Account saved. Edit account to update it." : "Account not saved. Tap Edit account.");
+String vin = sfGuiValue("SFDVin", "");
+tasker.setVariable("SFDGuiVehicle", vin.length() &gt; 7 ? "Selected vehicle: VIN ending " + vin.substring(vin.length() - 8) : "No vehicle selected. Connect, then choose if asked.");
+tasker.setVariable("SFDGuiClimate", "Temperature: " + sfGuiValue("SFDTemperature", "72") + " F\nDuration: " + sfGuiValue("SFDDuration", "10") + " minutes\nDefrost: " + (sfGuiValue("SFDDefrost", "0").equals("1") ? "On" : "Off") + "\nSeat and steering-wheel heat: off");
+boolean pending = new File(context.getNoBackupFilesDir(), "santa-fe-direct-pending.json").exists();
+tasker.setVariable("SFDGuiPending", pending ? "Outcome unresolved. Check the command or physically check the car before resolving it." : "No unresolved command.");
+return "DISPLAY READY";
+</Str>
+			<Str sr="arg1" ve="3">%sfd_return</Str>
+			<Int sr="arg2" val="1" />
+		</Action>
+	</Task>
+	<Task sr="task34019">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34019</id>
+		<nme>SFD Close GUI</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SFD Home</Str>
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SFD Controls</Str>
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SFD Status</Str>
+		</Action>
+		<Action sr="act3" ve="7">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SFD Account</Str>
+		</Action>
+		<Action sr="act4" ve="7">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SFD Climate</Str>
+		</Action>
+		<Action sr="act5" ve="7">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SFD Command</Str>
+		</Action>
+		<Action sr="act6" ve="7">
+			<code>49</code>
+			<se>false</se>
+			<Str sr="arg0" ve="3">SFD Help</Str>
+		</Action>
+	</Task>
+	<Task sr="task34020">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34020</id>
+		<nme>SFD Open Home</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD GUI Prepare</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SFD Home</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg10" val="0" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34021">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34021</id>
+		<nme>SFD Open Controls</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD GUI Prepare</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SFD Controls</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg10" val="0" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34022">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34022</id>
+		<nme>SFD Open Status</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD GUI Prepare</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SFD Status</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg10" val="0" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34023">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34023</id>
+		<nme>SFD Open Account</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD GUI Prepare</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SFD Account</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg10" val="0" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34024">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34024</id>
+		<nme>SFD Open Climate</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD GUI Prepare</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SFD Climate</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg10" val="0" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34025">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34025</id>
+		<nme>SFD Open Command</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD GUI Prepare</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SFD Command</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg10" val="0" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34026">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34026</id>
+		<nme>SFD Open Help</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD GUI Prepare</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>47</code>
+			<Str sr="arg0" ve="3">SFD Help</Str>
+			<Int sr="arg1" val="2" />
+			<Int sr="arg10" val="0" />
+			<Int sr="arg2" val="100" />
+			<Int sr="arg3" val="100" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34027">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34027</id>
+		<nme>SFD Open</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Home</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34028">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34028</id>
+		<nme>SFD GUI Connect</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">connect</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Status</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34029">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34029</id>
+		<nme>SFD GUI Read status</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">status</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Status</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34030">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34030</id>
+		<nme>SFD GUI Refresh status</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">refresh</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Status</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34031">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34031</id>
+		<nme>SFD GUI Lock</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">lock</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Command</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34032">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34032</id>
+		<nme>SFD GUI Unlock</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">unlock</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Command</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34033">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34033</id>
+		<nme>SFD GUI Start</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">start</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Command</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34034">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34034</id>
+		<nme>SFD GUI Stop</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">stop</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Command</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34035">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34035</id>
+		<nme>SFD GUI Check command</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">poll</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Command</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34036">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34036</id>
+		<nme>SFD GUI Resolve unknown</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">resolve</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Command</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34037">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34037</id>
+		<nme>SFD GUI Edit account</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">setup</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Account</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34038">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34038</id>
+		<nme>SFD GUI Edit climate</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">climate</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Climate</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34039">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34039</id>
+		<nme>SFD GUI Choose vehicle</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">choose</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Account</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34040">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34040</id>
+		<nme>SFD GUI Clear session</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">clear</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Account</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34041">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34041</id>
+		<nme>SFD GUI Forget account</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">forget</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Account</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+</TaskerData>

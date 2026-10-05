@@ -1,0 +1,52 @@
+{
+  "version": "Santa Fe Direct 1.1.0",
+  "checked_at": "2026-10-05T20:12:13.214Z",
+  "project_sha256": "851c4cbac713570e194805692bb17bcfddac83e711c8dd098c9f95d161ecbb83",
+  "phone_report": {
+    "sfd_open_absent": true,
+    "scenes_absent": true,
+    "status_unknown": true,
+    "updated_phone_acceptance": false
+  },
+  "delivery": {
+    "filename": "Santa_Fe_Direct_1_1_0_SCENES.prj.xml",
+    "bytes": 119057,
+    "tasks": 41,
+    "actions": 89,
+    "scenes": 7,
+    "library_file_id": "libfile_8074b46719c08191b8d5fd7cc14aab80",
+    "version": 0,
+    "byte_identical_to_verified_release": true
+  },
+  "fresh_import": {
+    "passed": true,
+    "checks": 60,
+    "workflow_run_id": 37360660103,
+    "source_commit": "748e512db6c9f96a74cde632674ea7f95dcf913f"
+  },
+  "in_place_import": {
+    "passed": false,
+    "reproduced": true,
+    "workflow_run_id": 37366362988,
+    "tested_source_commit": "3801982042f49567a4f0ab1446f18f54ead708f1",
+    "old_project": {
+      "tasks": 17,
+      "actions": 17,
+      "scenes": 0
+    },
+    "error": "a project with that name already exists",
+    "result": "Published 1.1.0 XML is rejected while the 1.0.0 project exists; earlier replace-if-offered instructions were incorrect.",
+    "creation_date_cause_not_proven": true
+  },
+  "recovery_check": {
+    "passed": false,
+    "status": "QUEUED",
+    "workflow_run_id": 37367244302,
+    "tested_source_commit": "83bd90e1a7bd77ae6ec996494ca270892ab49f48",
+    "settings_retention_verified": false,
+    "reported_platform_incident": "https://www.githubstatus.com/",
+    "method": "Select only old Santa Fe Direct project, Delete with contents, retain global variables, import distinctly named exact 1.1.0 XML, validate existing synthetic account, version and Home scene."
+  },
+  "real_account_used": false,
+  "vehicle_commands_run": false
+}

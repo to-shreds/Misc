@@ -4,11 +4,13 @@ A standalone Tasker interface for the confirmed Hyundai USA calls. Jon has now c
 
 ## Install or update
 
-Download the attached XML file to the phone and import it using Tasker's **Import Project** command. It is the **Santa Fe Direct** project, separate from the earlier bridge project. Version 1.1.0 keeps the original project ID, task names and account variable names. If Tasker offers to replace the existing project, accept that replacement. Keep the saved global variables; do not run Forget account during the update.
+Download **Santa_Fe_Direct_1_1_0_SCENES.prj.xml**. This named copy has 41 tasks and seven scenes; it is byte-identical to the verified 1.1.0 project. Select that exact filename in Tasker's **Import Project** picker.
+
+For an update, back up your Tasker configuration, then remove the old **Santa Fe Direct** project with its contents. Direct XML import rejects an existing project name with **a project with that name already exists**; it does not offer the replacement assumed in the earlier instructions. Long-press the old project's bottom tab, select **Delete**, then **With Contents**. Remove only that project and its tasks/scenes, keeping your saved global variables. Then import the distinctly named new file. Credentials are ordinary Tasker global variables. The removal/import account-retention check is still queued during a GitHub Actions runner incident; that transfer has not yet been independently verified. Check **Account** after import; if Tasker removed the saved values, use **Edit account** once to restore them. The earlier bridge project is separate. Version 1.1.0 keeps the original API task IDs and account variable names.
 
 Run **SFD Verify Actions** once. It should identify version 1.1.0 and show **Status parser verified: Locked / Off / Off** from its offline fixture. That check sends no network request and does not describe the actual car.
 
-Run **SFD Open** for the GUI. Assign that task to a home-screen shortcut or widget if desired. Existing accounts remain available. For first use, open **Account**, tap **Edit account**, save email/password/four-digit PIN, then tap **Connect**. With multiple active cars, use **Choose vehicle**. The VIN is optional when the account has one active vehicle.
+Run **SFD Open** for the GUI. Assign that task to a home-screen shortcut or widget if desired. For first use or if account values are absent after replacement, open **Account**, tap **Edit account**, save email/password/four-digit PIN, then tap **Connect**. With multiple active cars, use **Choose vehicle**. The VIN is optional when the account has one active vehicle.
 
 ## Scene interface
 

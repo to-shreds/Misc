@@ -105,7 +105,7 @@
   "session_secrets": "Volatile global Java object. Persistent minimal private action/time marker only.",
   "real_account_used": false,
   "vehicle_commands_run": false,
-  "phone_acceptance": "User has confirmed 1.0.0 login/selection/lock/unlock on Tasker 6.7.6-beta. Updated 1.1.0 scenes and status labels, and remote start/stop from Tasker, remain phone checks. No automatic profiles.",
+  "phone_acceptance": "The latest user report has no SFD Open/scenes and Unknown flags. Published 1.1.0 fresh import is verified, while actual in-place import is rejected by the existing project name. The scoped old-project removal/import test and updated phone acceptance remain pending.",
   "cloud_regression": {
     "passed": true,
     "workflow_run_id": 37358500605,
@@ -178,5 +178,6 @@
     "workflow_run_attempt": 2,
     "workflow_publish_note": "Native test step passed; rerun report push was rejected because an earlier bot report already advanced the branch. Passed artifact report was recovered and published manually."
   },
-  "workflow_sha256": "439f290a8168c95b2a4aa911386fa433e11d8719aad501da373a46a488ed9b5e"
+  "workflow_sha256": "439f290a8168c95b2a4aa911386fa433e11d8719aad501da373a46a488ed9b5e",
+  "upgrade_delivery": "tasker-direct-upgrade-verification.json"
 }
