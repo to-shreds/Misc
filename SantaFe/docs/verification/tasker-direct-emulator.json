@@ -6,11 +6,26 @@
   "passed": false,
   "checks": [],
   "project_sha256": "a16e88d5f5583cea58f3687249adfe557e2de8f46a3765efe4b62aa1e0ac9e11",
-  "error": "Unhandled Tasker startup UI: ['Loading', 'Checking Draw Over Other Apps...']",
+  "error": "Unhandled Tasker startup UI: ['Before We Get Started', 'Before Tasker can work, please check all the boxes below...', '', 'Accept Terms', 'Tasker can do a lot of things, so please read and accept the usage terms to proceed.', '', 'Draw Over Other Apps', \"Click here to enable. Starting in Android 10 Tasker needs to always have the 'Draw Over Other Apps' permission to be able to do stuff like opening apps from the background.\", '', '', 'Battery Optimization', 'Tasker may not work well in many situations while it is being battery-optimized by Android, particularly on Android 8 or above.', '', '', 'Vendor Specific Battery Optimization', \"IMPORTANT NOTE: It's very important that Tasker is not battery optimized or it won't work correctly.\\n\\nDifferent vendors (Huawei, Samsung, OnePlus, etc) have different non-standard ways to optimize battery which can break Tasker.\\n\\nPlease make sure to disable ALL battery optimizations specific to your vendor.\\n\\nLearn how to do this now?\", '', '', 'Check all checkboxes to proceed']",
   "last_ui": [
     "Before We Get Started",
+    "Before Tasker can work, please check all the boxes below...",
     "",
-    "OK",
-    ""
+    "Accept Terms",
+    "Tasker can do a lot of things, so please read and accept the usage terms to proceed.",
+    "",
+    "Draw Over Other Apps",
+    "Click here to enable. Starting in Android 10 Tasker needs to always have the 'Draw Over Other Apps' permission to be able to do stuff like opening apps from the background.",
+    "",
+    "",
+    "Battery Optimization",
+    "Tasker may not work well in many situations while it is being battery-optimized by Android, particularly on Android 8 or above.",
+    "",
+    "",
+    "Vendor Specific Battery Optimization",
+    "IMPORTANT NOTE: It's very important that Tasker is not battery optimized or it won't work correctly.\n\nDifferent vendors (Huawei, Samsung, OnePlus, etc) have different non-standard ways to optimize battery which can break Tasker.\n\nPlease make sure to disable ALL battery optimizations specific to your vendor.\n\nLearn how to do this now?",
+    "",
+    "",
+    "Check all checkboxes to proceed"
   ]
 }
