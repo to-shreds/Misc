@@ -78,7 +78,12 @@ def startup():
         if any(n.get("text", "") == "Loading" or n.get("text", "").startswith("Checking ") for n in nodes(root)):
             time.sleep(1)
             continue
-        if not click(root, ["Tasker", "Accept", "I Agree", "I accept", "Start Trial", "Continue", "Get Started", "Next", "OK", "Got it", "Allow", "Skip", "Cancel", "Later", "No"]):
+        if matching(root, "Before We Get Started") is not None:
+            unchecked = [n for n in nodes(root) if n.get("checkable") == "true" and n.get("checked") == "false" and n.get("enabled") == "true"]
+            if unchecked:
+                tap(unchecked[0])
+                continue
+        if not click(root, ["Tasker", "Accept", "I Agree", "I accept", "I understand", "Agree", "Start Trial", "Continue", "Get Started", "Next", "OK", "Got it", "Allow", "Skip", "Cancel", "Later", "No"]):
             raise RuntimeError("Unhandled Tasker startup UI: " + str(visible(root)))
     raise RuntimeError("Tasker startup did not finish")
 
@@ -165,6 +170,7 @@ def run():
     for operation in ["SYSTEM_ALERT_WINDOW", "WRITE_SETTINGS", "MANAGE_EXTERNAL_STORAGE"]:
         adb("shell", "appops", "set", PACKAGE, operation, "allow", check=False)
     adb("shell", "pm", "grant", PACKAGE, "android.permission.POST_NOTIFICATIONS", check=False)
+    adb("shell", "dumpsys", "deviceidle", "whitelist", "+" + PACKAGE, check=False)
     startup()
     import_project()
     root = open_task("SFD Core")
@@ -215,7 +221,9 @@ if __name__ == "__main__":
     except Exception as error:
         REPORT["error"] = str(error)
         try:
-            REPORT["last_ui"] = visible(screen())
+            last = screen()
+            REPORT["last_ui"] = visible(last)
+            REPORT["last_ui_nodes"] = [dict(n.attrib) for n in nodes(last)]
         except Exception:
             pass
         raise
