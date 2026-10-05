@@ -36,7 +36,7 @@ function makeWindow() {
   };
   return window;
 }
-function harness(responses = [], { mode = 'direct' } = {}) {
+function harness(responses = [], { mode = 'direct', native = false, origin = native ? 'https://santafe.local' : ORIGIN, pathname = '/index.html', nativeOverrides = {}, initialStorage = null, storageDisabled = false } = {}) {
   const elements = new Map();
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   for (const m of html.matchAll(/<([a-z]+)\b([^>]*\bid="([^"]+)"[^>]*)>/gi)) {
@@ -44,12 +44,23 @@ function harness(responses = [], { mode = 'direct' } = {}) {
     e.value = m[2].match(/\bvalue="([^"]*)"/)?.[1] || ''; elements.set(m[3], e);
   }
   elements.get('transportMode').value = mode; elements.get('commandSelect').value = 'lock';
-  const window = makeWindow(), requests = [], storage = new Map(), timers = new Set();
+  const window = makeWindow(), requests = [], storage = initialStorage || new Map(), timers = new Map(), nativeExports = [], nativeCancels = [];
+  if(native)window.SantaFeNative={
+    request(json) {
+      const envelope=JSON.parse(json);requests.push({...envelope.request,id:envelope.id});
+      const next=responses.shift();if(!next)throw new Error('Unexpected native fixture request');
+      if(typeof next==='function'){next(envelope,window);return;}
+      queueMicrotask(()=>window.SantaFeAndroid.onResponse(envelope.id,{status:next.status || 200,text:next.text===undefined?JSON.stringify(next.data || {}):next.text,headers:next.headers || {}},next.error || null));
+    },
+    cancel(id){nativeCancels.push(id);},
+    exportLog(json){nativeExports.push(json);return true;},
+    ...nativeOverrides
+  };
   const context = { window, document: { getElementById: id => elements.get(id), createElement: tag => new Element(tag) },
-    location: { origin: ORIGIN }, crypto: { randomUUID }, AbortController, URL, Blob, performance, Date,
-    localStorage: { setItem: (k, v) => storage.set(k, v), getItem: k => storage.get(k), removeItem: k => storage.delete(k) },
+    location: { origin, pathname }, crypto: { randomUUID }, AbortController, URL, Blob, performance, Date,
+    localStorage: { setItem: (k, v) => {if(storageDisabled)throw new Error('Storage disabled');storage.set(k, v);}, getItem: k => storage.get(k) ?? null, removeItem: k => {if(storageDisabled)throw new Error('Storage disabled');storage.delete(k);} },
     navigator: { clipboard: { writeText: async v => { context.copied = v; } } },
-    setTimeout(fn, ms) { const timer = setTimeout(fn, ms); timer.unref(); timers.add(timer); return timer; },
+    setTimeout(fn, ms) { const timer = setTimeout(fn, ms); timer.unref(); timers.set(timer,{fn,ms}); return timer; },
     clearTimeout(timer) { clearTimeout(timer); timers.delete(timer); },
     fetch: async (url, opts) => {
       requests.push({ url, ...opts, headers: { ...opts.headers } });
@@ -61,12 +72,13 @@ function harness(responses = [], { mode = 'direct' } = {}) {
   };
   vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'diagnostic.js'), 'utf8'), context, { filename: 'diagnostic.js' });
   const get = id => { const e = elements.get(id); assert.ok(e, `Missing UI id ${id}`); return e; };
-  return { get, window, requests, responses, context, storage,
+  return { get, window, requests, responses, context, storage, nativeExports, nativeCancels,
     async action(id, type = 'click') { get(id).emit(type); await idle(); },
     async idle() { await idle(); },
     report() { return JSON.parse(storage.get('santafe-diagnostics-v1') || '[]'); },
-    async exported() { await this.action('copyLogBtn'); return JSON.parse(context.copied); },
-    close() { for (const timer of timers) clearTimeout(timer); },
+    async exported() { if(native && origin==='https://santafe.local'){await this.action('downloadLogBtn');return JSON.parse(nativeExports.at(-1));}await this.action('copyLogBtn'); return JSON.parse(context.copied); },
+    fireTimeout(ms){for(const [timer,item]of timers)if(item.ms===ms){clearTimeout(timer);timers.delete(timer);item.fn();return;}throw new Error('No matching timeout');},
+    close() { for (const timer of timers.keys()) clearTimeout(timer); },
   };
   async function idle() {
     for (let i = 0; i < 100; i++) { await new Promise(r => setImmediate(r)); if (get('stopBtn').disabled) return; }
@@ -104,7 +116,7 @@ check('Helper-required setup blocks credentials and every programmatic login wit
     await login(h); await h.action('loginForm', 'submit'); await h.action('connectionTestBtn');
     assert.equal(h.requests.length, 0, `${mode} must not send a credential request or fall back to direct fetch`);
     assert.equal(h.get('sessionStatus').textContent, 'Signed out');
-    assert.match(h.get('notice').textContent, /helper|setup/i);
+    assert.match(h.get('notice').textContent, /Android app/i);
   }
 });
 
@@ -123,6 +135,137 @@ check('Only a valid same-window helper hello enables credentials and Automatic u
   h.context.fetch = () => { throw new Error('Automatic unexpectedly fell back to direct fetch'); };
   await login(h); assert.equal(h.requests.length, 3); assert.equal(h.get('sessionStatus').textContent, 'Signed in for this tab');
   assert.ok(h.report().filter(r => r.transport).every(r => r.transport === 'browser helper'));
+});
+
+check('Bundled Android page enables login immediately and exclusively uses native Hyundai transport', async t => {
+  const h=harness(loginFixtures(),{native:true,mode:'auto'});t.after(()=>h.close());
+  assert.equal(h.get('transportStatus').textContent,'Direct Hyundai connection');
+  for(const id of ['email','password','pin','loginBtn'])assert.equal(h.get(id).disabled,false);
+  for(const id of ['connectionSetup','appDownload','copyLogBtn'])assert.equal(h.get(id).hidden,true);
+  assert.equal(h.window.messages.length,0,'Native app must not ask a browser extension for a handshake');
+  h.context.fetch=()=>{throw new Error('Native transport must never fall back to fetch');};
+  await login(h);assert.equal(h.requests.length,3);assert.equal(h.get('sessionStatus').textContent,'Signed in for this app');
+  assert.equal(h.get('password').value,'');assert.equal(h.get('pin').value,'');
+  assert.ok(h.report().filter(r=>r.transport).every(r=>r.transport==='native Android'));
+  assert.match(h.get('privacyNote').textContent,/leave the app/);
+});
+
+check('Native interface cannot be used on a public origin or an unexpected bundled path', async t => {
+  for(const options of [{native:true,origin:ORIGIN,mode:'direct'},{native:true,pathname:'/untrusted.html',mode:'direct'}]){
+    let nativeCalls=0;const h=harness(loginFixtures(),{...options,nativeOverrides:{request(){nativeCalls++;}}});t.after(()=>h.close());
+    await login(h);assert.equal(nativeCalls,0);assert.equal(h.requests.length,3);assert.equal(h.get('sessionStatus').textContent,'Signed in for this tab');
+  }
+});
+
+check('Absent or incomplete native interface keeps bundled credentials locked even in Direct mode', async t => {
+  for(const options of [{origin:'https://santafe.local',mode:'direct'},{native:true,mode:'direct',nativeOverrides:{cancel:undefined}},{native:true,mode:'auto',nativeOverrides:{exportLog:undefined}}]){
+    const h=harness([],{...options});t.after(()=>h.close());
+    for(const id of ['email','password','pin','loginBtn'])assert.equal(h.get(id).disabled,true);
+    await login(h);await h.action('connectionTestBtn');assert.equal(h.requests.length,0);assert.match(h.get('notice').textContent,/unavailable/);
+  }
+});
+
+check('Native exports pass only sanitized data and distinguish choosing a file from saving it', async t => {
+  const fixtures=loginFixtures();fixtures[2].data.vehicleStatus.message=Object.values(creds).join(' ')+' '+vehicle.vin;
+  const h=harness(fixtures,{native:true});t.after(()=>h.close());await login(h);
+  const report=await h.exported(),raw=JSON.stringify(report);
+  for(const value of [...Object.values(creds),vehicle.vin,vehicle.regid,'private-access-987654','private-refresh-456789','42.04684','-71.11242'])assert.equal(raw.includes(value),false,`Native export leaked ${value}`);
+  assert.equal(report.version,'0.3.0');assert.match(h.get('notice').textContent,/Choose where to save/);
+  h.window.SantaFeAndroid.onExportResult(true,null);assert.equal(h.get('notice').textContent,'Sanitized log saved.');
+  h.window.SantaFeAndroid.onExportResult(false,'Log export cancelled.');assert.match(h.get('notice').textContent,/cancelled/);
+  await h.action('copyLogBtn');assert.equal(h.context.copied,undefined,'Native app must not copy secrets through a separate clipboard path');
+});
+
+check('Native export rejection does not claim a file was written', async t => {
+  const h=harness([],{native:true,nativeOverrides:{exportLog(){return false;}}});t.after(()=>h.close());
+  await h.action('downloadLogBtn');assert.match(h.get('notice').textContent,/unavailable/);assert.doesNotMatch(h.get('notice').textContent,/saved\./);
+});
+
+check('Native stop cancels once, ignores late responses and never retries login', async t => {
+  let envelope;const h=harness([(request)=>{envelope=request;}],{native:true});t.after(()=>h.close());
+  h.get('email').value=creds.username;h.get('password').value=creds.password;h.get('pin').value=creds.pin;h.get('loginForm').emit('submit');
+  assert.equal(h.requests.length,1);h.get('stopBtn').click();await h.idle();assert.deepEqual(h.nativeCancels,[envelope.id]);
+  h.window.SantaFeAndroid.onResponse(envelope.id,{status:200,text:JSON.stringify(loginFixtures()[0].data),headers:{}},null);
+  await h.idle();assert.equal(h.requests.length,1);assert.equal(h.get('sessionStatus').textContent,'Signed out');assert.equal(h.get('password').value,'');
+});
+
+check('Native pagehide during enrollment redacts encoded email after secret memory is cleared',async t=>{
+  let held;const h=harness([loginFixtures()[0],envelope=>{held=envelope;}],{native:true});t.after(()=>h.close());
+  h.get('email').value=creds.username;h.get('password').value=creds.password;h.get('pin').value=creds.pin;h.get('loginForm').emit('submit');
+  for(let i=0;i<30 && !held;i++)await new Promise(resolve=>setImmediate(resolve));assert.ok(held,'Enrollment request was not pending');
+  h.window.emit('pagehide');await h.idle();const saved=JSON.stringify(h.report()),exported=JSON.stringify(await h.exported());
+  for(const text of [saved,exported])for(const value of [creds.username,encodeURIComponent(creds.username),creds.password,creds.pin,'private-access-987654'])assert.equal(text.includes(value),false,`Aborted enrollment leaked ${value}`);
+  assert.match(saved,/enrollment\/details\/\[REDACTED\]/);assert.equal(h.requests.length,2);assert.deepEqual(h.nativeCancels,[held.id]);
+  h.window.SantaFeAndroid.onResponse(held.id,{status:200,text:JSON.stringify(loginFixtures()[1].data),headers:{}},null);await h.idle();assert.equal(h.get('sessionStatus').textContent,'Signed out');assert.equal(h.requests.length,2);
+});
+
+check('Pagehide retains redaction values until an aborted request logs opaque echoed secrets',async t=>{
+  let waiting=false;
+  const h=harness([loginFixtures()[0],(_url,opts)=>new Promise((_resolve,reject)=>{waiting=true;opts.signal.addEventListener('abort',()=>reject(new Error('Connection cancelled '+creds.password+' '+opts.headers.accessToken)),{once:true});})]);t.after(()=>h.close());
+  h.get('email').value=creds.username;h.get('password').value=creds.password;h.get('pin').value=creds.pin;h.get('loginForm').emit('submit');
+  for(let i=0;i<30 && !waiting;i++)await new Promise(resolve=>setImmediate(resolve));assert.equal(waiting,true);
+  h.window.emit('pagehide');await h.idle();const text=JSON.stringify(h.report())+' '+JSON.stringify(await h.exported())+' '+h.get('notice').textContent;
+  for(const value of [creds.password,'private-access-987654',encodeURIComponent(creds.username)])assert.equal(text.includes(value),false,`Pagehide cancellation exposed ${value}`);
+  assert.equal(h.get('email').value,'');assert.equal(h.get('password').value,'');assert.equal(h.requests.length,2);
+});
+
+check('Native timeout cancels the request and does not fall back or retry', async t => {
+  const h=harness([()=>{}],{native:true,mode:'direct'});t.after(()=>h.close());
+  h.get('email').value=creds.username;h.get('password').value=creds.password;h.get('pin').value=creds.pin;h.get('loginForm').emit('submit');
+  h.fireTimeout(46000);await h.idle();assert.equal(h.requests.length,1);assert.equal(h.nativeCancels.length,1);assert.match(h.get('notice').textContent,/timed out|unknown/);assert.equal(h.get('password').value,'');
+});
+
+check('Native callbacks ignore unknown identifiers and reject malformed or failed responses', async t => {
+  for(const malformed of [{status:'200',text:'{}',headers:{}},{status:200,text:'{}',headers:[]},{status:200,text:'x'.repeat(1048577),headers:{}},{status:200,text:'{}',headers:{'bad\r\nheader':'x'}}]){
+    const h=harness([(envelope,window)=>{window.SantaFeAndroid.onResponse('unrelated-id',{status:200,text:'{}',headers:{}},null);window.SantaFeAndroid.onResponse(envelope.id,malformed,null);}],{native:true});t.after(()=>h.close());
+    await login(h);assert.equal(h.requests.length,1);assert.match(h.get('notice').textContent,/invalid response/);assert.equal(h.get('sessionStatus').textContent,'Signed out');
+  }
+  const h=harness([{error:'Native TLS connection failed.'}],{native:true});t.after(()=>h.close());await login(h);assert.equal(h.requests.length,1);assert.match(h.get('notice').textContent,/TLS/);
+});
+
+check('Native transaction headers reach polling and command acceptance remains distinct from completion', async t => {
+  const h=harness([...loginFixtures(),{text:'',headers:{TmsTid:'native-private-transaction'}},{data:{status:'SUCCESS'}}],{native:true});t.after(()=>h.close());await login(h);
+  h.get('confirmCommand').checked=true;await h.action('commandBtn');assert.equal(h.get('commandBtn').disabled,true);assert.equal((await h.exported()).evidence.some(e=>/reported SUCCESS/.test(e.scope)),false);
+  await h.action('pollBtn');assert.equal(h.requests[4].headers.tid,'native-private-transaction');assert.equal((await h.exported()).evidence.some(e=>/reported SUCCESS/.test(e.scope)),true);assert.equal(h.get('commandBtn').disabled,false);
+});
+
+check('Native command guard and sanitized start record are persisted before transmission',async t=>{
+  let observedMarker,observedLog;
+  const h=harness([...loginFixtures(),(envelope,window)=>{observedMarker=JSON.parse(h.storage.get('santafe-pending-command-v1'));observedLog=h.report().find(r=>r.outcome==='Submission starting; outcome unresolved');window.SantaFeAndroid.onResponse(envelope.id,{status:200,text:'',headers:{TmsTid:'private-start-id'}},null);}],{native:true});t.after(()=>h.close());
+  await login(h);h.get('confirmCommand').checked=true;await h.action('commandBtn');
+  assert.equal(observedMarker.action,'lock');assert.match(observedMarker.at,/^\d{4}-/);assert.deepEqual(Object.keys(observedMarker).sort(),['action','at']);
+  assert.equal(observedLog.request.path,'/ac/v2/rcs/rdo/off');assert.equal(observedLog.request.method,'POST');
+  for(const value of [...Object.values(creds),vehicle.vin,vehicle.regid,'private-access-987654','private-start-id'])assert.equal(JSON.stringify(observedMarker).includes(value),false);
+});
+
+check('Native restart preserves unknown-command gate while allowing reads and explicit physical acknowledgement',async t=>{
+  const first=harness([...loginFixtures(),{text:''}],{native:true});t.after(()=>first.close());await login(first);first.get('confirmCommand').checked=true;await first.action('commandBtn');first.window.emit('pagehide');
+  const resumed=harness([...loginFixtures(),{text:'',headers:{TmsTid:'next-private-id'}}],{native:true,initialStorage:first.storage});t.after(()=>resumed.close());
+  assert.equal(resumed.get('unknownCommandPanel').hidden,false);assert.match(resumed.get('notice').textContent,/unresolved/);assert.equal(resumed.get('email').value,'');
+  await login(resumed);assert.equal(resumed.requests.length,3);assert.equal(resumed.get('commandBtn').disabled,true);
+  resumed.get('confirmCommand').checked=true;await resumed.action('commandBtn');assert.equal(resumed.requests.length,3);
+  resumed.window.confirm=()=>false;await resumed.action('resolveUnknownBtn');assert.equal(resumed.get('commandBtn').disabled,true);
+  resumed.window.confirm=()=>true;await resumed.action('resolveUnknownBtn');assert.equal(resumed.requests.length,3,'Acknowledgement must not transmit a command');assert.equal(resumed.get('commandBtn').disabled,false);assert.equal(resumed.get('unknownCommandPanel').hidden,true);assert.equal(resumed.storage.has('santafe-pending-command-v1'),false);
+  resumed.get('confirmCommand').checked=true;await resumed.action('commandBtn');assert.equal(resumed.requests.length,4);
+});
+
+check('Definitive native SUCCESS or ERROR clears guard, while pending and unknown polling preserve it',async t=>{
+  for(const state of ['SUCCESS','ERROR','PENDING',null]){
+    const h=harness([...loginFixtures(),{text:'',headers:{TmsTid:'guard-poll-id'}},{data:state?{status:state}:{}}],{native:true});t.after(()=>h.close());await login(h);h.get('confirmCommand').checked=true;await h.action('commandBtn');await h.action('pollBtn');
+    assert.equal(h.storage.has('santafe-pending-command-v1'),!['SUCCESS','ERROR'].includes(state));
+  }
+});
+
+check('Cancelled confirmation, invalid climate, and unavailable storage never save or send a command',async t=>{
+  const declined=harness(loginFixtures(),{native:true});t.after(()=>declined.close());await login(declined);declined.window.confirm=()=>false;declined.get('confirmCommand').checked=true;await declined.action('commandBtn');assert.equal(declined.requests.length,3);assert.equal(declined.storage.has('santafe-pending-command-v1'),false);
+  const invalid=harness(loginFixtures(),{native:true});t.after(()=>invalid.close());await login(invalid);invalid.get('commandSelect').value='climate_start';invalid.get('confirmCommand').checked=true;invalid.get('outdoor').checked=false;await invalid.action('commandBtn');assert.equal(invalid.requests.length,3);assert.equal(invalid.storage.has('santafe-pending-command-v1'),false);
+  const blocked=harness(loginFixtures(),{native:true,storageDisabled:true});t.after(()=>blocked.close());await login(blocked);blocked.get('confirmCommand').checked=true;await blocked.action('commandBtn');assert.equal(blocked.requests.length,3);assert.match(blocked.get('notice').textContent,/guard|storage/);
+});
+
+check('Malformed persisted guard remains conservative and acknowledgement cannot bypass a failed storage clear',async t=>{
+  const saved=new Map([['santafe-pending-command-v1','{malformed']]);
+  const h=harness(loginFixtures(),{native:true,initialStorage:saved,storageDisabled:true});t.after(()=>h.close());await login(h);assert.equal(h.get('commandBtn').disabled,true);assert.match(h.get('unknownCommandNotice').textContent,/previous vehicle command/);
+  await h.action('resolveUnknownBtn');assert.equal(h.get('commandBtn').disabled,true);assert.match(h.get('notice').textContent,/could not be cleared/);assert.equal(h.requests.length,3);
 });
 
 check('Login, enrollment and cached status run in order and clear credentials', async t => {

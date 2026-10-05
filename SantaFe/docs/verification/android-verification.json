@@ -1,0 +1,83 @@
+{
+  "generated_at": "2026-10-05T01:57:46.701257Z",
+  "version": "0.3.0",
+  "application_id": "com.jon.santafelab",
+  "version_code": 3,
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "apk": {
+    "path": "SantaFe/android/dist/SantaFe-API-Lab-0.3.0.apk",
+    "size_bytes": 54104,
+    "sha256": "cc83c31a078a792042b56355ee853bfd5f2c80f754c946d6b80f9b0b08cfcc70",
+    "signature_v2_verified": true,
+    "signature_v3_verified": true,
+    "zip_alignment_verified": true,
+    "signing_certificate_sha256": "90ba911d370453290457ea862344a7cbc4aca6f6f49931725b76a91b599c952d",
+    "permissions": [
+      "android.permission.INTERNET"
+    ],
+    "private_keys_and_test_fixtures_excluded": true
+  },
+  "bundled_assets": {
+    "index.html": {
+      "sha256": "5d537b933434c30e45286bd15e661c67b1558119d8a0e4a5856584886f0c7936",
+      "packaged_bytes_match": true
+    },
+    "diagnostic.js": {
+      "sha256": "348b146d4864a93d53a790f7a1c8394f01a6e1b624fb6bad1d21468a0e32b232",
+      "packaged_bytes_match": true
+    },
+    "diagnostic.css": {
+      "sha256": "211bc833e047046abcad065823a18d4f38f94077f56afdafef107bf9a826f66d",
+      "packaged_bytes_match": true
+    }
+  },
+  "checks": {
+    "request_policy": {
+      "passed": 114,
+      "scope": "Standalone JVM synthetic inputs; no network"
+    },
+    "native_transport": {
+      "passed": 52,
+      "scope": "Fixture HttpsURLConnection factory and genuine org.json JVM runtime; no network"
+    },
+    "diagnostic_client": {
+      "passed": 37,
+      "scope": "Node VM UI fixture execution of shipped scripts; all HTTP responses mocked; no Hyundai account or vehicle used"
+    },
+    "chromium_ui": {
+      "passed": 15,
+      "scope": "HTTP UI execution; Hyundai routes, GM transport and Android bridge use fixtures. Native UI uses HTTPS bundled origin with connect-src none. No actual Android WebView, real account login, API availability validation, or physical vehicle command",
+      "unexpected_network_requests": 0
+    },
+    "android_compilation": {
+      "passed": true,
+      "tools": "JDK 17, Android platform 35, build-tools 35.0.0; AAPT2, javac, D8, zipalign, apksigner"
+    },
+    "runtime_instrumentation_compilation": {
+      "passed": true,
+      "scope": "Separate test APK signed with preserved private identity; absent from release APK"
+    }
+  },
+  "android_runtime": {
+    "verified": false,
+    "reason": "Android 30 software emulator did not complete boot within the final 180-second bound; host lacks KVM. Earlier attempts encountered stale AVD locks. No Android launch, native handshake, lifecycle or document-picker checks executed.",
+    "instrumentation_source": "SantaFe/android/tests/device/"
+  },
+  "real_hyundai_login_verified": false,
+  "real_vehicle_calls_verified": false,
+  "physical_vehicle_operations_verified": false,
+  "independent_security_audit": false,
+  "preserved_python_tasker_benchmark": {
+    "passed": 92,
+    "rerun_this_change": false,
+    "scope": "Python bridge and Tasker generator/XML unchanged"
+  },
+  "review_fixes": [
+    "Durable sanitized unknown-command marker before transmission, with physical acknowledgement after restart",
+    "Structural enrollment-URL redaction independent of session memory",
+    "Retain redaction values until cancellation logging completes",
+    "Check active job before opening POST output; fixed generic errors include unknown outcome"
+  ],
+  "release_scope": "Signed installable tester for supervised account-holder validation; actual Android execution and Hyundai account/vehicle support remain unverified."
+}

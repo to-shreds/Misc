@@ -22,7 +22,8 @@
         <div>
           <p class="eyebrow">CONFIRM THE CALLS. CAPTURE THE RESULTS.</p>
           <h1 id="pageTitle">Test your Santa Fe connection.</h1>
-          <p class="intro-copy">Connect to Bluelink, inspect your vehicle, and keep a useful test log. Start with read tests, then try individual controls when you are ready.</p>
+          <p id="introCopy" class="intro-copy">Use the Android app to connect directly to Bluelink, inspect your vehicle, and keep a useful test log. Start with read tests, then try individual controls when you are ready.</p>
+          <p id="appDownload"><a class="button primary" href="./android/dist/SantaFe-API-Lab-0.3.0.apk" download>Download Android app</a></p>
         </div>
         <div class="connection-indicators" aria-label="Connection status">
           <div><span class="indicator-label">Connection</span><span id="transportStatus" class="status-pill">Checking connection method</span></div>
@@ -30,15 +31,18 @@
         </div>
       </section>
 
-      <div id="notice" class="notice" role="status" aria-live="polite">Complete Connection setup first. The login form unlocks when the browser helper is ready.</div>
+      <div id="notice" class="notice" role="status" aria-live="polite">Open the Android app to connect directly to Hyundai without a browser extension.</div>
 
       <div class="workspace-grid">
         <section class="panel connect-panel" aria-labelledby="connectTitle">
           <div class="panel-heading"><span class="step-number">01</span><div><p class="eyebrow">GET CONNECTED</p><h2 id="connectTitle">Your Bluelink account</h2></div></div>
           <details id="connectionSetup" class="setup-details" open>
-            <summary>Connection setup <span class="details-hint">Required first</span></summary>
+            <summary>Connection setup <span class="details-hint">Use the Android app</span></summary>
             <div class="details-body">
-              <p>Open this page in Firefox. Install both Tampermonkey and the Santa Fe network helper before entering credentials. The login form unlocks when the helper is detected.</p>
+              <p><a href="./android/dist/SantaFe-API-Lab-0.3.0.apk" download>Download the Android app</a>, install it, and open <strong>Santa Fe API Lab</strong>. The same tester runs inside the app and sends requests directly to Hyundai. No Tampermonkey or cloud relay is needed.</p>
+              <p>The app handles your login credentials locally. They are not saved. Sanitized test logs can be exported using Android's file picker.</p>
+              <details id="manualBrowserSetup"><summary>Manual browser testing</summary>
+              <p>For existing browser-helper users only: the helper extension handles your credentials while sending requests to Hyundai. Ordinary browser requests were blocked in testing. The Android app avoids this extension dependency.</p>
               <ol class="setup-steps">
                 <li>In Firefox for Android, install <a href="https://addons.mozilla.org/en-US/android/addon/tampermonkey/" target="_blank" rel="noopener noreferrer">Tampermonkey</a>.</li>
                 <li>Open the <a href="./santafe-network.user.js">Santa Fe network helper</a> and choose <strong>Install</strong>.</li>
@@ -52,6 +56,7 @@
               </select>
               <p class="field-help">Direct requests are useful for diagnostics but may fail with a CORS or network error. That does not by itself mean your login details are wrong.</p>
               <button id="connectionTestBtn" class="button secondary full-width" type="button">Check connection method</button>
+              </details>
             </div>
           </details>
 
@@ -63,11 +68,11 @@
             <label for="pin">Bluelink PIN <span class="field-note">For remote controls</span></label>
             <input id="pin" name="pin" type="password" disabled inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="4 digits">
             <div class="button-row login-actions">
-              <button id="loginBtn" class="button primary" type="submit" disabled>Install helper first</button>
+              <button id="loginBtn" class="button primary" type="submit" disabled>Open Android app</button>
               <button id="disconnectBtn" class="button secondary" type="button" disabled>Disconnect</button>
             </div>
           </form>
-          <p class="privacy-note"><span class="small-lock" aria-hidden="true">●</span> Credentials stay in this page's memory and are cleared when you disconnect or reload. Saved logs remove passwords, PINs, tokens, and vehicle identifiers.</p>
+          <p id="privacyNote" class="privacy-note"><span class="small-lock" aria-hidden="true">●</span> Credentials stay in this page's memory and are cleared when you disconnect or reload. Saved logs remove passwords, PINs, tokens, and vehicle identifiers.</p>
 
 
         </section>
@@ -96,6 +101,12 @@
         </div>
       </div>
 
+      <section id="unknownCommandPanel" class="notice warning" hidden aria-labelledby="unknownCommandTitle">
+        <h2 id="unknownCommandTitle">Check the previous command</h2>
+        <p id="unknownCommandNotice">A previous vehicle command has an unknown result.</p>
+        <button id="resolveUnknownBtn" class="button secondary" type="button">I've checked the vehicle</button>
+      </section>
+
       <details class="panel expandable command-panel">
         <summary><div class="summary-title"><span class="step-number">04</span><div><p class="eyebrow">OPTIONAL</p><h2>Test a remote control</h2></div></div><span class="summary-description">Send one command at a time</span></summary>
         <div class="details-body">
@@ -115,7 +126,7 @@
       <details class="panel expandable logs-panel" open>
         <summary><div class="summary-title"><span class="log-symbol" aria-hidden="true">⌘</span><div><p class="eyebrow">AUTOMATIC, SANITIZED</p><h2>Test log <span id="logCount" class="count-badge">0</span></h2></div></div><span class="summary-description">Review or export your results</span></summary>
         <div class="details-body">
-          <div class="log-toolbar"><p class="field-help">Saved in this browser. Download the log to share results for the Tasker build. Review exported content before sharing.</p><div class="button-row wrap"><button id="downloadLogBtn" class="button secondary" type="button">Download log</button><button id="copyLogBtn" class="button secondary" type="button">Copy log</button><button id="clearLogBtn" class="button quiet" type="button">Clear</button></div></div>
+          <div class="log-toolbar"><p id="logHelp" class="field-help">Saved in this browser. Download the log to share results for the Tasker build. Review exported content before sharing.</p><div class="button-row wrap"><button id="downloadLogBtn" class="button secondary" type="button">Download log</button><button id="copyLogBtn" class="button secondary" type="button">Copy log</button><button id="clearLogBtn" class="button quiet" type="button">Clear</button></div></div>
           <div id="logList" class="log-list" aria-live="polite"><div class="empty-state"><span class="empty-icon" aria-hidden="true">≡</span><p>No requests logged yet.</p><span>Run the read tests to capture your first results.</span></div></div>
         </div>
       </details>

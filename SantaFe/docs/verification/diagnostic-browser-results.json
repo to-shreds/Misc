@@ -1,38 +1,63 @@
 {
-  "generated_at": "2026-10-05T00:18:41.870Z",
+  "generated_at": "2026-10-05T01:51:09.986Z",
   "browser": "Actual headless Chromium",
-  "method": "HTTP UI execution; Hyundai routes and GM transport use fixtures; no real account login, API availability validation, or physical vehicle command",
+  "method": "HTTP UI execution; Hyundai routes, GM transport and Android bridge use fixtures. Native UI uses HTTPS bundled origin with connect-src none. No actual Android WebView, real account login, API availability validation, or physical vehicle command",
   "blocked_unexpected_requests": [],
   "results": [
     {
       "test": "Default Automatic setup precedes login and blocks Enter/programmatic submits without network",
       "passed": true,
-      "elapsed_ms": 208
+      "elapsed_ms": 180
     },
     {
       "test": "Direct desktop login, safe cache reads, sanitized download and disconnect",
       "passed": true,
-      "elapsed_ms": 543
+      "elapsed_ms": 426
+    },
+    {
+      "test": "Bundled Android mobile tester uses native bridge under connect-src none and exports sanitized log",
+      "passed": true,
+      "elapsed_ms": 381
+    },
+    {
+      "test": "Native Stop waiting cancels exactly once and ignores a late success callback",
+      "passed": true,
+      "elapsed_ms": 207
+    },
+    {
+      "test": "Malformed native response and native TLS error do not authenticate, fall back or retry",
+      "passed": true,
+      "elapsed_ms": 394
+    },
+    {
+      "test": "Native vehicle commands preserve transaction headers and require SUCCESS before releasing command gate",
+      "passed": true,
+      "elapsed_ms": 384
+    },
+    {
+      "test": "Native reload restores a sanitized unknown-command guard and requires physical acknowledgement",
+      "passed": true,
+      "elapsed_ms": 485
     },
     {
       "test": "Real postMessage helper handshake, automatic transport, raw transaction headers and SUCCESS",
       "passed": true,
-      "elapsed_ms": 584
+      "elapsed_ms": 596
     },
     {
       "test": "Two-vehicle picker can select the second record and uses its identifiers",
       "passed": true,
-      "elapsed_ms": 264
+      "elapsed_ms": 265
     },
     {
       "test": "HTTP 200 without transaction ID is unresolved and cannot poll or resubmit",
       "passed": true,
-      "elapsed_ms": 366
+      "elapsed_ms": 334
     },
     {
       "test": "429 produces one request and actionable rate-limit response",
       "passed": true,
-      "elapsed_ms": 203
+      "elapsed_ms": 219
     },
     {
       "test": "Direct blocked network response offers helper setup without retry",
@@ -42,17 +67,17 @@
     {
       "test": "Empty login response cannot enable authenticated or command buttons",
       "passed": true,
-      "elapsed_ms": 253
+      "elapsed_ms": 220
     },
     {
       "test": "Rapid double submit is gated while login is in flight",
       "passed": true,
-      "elapsed_ms": 176
+      "elapsed_ms": 178
     },
     {
       "test": "412px mobile layout avoids horizontal overflow and supports helper read tests",
       "passed": true,
-      "elapsed_ms": 381
+      "elapsed_ms": 333
     }
   ]
 }

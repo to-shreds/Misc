@@ -29,9 +29,13 @@ async function pageFixture(fixtures, opts = {}) {
   page.on('pageerror', error => errors.push(error.message)); page.on('dialog', dialog => dialog.accept());
   await page.route('**/*', async route => {
     const req = route.request();
+    if(opts.native && req.url().startsWith('https://santafe.local/')){
+      const pathname=new URL(req.url()).pathname;if(!['/index.html','/diagnostic.js','/diagnostic.css'].includes(pathname)){unexpected.push(req.url());return route.abort();}
+      const file=path.join(ROOT,path.basename(pathname));return route.fulfill({status:200,headers:{'content-type':mime[path.extname(file)],'content-security-policy':"default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"},body:fs.readFileSync(file)});
+    }
     if (req.url().startsWith(url.replace('/SantaFe/index.html', ''))) return route.continue();
     if (!req.url().startsWith(API + '/')) { unexpected.push(req.url()); return route.abort(); }
-    if (opts.helper) { unexpected.push('Helper mode unexpectedly used fetch: ' + req.url()); return route.abort(); }
+    if (opts.helper || opts.native) { unexpected.push('Bridge mode unexpectedly used fetch: ' + req.url()); return route.abort(); }
     if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET, POST, OPTIONS' } });
     calls.push({ url: req.url(), method: req.method(), headers: req.headers(), body: req.postData() });
     const next = fixtures.shift(); if (!next) { unexpected.push('Fixture queue exhausted: ' + req.url()); return route.abort(); }
@@ -49,10 +53,17 @@ async function pageFixture(fixtures, opts = {}) {
         return {abort:()=>{cancelled=true;clearTimeout(timer);opts.onabort();}};};\n`;
     await page.addInitScript({ content: shim + fs.readFileSync(path.join(ROOT, 'santafe-network.user.js'), 'utf8') });
   }
-  await page.goto(url); await page.waitForFunction(() => document.getElementById('sessionStatus')?.textContent === 'Signed out');
-  if (opts.helper) await page.waitForFunction(() => document.getElementById('transportStatus').textContent === 'Browser helper ready');
-  else if ((opts.mode || 'direct') !== 'auto') await page.selectOption('#transportMode', opts.mode || 'direct');
-  return { page, context, calls, errors, async requests() { return opts.helper ? page.evaluate(() => window.__testRequests) : calls; }, async close() { await context.close(); } };
+  if(opts.native)await page.addInitScript({content:`window.__testRequests=[];window.__testFixtures=${JSON.stringify(fixtures)};window.__testExports=[];window.__testCancels=[];window.__testNativeCallbacks={};
+    window.SantaFeNative={request(json){const envelope=JSON.parse(json),next=window.__testFixtures.shift();window.__testRequests.push({...envelope.request,id:envelope.id});
+      const respond=()=>{if(!next){window.SantaFeAndroid.onResponse(envelope.id,null,'Fixture queue exhausted.');return;}
+        const response=next.rawResponse || {status:next.status || 200,text:next.text!==undefined?next.text:JSON.stringify(next.data || {}),headers:next.headers || {}};
+        window.SantaFeAndroid.onResponse(envelope.id,response,next.error || null);};window.__testNativeCallbacks[envelope.id]=respond;if(!next?.delay)setTimeout(respond,5);},
+      cancel(id){window.__testCancels.push(id);},exportLog(json){window.__testExports.push(JSON.parse(json));return true;}};`});
+  await page.goto(opts.native?'https://santafe.local/index.html':url); await page.waitForFunction(() => document.getElementById('sessionStatus')?.textContent === 'Signed out');
+  if(opts.native)await page.waitForFunction(()=>document.getElementById('transportStatus').textContent==='Direct Hyundai connection');
+  else if (opts.helper) await page.waitForFunction(() => document.getElementById('transportStatus').textContent === 'Browser helper ready');
+  else if ((opts.mode || 'direct') !== 'auto') {await page.locator('#manualBrowserSetup').evaluate(el=>{el.open=true;});await page.selectOption('#transportMode', opts.mode || 'direct');}
+  return { page, context, calls, errors, async requests() { return opts.helper || opts.native ? page.evaluate(() => window.__testRequests) : calls; }, async close() { await context.close(); } };
 }
 async function idle(page) { await page.waitForFunction(() => document.getElementById('stopBtn').disabled); }
 async function login(page) { await page.fill('#email', USER); await page.fill('#password', PASSWORD); await page.fill('#pin', PIN); await page.click('#loginBtn'); await idle(page); }
@@ -77,6 +88,7 @@ async function exported(page) {
         document.getElementById('loginForm').requestSubmit();
       }, { user: USER, password: PASSWORD, pin: PIN });
       await idle(h.page); assert.equal((await h.requests()).length, 0); assert.equal(await h.page.isEnabled('#loginBtn'), false); assert.deepEqual(h.errors, []);
+      await h.page.locator('#manualBrowserSetup').evaluate(el=>{el.open=true;});
       await h.page.selectOption('#transportMode', 'direct');
       for (const id of ['email', 'password', 'pin', 'loginBtn']) assert.equal(await h.page.isEnabled('#' + id), true, `${id} stayed disabled after explicit direct diagnostics`);
     } finally { await h.close(); }
@@ -89,6 +101,52 @@ async function exported(page) {
       await h.page.screenshot({ path: path.join(OUT, 'diagnostic-desktop.png'), fullPage: true });
       await h.page.click('#disconnectBtn'); assert.equal(await h.page.inputValue('#email'), ''); assert.equal(await h.page.isEnabled('#commandBtn'), false); assert.deepEqual(h.errors, []);
     } finally { await h.close(); }
+  });
+  await scenario('Bundled Android mobile tester uses native bridge under connect-src none and exports sanitized log',async()=>{
+    const h=await pageFixture(basics(),{native:true,mobile:true});try{
+      for(const id of ['connectionSetup','appDownload','copyLogBtn'])assert.equal(await h.page.locator('#'+id).isVisible(),false,`${id} should be hidden inside app`);
+      for(const id of ['email','password','pin','loginBtn'])assert.equal(await h.page.isEnabled('#'+id),true);
+      await login(h.page);assert.equal((await h.requests()).length,3);assert.equal(h.calls.length,0);assert.equal(await h.page.locator('#sessionStatus').innerText(),'Signed in for this app');
+      await h.page.click('#downloadLogBtn');assert.match(await h.page.locator('#notice').innerText(),/Choose where to save/);
+      const report=await h.page.evaluate(()=>window.__testExports.at(-1)),raw=JSON.stringify(report);
+      for(const value of [USER,encodeURIComponent(USER),PASSWORD,PIN,V1.vin,V1.regid,'fixture-access-secret','fixture-refresh-secret','42.04684','-71.11242'])assert.equal(raw.includes(value),false,`Native export leaked ${value}`);
+      assert.equal(report.version,'0.3.0');assert.ok(report.requests.filter(r=>r.transport).every(r=>r.transport==='native Android'));
+      await h.page.evaluate(()=>window.SantaFeAndroid.onExportResult(true,null));assert.equal(await h.page.locator('#notice').innerText(),'Sanitized log saved.');
+      const layout=await h.page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));assert.ok(layout.scroll<=layout.client+1);
+      await h.page.screenshot({path:path.join(OUT,'diagnostic-android-fixture.png'),fullPage:true});
+      await h.page.click('#disconnectBtn');assert.equal(await h.page.inputValue('#email'),'');assert.deepEqual(h.errors,[]);
+    }finally{await h.close();}
+  });
+  await scenario('Native Stop waiting cancels exactly once and ignores a late success callback',async()=>{
+    const h=await pageFixture([{...basics()[0],delay:true}],{native:true});try{
+      await h.page.fill('#email',USER);await h.page.fill('#password',PASSWORD);await h.page.fill('#pin',PIN);await h.page.click('#loginBtn');
+      await h.page.waitForFunction(()=>window.__testRequests.length===1);await h.page.click('#stopBtn');await idle(h.page);
+      await h.page.evaluate(()=>window.__testNativeCallbacks[window.__testRequests[0].id]());await idle(h.page);
+      assert.equal((await h.requests()).length,1);assert.equal(await h.page.evaluate(()=>window.__testCancels.length),1);assert.equal(await h.page.locator('#sessionStatus').innerText(),'Signed out');assert.equal(await h.page.inputValue('#password'),'');assert.deepEqual(h.errors,[]);
+    }finally{await h.close();}
+  });
+  await scenario('Malformed native response and native TLS error do not authenticate, fall back or retry',async()=>{
+    for(const fixture of [{rawResponse:{status:'200',text:'{}',headers:{}}},{error:'Hyundai TLS request failed.'}]){
+      const h=await pageFixture([fixture],{native:true});try{
+        await login(h.page);assert.equal((await h.requests()).length,1);assert.equal(h.calls.length,0);assert.equal(await h.page.isEnabled('#runReadTestsBtn'),false);assert.equal(await h.page.inputValue('#password'),'');assert.match(await h.page.locator('#notice').innerText(),/invalid response|TLS/);assert.deepEqual(h.errors,[]);
+      }finally{await h.close();}
+    }
+  });
+  await scenario('Native vehicle commands preserve transaction headers and require SUCCESS before releasing command gate',async()=>{
+    const h=await pageFixture([...basics(),{text:'',headers:{TmsTid:'native-fixture-private-tx'}},{data:{status:'SUCCESS'}}],{native:true});try{
+      await login(h.page);await controls(h.page,'horn_lights');assert.equal(await h.page.isEnabled('#commandBtn'),false);
+      await h.page.click('#pollBtn');await idle(h.page);const requests=await h.requests();assert.equal(requests[4].headers.tid,'native-fixture-private-tx');assert.equal(requests[4].headers.service_type,'HORN_AND_LIGHTS');assert.equal(await h.page.isEnabled('#commandBtn'),true);assert.match(await h.page.locator('#notice').innerText(),/confirmed command completion/);assert.equal(await h.page.evaluate(()=>localStorage.getItem('santafe-pending-command-v1')),null);assert.deepEqual(h.errors,[]);
+    }finally{await h.close();}
+  });
+  await scenario('Native reload restores a sanitized unknown-command guard and requires physical acknowledgement',async()=>{
+    const h=await pageFixture([...basics(),{text:''}],{native:true});try{
+      await login(h.page);await controls(h.page);const marker=await h.page.evaluate(()=>JSON.parse(localStorage.getItem('santafe-pending-command-v1')));assert.deepEqual(Object.keys(marker).sort(),['action','at']);assert.equal(marker.action,'lock');
+      await h.page.reload();await h.page.waitForFunction(()=>document.getElementById('sessionStatus').textContent==='Signed out');assert.equal(await h.page.locator('#unknownCommandPanel').isVisible(),true);assert.equal(await h.page.inputValue('#email'),'');
+      await login(h.page);assert.equal((await h.requests()).length,3);assert.equal(await h.page.isEnabled('#commandBtn'),false);
+      await h.page.evaluate(()=>{document.getElementById('confirmCommand').checked=true;document.getElementById('commandBtn').dispatchEvent(new Event('click'));});await idle(h.page);assert.equal((await h.requests()).length,3);
+      await h.page.click('#resolveUnknownBtn');assert.equal((await h.requests()).length,3);assert.equal(await h.page.isEnabled('#commandBtn'),true);assert.equal(await h.page.locator('#unknownCommandPanel').isVisible(),false);assert.equal(await h.page.evaluate(()=>localStorage.getItem('santafe-pending-command-v1')),null);
+      assert.match(await h.page.locator('#notice').innerText(),/No command was sent or retried/);assert.deepEqual(h.errors,[]);
+    }finally{await h.close();}
   });
   await scenario('Real postMessage helper handshake, automatic transport, raw transaction headers and SUCCESS', async () => {
     const h = await pageFixture([...basics(), { text: '', headers: { TmsTid: 'fixture-raw-header-id' } }, { data: { status: 'SUCCESS' } }, { text: '', headers: { transactionId: 'second-id' } }], { helper: true }); try {
@@ -128,7 +186,7 @@ async function exported(page) {
   });
 })().catch(e => { results.push({ test: 'Browser harness', passed: false, error: e.message }); process.stderr.write(e.stack + '\n'); }).finally(async () => {
   if (browser) await browser.close(); await new Promise(resolve => server.close(resolve));
-  fs.mkdirSync(OUT, { recursive: true }); fs.writeFileSync(path.join(OUT, 'diagnostic-browser-results.json'), JSON.stringify({ generated_at: new Date().toISOString(), browser: 'Actual headless Chromium', method: 'HTTP UI execution; Hyundai routes and GM transport use fixtures; no real account login, API availability validation, or physical vehicle command', blocked_unexpected_requests: unexpected, results }, null, 2) + '\n');
+  fs.mkdirSync(OUT, { recursive: true }); fs.writeFileSync(path.join(OUT, 'diagnostic-browser-results.json'), JSON.stringify({ generated_at: new Date().toISOString(), browser: 'Actual headless Chromium', method: 'HTTP UI execution; Hyundai routes, GM transport and Android bridge use fixtures. Native UI uses HTTPS bundled origin with connect-src none. No actual Android WebView, real account login, API availability validation, or physical vehicle command', blocked_unexpected_requests: unexpected, results }, null, 2) + '\n');
   process.stdout.write(JSON.stringify({ passed: results.filter(r => r.passed).length, failed: results.filter(r => !r.passed).length, blocked_unexpected_requests: unexpected.length }) + '\n');
   process.exitCode = results.some(r => !r.passed) || unexpected.length ? 1 : 0;
 });

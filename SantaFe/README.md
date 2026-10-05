@@ -1,16 +1,16 @@
 # Santa Fe
 
-Start with **[Santa Fe API Lab](https://to-shreds.github.io/Misc/SantaFe/)**. The lowercase `/Misc/santafe/` address redirects there.
+Install **[Santa Fe API Lab for Android](https://to-shreds.github.io/Misc/SantaFe/android/dist/SantaFe-API-Lab-0.3.0.apk)** and open it. The [GitHub page](https://to-shreds.github.io/Misc/SantaFe/) links the app; the lowercase `/Misc/santafe/` address still redirects there.
 
-The page takes your MyHyundai email, password, and four-digit Bluelink service PIN. It reads enrollment and cached status, inspects returned capability fields, and records sanitized requests/responses automatically. Logs survive reloads in that browser and can be downloaded as JSON. Credentials and session tokens remain only in tab memory.
+The HTML tester is bundled inside the APK and talks directly to Hyundai using a restricted native HTTPS component. No Tampermonkey, cloud relay, computer, Termux or server setup is required. The app takes your MyHyundai email, password, and optional four-digit Bluelink service PIN. Connect reads enrollment and cached status; **Run read tests** repeats the reads and capability inspection. It records sanitized requests/responses automatically. **Export log** exports JSON using Android's file picker. Credentials and session tokens remain in memory and are cleared when you leave the app, including when you open the file picker. Sanitized logs remain locally.
 
-## Browser setup
+## Connection and privacy
 
-On Firefox for Android, install [Tampermonkey](https://addons.mozilla.org/en-US/android/addon/tampermonkey/), then open the page's **Santa Fe network helper** link and choose Install. Reload and check for **Browser helper ready**. Connect, select your vehicle if necessary, and use **Run read tests**. Download the log when finished.
+Inside the app, check for **Direct Hyundai connection**, connect, and select your vehicle if necessary. Start with read tests. The installed app loads only its bundled page; it does not load live website scripts. The native component permits only the exact Hyundai hostname and known endpoints, retains normal HTTPS validation, rejects redirects, and has no application retry loop. Only Internet permission is requested. See [Android details and source](android/README.md) for the complete trust boundary, restrictions and build procedure.
 
-Complete Connection setup above the login form first. In Automatic mode, credentials and Connect stay disabled until the helper is detected. Missing-helper submissions send no login request. Direct browser requests are an explicit diagnostic option, not an automatic fallback.
+The earlier userscript and manual browser modes are retained for existing users and regression checks. Those modes handle credentials through the helper extension and are no longer the recommended phone workflow. The web page keeps login disabled unless that legacy helper is detected or Direct diagnostic mode is explicitly selected. An actual credential-free preflight returned HTTP 500 without CORS permission; ordinary HTML could not read that tested endpoint, and `no-cors` would not produce usable results.
 
-The helper sends directly from your browser to Hyundai, with a fixed hostname and endpoint allowlist. No hosted proxy, account database, analytics, or Termux setup is required. The ordinary-browser option remains available for diagnostics. An actual credential-free preflight returned HTTP 500 without CORS permission; `no-cors` would not produce readable API results.
+The app and its source necessarily handle your account details during authentication. They do not deliberately persist credentials or send them to a relay. Fixture testing is not an independent security audit and does not verify a real Hyundai account. First-use account responses still control what can be implemented in Tasker.
 
 ## Vehicle commands
 

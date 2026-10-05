@@ -5,15 +5,21 @@
   const API = BASE + '/ac/v2/';
   const LOGIN = BASE + '/v2/ac/oauth/token';
   const LOG_KEY = 'santafe-diagnostics-v1';
-  const VERSION = '0.2.1';
+  const COMMAND_KEY = 'santafe-pending-command-v1';
+  const commandActions = new Set(['lock','unlock','climate_start','climate_stop','lights','horn_lights']);
+  const VERSION = '0.3.0';
   const SOURCE = '82801884bdf619c5f2a35ff6bbae1693d2e1a3e8';
   const $ = id => document.getElementById(id);
   const sensitive = /password|secret|token|authorization|cookie|pin|vin|regid|registration.?id|username|user.?name|user.?id|login.?id|email|e.?mail|address|phone|mobile|contact|customer|subscriber|owner|first.?name|last.?name|full.?name|nick.?name|birth|latitude|longitude|coord|location|gps|tms.?tid|transaction.?id|^tid$|^xid$|^name$|image|photo|postal|zip.?code|^city$|^state$|street|license|licence|account.?id|person/i;
   const privateValues = new Set();
   let session = null, vehicles = [], selected = null, enrollment = null, lastStatus = null;
-  let busy = false, stopped = false, controller = null, helperAvailable = false;
-  let transaction = null, logs = [], evidence = [], currentTransport = '', statusRead = false;
+  let busy = false, stopped = false, controller = null, helperAvailable = false, pageLeaving = false;
+  let transaction = null, logs = [], evidence = [], currentTransport = '', statusRead = false, restoredCommand = null;
   const pending = new Map();
+  const nativePending = new Map();
+  const nativePage = location.origin === 'https://santafe.local' && location.pathname === '/index.html';
+  const nativeBridge = nativePage ? window.SantaFeNative : null;
+  const nativeAvailable = Boolean(nativeBridge && ['request','cancel','exportLog'].every(name => typeof nativeBridge[name] === 'function'));
   const channel = crypto.randomUUID();
 
   function remember(value) {
@@ -29,7 +35,8 @@
   function scrubString(value) {
     let s = String(value);
     for (const v of [...privateValues].sort((a,b) => b.length-a.length)) s = s.split(v).join('[REDACTED]');
-    return s.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,'[REDACTED EMAIL]')
+    return s.replace(/(\/ac\/v2\/enrollment\/details\/)[^/?#\s"'<>]+/gi,'$1[REDACTED]')
+      .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,'[REDACTED EMAIL]')
       .replace(/\b[A-HJ-NPR-Z0-9]{17}\b/gi,'[REDACTED VIN]')
       .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?/g,'[REDACTED TOKEN]')
       .replace(/((?:access[_-]?token|refresh[_-]?token|password|blueLinkServicePin|clientSecret)\s*[:=]\s*)[^\s,;]+/gi,'$1[REDACTED]');
@@ -61,29 +68,34 @@
   }
   function setBusy(value) {
     busy=value;
-    for(const id of ['loginBtn','runReadTestsBtn','selectVehicleBtn','cachedBtn','refreshBtn','capabilitiesBtn','commandBtn','pollBtn','connectionTestBtn','disconnectBtn','transportMode']) $(id).disabled=value;
+    for(const id of ['loginBtn','runReadTestsBtn','selectVehicleBtn','cachedBtn','refreshBtn','capabilitiesBtn','commandBtn','pollBtn','connectionTestBtn','disconnectBtn','transportMode','resolveUnknownBtn']) $(id).disabled=value;
     $('stopBtn').disabled=!value; updateSession();
   }
   function updateSession() {
-    $('sessionStatus').textContent=session?'Signed in for this tab':'Signed out';
-    $('transportStatus').textContent=helperAvailable?'Browser helper ready':'Browser helper not detected';
-    const needsHelper=!helperAvailable && $('transportMode').value!=='direct';
-    for(const id of ['email','password','pin','loginBtn'])$(id).disabled=busy || needsHelper;
-    $('loginBtn').textContent=needsHelper?'Install helper first':'Connect';
+    $('sessionStatus').textContent=session?(nativeAvailable?'Signed in for this app':'Signed in for this tab'):'Signed out';
+    $('transportStatus').textContent=nativeAvailable?'Direct Hyundai connection':nativePage?'App connection unavailable':helperAvailable?'Browser helper ready':'Browser helper not detected';
+    const unavailable=nativePage?!nativeAvailable:!helperAvailable && $('transportMode').value!=='direct';
+    for(const id of ['email','password','pin','loginBtn'])$(id).disabled=busy || unavailable;
+    $('loginBtn').textContent=unavailable?(nativePage?'Connection unavailable':'Open Android app'):'Connect';
     if(!busy) {
       $('vehicleSelect').disabled=!session || vehicles.length===0;
       for(const id of ['runReadTestsBtn','selectVehicleBtn']) $(id).disabled=!session;
       for(const id of ['cachedBtn','refreshBtn','capabilitiesBtn']) $(id).disabled=!selected;
-      $('commandBtn').disabled=!selected || !statusRead || Boolean(transaction && !transaction.done);
+      $('commandBtn').disabled=!selected || !statusRead || Boolean(restoredCommand) || Boolean(transaction && !transaction.done);
       $('pollBtn').disabled=!transaction?.id || transaction.done;
       $('disconnectBtn').disabled=!session;
     }
+    $('unknownCommandPanel').hidden=!restoredCommand;
+    if(restoredCommand)$('unknownCommandNotice').textContent='A previous '+restoredCommand.action.replaceAll('_',' ')+' command has an unknown result'+(restoredCommand.at?' (submitted '+restoredCommand.at+')':'')+'. Leaving the app cannot cancel a submitted command. Check the vehicle before allowing another command.';
   }
   function setupNotice() {
     if(session || busy)return;
-    if(helperAvailable)notice('Browser helper ready. Enter your Bluelink details and tap Connect.','success');
-    else if($('transportMode').value==='direct')notice('Direct mode is for diagnostics. Hyundai blocked this browser request in testing; use Firefox and the helper for login.','warning');
-    else notice('Set up the browser helper before entering your login details. Open this page in Firefox and follow Connection setup below.','warning');
+    if(restoredCommand)notice('A previous vehicle command has an unresolved outcome. Read tests remain available; check the vehicle before allowing another command.','warning');
+    else if(nativeAvailable)notice('Ready. This app sends requests directly to Hyundai. Enter your Bluelink details and tap Connect.','success');
+    else if(nativePage)notice('The app connection is unavailable. Close and reopen the app before entering credentials. No request can be sent.','error');
+    else if(helperAvailable)notice('Browser helper ready. Enter your Bluelink details and tap Connect.','success');
+    else if($('transportMode').value==='direct')notice('Direct mode is for diagnostics. Hyundai blocked this browser request in testing. Use the Android app for login.','warning');
+    else notice('Download and open the Android app below before entering your login details. It connects directly to Hyundai without Tampermonkey.','warning');
   }
   window.addEventListener('message',event=>{
     const msg=event.data;
@@ -93,12 +105,39 @@
     pending.delete(msg.id); clearTimeout(item.timer); item.cleanup();
     if(msg.error)item.reject(new Error(msg.error));else item.resolve(msg.response);
   });
-  function ping() {window.postMessage({type:'SF_HELPER_REQUEST',channel,id:'hello',hello:true},location.origin);}
-  ping(); setTimeout(ping,350);setTimeout(ping,1400);
+  function ping() {if(!nativePage)window.postMessage({type:'SF_HELPER_REQUEST',channel,id:'hello',hello:true},location.origin);}
+  if(!nativePage){ping();setTimeout(ping,350);setTimeout(ping,1400);}
+
+  function settleNative(id,response,error) {
+    if(typeof id!=='string')return;
+    const item=nativePending.get(id);if(!item)return;
+    nativePending.delete(id);clearTimeout(item.timer);item.cleanup();
+    if(error){item.reject(new Error(typeof error==='string'?error:'The app request failed. Outcome unknown; no automatic retry.'));return;}
+    if(!response || !Number.isInteger(response.status) || response.status<100 || response.status>599 || typeof response.text!=='string' || response.text.length>1048576 || !response.headers || typeof response.headers!=='object' || Array.isArray(response.headers) || Object.entries(response.headers).some(([key,value])=>typeof value!=='string' || /[\r\n]/.test(key))) {
+      item.reject(new Error('The app returned an invalid response. Outcome unknown; no automatic retry.'));return;
+    }
+    item.resolve(response);
+  }
+  if(nativeAvailable)window.SantaFeAndroid=Object.freeze({onResponse:settleNative,onExportResult:(success,message)=>notice(success?'Sanitized log saved.':scrubString(message || 'Log export cancelled or unavailable.'),success?'success':'warning')});
+
+  function sendNative(spec,signal) {
+    currentTransport='native Android';
+    return new Promise((resolve,reject)=>{
+      const id=crypto.randomUUID();
+      const finish=(message)=>{const item=nativePending.get(id);if(!item)return;nativePending.delete(id);clearTimeout(item.timer);item.cleanup();try{nativeBridge.cancel(id);}catch{}reject(new Error(message));};
+      const cancel=()=>finish('Stopped locally. A submitted vehicle command may still run; it was not retried.');
+      const timer=setTimeout(()=>finish('Request timed out. Outcome unknown; no automatic retry.'),46000);
+      nativePending.set(id,{resolve,reject,timer,cleanup:()=>signal.removeEventListener('abort',cancel)});
+      signal.addEventListener('abort',cancel,{once:true});
+      if(signal.aborted){cancel();return;}
+      try{nativeBridge.request(JSON.stringify({id,request:spec}));}catch{finish('The app could not send the request. Outcome unknown; no automatic retry.');}
+    });
+  }
 
   async function send(spec,signal) {
+    if(nativePage){if(!nativeAvailable)throw new Error('The app connection is unavailable. No request was sent.');return sendNative(spec,signal);}
     const mode=$('transportMode').value;
-    if(mode!=='direct' && !helperAvailable)throw new Error('Browser helper not detected. In Firefox, install Tampermonkey and the Santa Fe network helper, then reload this page. No request was sent.');
+    if(mode!=='direct' && !helperAvailable)throw new Error('Open the Android app to connect directly to Hyundai. Manual browser testing requires a configured helper. No request was sent.');
     if(mode==='helper' || (mode==='auto' && helperAvailable)) {
       if(!helperAvailable)throw new Error('Install the browser helper, reload this page, and check that Browser helper ready appears.');
       currentTransport='browser helper';
@@ -121,7 +160,7 @@
       return {status:r.status,text:(await r.text()).slice(0,1048576),headers:Object.fromEntries(r.headers.entries())};
     } catch(e) {
       if(local.signal.aborted)throw new Error('Request stopped or timed out. Outcome unknown; no automatic retry.');
-      throw new Error('The browser could not read Hyundai\'s response. CORS, network, TLS, or a redirect may be responsible. Install the browser helper and reload; do not keep retrying your password.');
+      throw new Error('The browser could not read Hyundai\'s response. CORS, network, TLS, or a redirect may be responsible. Use the Android app, or your configured browser helper; do not keep retrying your password.');
     } finally {clearTimeout(timer);signal.removeEventListener('abort',abort);}
   }
   function headers(vehicle=false,auth=true) {
@@ -158,7 +197,7 @@
   async function task(fn) {
     if(busy)return;stopped=false;controller=new AbortController();setBusy(true);
     try {await fn();}catch(e){notice(e.message,'error');result('Test stopped',e.message,'error');}
-    finally{controller=null;setBusy(false);}
+    finally{controller=null;setBusy(false);if(pageLeaving){privateValues.clear();pageLeaving=false;}}
   }
   async function getEnrollment() {
     const r=await request('Vehicle enrollment','GET',API+'enrollment/details/'+encodeURIComponent(session.username));
@@ -193,7 +232,7 @@
     result('Capability inspection',`${paths.length} reported fields logged. Trim equipment and returned fields do not prove remote command support.`);
   }
   async function login() {
-    if($('transportMode').value!=='direct' && !helperAvailable){$('password').value='';$('pin').value='';throw new Error('Install the browser helper in Firefox before signing in. No login request was sent.');}
+    if(nativePage?!nativeAvailable:$('transportMode').value!=='direct' && !helperAvailable){$('password').value='';$('pin').value='';throw new Error(nativePage?'The app connection is unavailable. No login request was sent.':'Open the Android app before signing in. Manual browser testing requires a configured helper. No login request was sent.');}
     if(transaction&&!transaction.done)throw new Error('A command is awaiting confirmation of its outcome. Check its result before starting another session.');
     session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;statusRead=false;evidence=[];
     const username=$('email').value.trim(),password=$('password').value,pin=$('pin').value.trim();
@@ -202,7 +241,7 @@
     let r;try{r=await request('Login','POST',LOGIN,{username,password}, {}, false, false);}finally{$('password').value='';}
     if(!r.data?.access_token)throw new Error('No access token was returned. This tester does not implement extra authentication challenges. Check MyHyundai and send the sanitized log.');
     session={username,pin,token:r.data.access_token,expires:Date.now()+Math.max(0,Number(r.data.expires_in)||1800)*1000};
-    $('pin').value='';notice('Signed in. Reading enrolled vehicles; no vehicle command will run.','success');result('Login','Access token received and kept only in this tab.');
+    $('pin').value='';notice('Signed in. Reading enrolled vehicles; no vehicle command will run.','success');result('Login',nativeAvailable?'Access token received and kept only in this app session.':'Access token received and kept only in this tab.');
     await getEnrollment();if(selected){await cached();capabilities();notice('Connected. Initial read tests finished. Review the results or download the sanitized log.','success');}
     else notice('Connected. Select your vehicle to continue the read tests.','success');
   }
@@ -226,6 +265,7 @@
   }
   async function command() {
     needSession();if(!selected||!statusRead)throw new Error('Select the vehicle and retrieve its status before testing a command.');
+    if(restoredCommand)throw new Error('A previous command outcome is unresolved. Check the vehicle and acknowledge the warning before sending another command.');
     if(selected.enrollmentStatus==='CANCELLED')throw new Error('This vehicle enrollment is cancelled.');
     if(transaction&&!transaction.done)throw new Error('The previous command outcome is unresolved. Check it before submitting another command.');
     const action=$('commandSelect').value;
@@ -233,7 +273,10 @@
     if(action==='climate_start'&&!$('outdoor').checked)throw new Error('Confirm the vehicle is parked outdoors before starting climate.');
     const spec=buildCommand(action);$('confirmCommand').checked=false;
     if(!window.confirm(`Send ${action.replaceAll('_',' ')} to ${selected.nickName||selected.modelCode||'the selected vehicle'}, VIN ending ${String(selected.vin).slice(-4)}?`))return;
-    transaction={id:null,action,vehicle:selected,done:false,submitted_at:new Date().toISOString(),service:action==='lights'?'LIGHTS_ONLY':action==='horn_lights'?'HORN_AND_LIGHTS':'REMOTE_POLL'};
+    const submittedAt=new Date().toISOString(),marker=JSON.stringify({action,at:submittedAt});
+    try{localStorage.setItem(COMMAND_KEY,marker);if(localStorage.getItem(COMMAND_KEY)!==marker)throw new Error();}catch{throw new Error('The app could not save the pending-command guard. No command was sent. Enable local storage before testing controls.');}
+    log({at:submittedAt,label:'Command: '+action,outcome:'Submission starting; outcome unresolved',request:{method:'POST',path:'/ac/v2/'+spec.path},interpretation:'This record is saved before transmission. It does not confirm acceptance or completion. No automatic retry.'});
+    transaction={id:null,action,vehicle:selected,done:false,submitted_at:submittedAt,service:action==='lights'?'LIGHTS_ONLY':action==='horn_lights'?'HORN_AND_LIGHTS':'REMOTE_POLL'};
     let r;
     try{r=await request('Command: '+action,'POST',API+spec.path,spec.body,spec.extra,true);}catch(e){
       transaction.uncertain=true;
@@ -249,17 +292,20 @@
     if(transaction.vehicle.regid!==selected?.regid || transaction.vehicle.vin!==selected?.vin)throw new Error('Return to the vehicle that received the command before checking the result.');
     const r=await request('Command result: '+transaction.action,'GET',API+'rmt/getRunningStatus',null,{tid:transaction.id,login_id:session.username,service_type:transaction.service},true);
     const state=r.data?.status;
-    if(state==='SUCCESS'){transaction.done=true;result('Command confirmed','Hyundai reported SUCCESS. Refresh status separately or observe the vehicle to confirm its current state.');notice('Hyundai confirmed command completion.','success');evidence.push({test:transaction.action,at:new Date().toISOString(),scope:'Hyundai transaction reported SUCCESS; current physical state not independently observed'});}
-    else if(state==='ERROR'){transaction.done=true;result('Command failed','Hyundai reported ERROR. No retry was sent.','error');}
+    if(state==='SUCCESS'){transaction.done=true;clearCommandMarker();result('Command confirmed','Hyundai reported SUCCESS. Refresh status separately or observe the vehicle to confirm its current state.');notice('Hyundai confirmed command completion.','success');evidence.push({test:transaction.action,at:new Date().toISOString(),scope:'Hyundai transaction reported SUCCESS; current physical state not independently observed'});}
+    else if(state==='ERROR'){transaction.done=true;clearCommandMarker();result('Command failed','Hyundai reported ERROR. No retry was sent.','error');}
     else {result('Command pending or unknown',`Hyundai returned ${state || 'an empty/unknown result'}. No new command was sent.`,'warning');}
   }
   function disconnect() {
     if(transaction&&!transaction.done&&!window.confirm('A command outcome is unresolved. Signing out cannot cancel it. Have you checked the vehicle and want to end this session?'))return;
+    if(transaction&&!transaction.done){clearCommandMarker();log({at:new Date().toISOString(),label:'Unresolved command acknowledged',outcome:'User confirmed checking the vehicle before signing out',interpretation:'The API outcome remains unknown. This is a local acknowledgement, not command completion.'});}
     session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;statusRead=false;transaction=null;
     for(const id of ['email','password','pin'])$(id).value='';$('vehicleSelect').replaceChildren(node('option','Sign in first'));$('vehicleSummary').replaceChildren();
-    privateValues.clear();notice('Signed out locally. Account values were removed from this tab; sanitized logs remain.');updateSession();
+    privateValues.clear();notice(nativeAvailable?'Signed out locally. Account values were removed from this app session; sanitized logs remain.':'Signed out locally. Account values were removed from this tab; sanitized logs remain.');updateSession();
   }
-  function report() {return JSON.stringify({app:'Santa Fe API Lab',version:VERSION,exported_at:new Date().toISOString(),source_commit:SOURCE,privacy:'Credentials, tokens, vehicle identifiers, contact details and location values removed. Review any service error text before sharing.',evidence:redact(evidence),requests:logs},null,2);}
+  function exportData() {return {app:'Santa Fe API Lab',version:VERSION,exported_at:new Date().toISOString(),source_commit:SOURCE,privacy:'Credentials, tokens, vehicle identifiers, contact details and location values removed. Review any service error text before sharing.',evidence:redact(evidence),requests:redact(logs)};}
+  function report() {return JSON.stringify(exportData(),null,2);}
+  function clearCommandMarker() {try{localStorage.removeItem(COMMAND_KEY);return localStorage.getItem(COMMAND_KEY)===null;}catch{return false;}}
   $('loginForm').addEventListener('submit',e=>{e.preventDefault();task(login);});
   $('runReadTestsBtn').addEventListener('click',()=>task(readTests));
   $('selectVehicleBtn').addEventListener('click',()=>task(async()=>{if(transaction&&!transaction.done)throw new Error('Check the current command outcome before switching vehicles.');const v=vehicles[Number($('vehicleSelect').value)];if($('vehicleSelect').value===''||!v)throw new Error('Choose a vehicle.');selected=v;statusRead=false;lastStatus=null;await cached();capabilities();}));
@@ -268,13 +314,21 @@
   $('capabilitiesBtn').addEventListener('click',()=>task(async()=>capabilities()));
   $('commandBtn').addEventListener('click',()=>task(command));$('pollBtn').addEventListener('click',()=>task(poll));
   $('disconnectBtn').addEventListener('click',disconnect);
-  $('connectionTestBtn').addEventListener('click',()=>{ping();if(!helperAvailable && $('transportMode').value!=='direct'){setupNotice();return;}task(async()=>{const r=await request('Connection check (no login)','GET',LOGIN,null,{},false,false,true);result('Connection response',`Hyundai returned HTTP ${r.status}. This checks whether a response is readable, not whether your credentials work.`);notice('Connection check logged.');});});
+  $('resolveUnknownBtn').addEventListener('click',()=>{
+    if(busy || !restoredCommand)return;
+    if(!window.confirm('Have you physically checked the vehicle and want to allow a new command? The previous API outcome remains unknown, and it will not be retried automatically.'))return;
+    if(!clearCommandMarker()){notice('The saved pending-command guard could not be cleared. No new command is allowed.','error');return;}
+    restoredCommand=null;log({at:new Date().toISOString(),label:'Interrupted command acknowledged',outcome:'User confirmed physically checking the vehicle',interpretation:'The previous API outcome remains unknown. This acknowledgement allows deliberate new commands; it does not confirm completion.'});updateSession();notice('Acknowledged. No command was sent or retried.','warning');
+  });
+  $('connectionTestBtn').addEventListener('click',()=>{ping();if(nativePage?!nativeAvailable:!helperAvailable && $('transportMode').value!=='direct'){setupNotice();return;}task(async()=>{const r=await request('Connection check (no login)','GET',LOGIN,null,{},false,false,true);result('Connection response',`Hyundai returned HTTP ${r.status}. This checks whether a response is readable, not whether your credentials work.`);notice('Connection check logged.');});});
   $('stopBtn').addEventListener('click',()=>{stopped=true;controller?.abort();notice('Stopped locally. A submitted remote command cannot be recalled; no retry will run.','warning');});
-  $('downloadLogBtn').addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([report()],{type:'application/json'}));const a=node('a');a.href=url;a.download='SantaFe-test-log-'+new Date().toISOString().replaceAll(':','-')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
-  $('copyLogBtn').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(report());notice('Sanitized log copied.');}catch{notice('Clipboard unavailable. Use Download log instead.','warning');}});
+  $('downloadLogBtn').addEventListener('click',()=>{if(nativePage){try{if(!nativeAvailable || nativeBridge.exportLog(JSON.stringify(exportData()))!==true)throw new Error();notice('Choose where to save the sanitized log.');}catch{notice('Log export unavailable. Close and reopen the app, then try again.','warning');}return;}const url=URL.createObjectURL(new Blob([report()],{type:'application/json'}));const a=node('a');a.href=url;a.download='SantaFe-test-log-'+new Date().toISOString().replaceAll(':','-')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+  $('copyLogBtn').addEventListener('click',async()=>{if(nativePage){notice('Use Export log to save the sanitized log.','warning');return;}try{await navigator.clipboard.writeText(report());notice('Sanitized log copied.');}catch{notice('Clipboard unavailable. Use Download log instead.','warning');}});
   $('clearLogBtn').addEventListener('click',()=>{if(!window.confirm('Delete the saved sanitized test log?'))return;logs=[];evidence=[];try{localStorage.removeItem(LOG_KEY);}catch{}renderLog();notice('Saved test log cleared.');});
   $('transportMode').addEventListener('change',()=>{updateSession();setupNotice();});
   try{const saved=JSON.parse(localStorage.getItem(LOG_KEY)||'[]');if(Array.isArray(saved))logs=saved.slice(-150).map(v=>redact(v));}catch{}
-  window.addEventListener('pagehide',()=>{session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;privateValues.clear();for(const id of ['email','password','pin'])$(id).value='';controller?.abort();});
+  try{const raw=localStorage.getItem(COMMAND_KEY);if(raw!==null){let marker;try{marker=JSON.parse(raw);}catch{}restoredCommand={action:commandActions.has(marker?.action)?marker.action:'vehicle',at:typeof marker?.at==='string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(marker.at)?marker.at:null};}}catch{ /* Commands independently require a writable persistent guard. */ }
+  window.addEventListener('pagehide',()=>{pageLeaving=true;session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;for(const id of ['email','password','pin'])$(id).value='';controller?.abort();if(!busy){privateValues.clear();pageLeaving=false;}});
+  if(nativePage){$('connectionSetup').hidden=true;$('appDownload').hidden=true;$('copyLogBtn').hidden=true;$('introCopy').textContent='Connect directly to Bluelink, inspect your vehicle, and keep a sanitized test log. Start with read tests, then try individual controls when you are ready.';$('privacyNote').textContent='Credentials are kept only for this app session and sent directly to Hyundai. Disconnect or leave the app to clear the session. Saved logs remove passwords, PINs, tokens, and vehicle identifiers.';$('logHelp').textContent='Saved locally in this app. Export the sanitized log to share results for the Tasker build. Leaving the app, including opening the file picker, clears your login. Review exported content before sharing.';$('downloadLogBtn').textContent='Export log';}
   renderLog();setBusy(false);setupNotice();
 })();

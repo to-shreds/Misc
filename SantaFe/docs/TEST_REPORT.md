@@ -1,4 +1,36 @@
-# Current benchmark: API Lab 0.2.1 helper setup gate
+# Current benchmark: API Lab 0.3.0 Android tester
+
+The HTML tester is now bundled inside a signed Android APK. The native component connects directly to Hyundai through an exact host/endpoint/header allowlist. No browser extension, public proxy, hosted credential service, or runtime library download is needed. Only Internet permission is requested. The older bridge, simulator, Tasker XML and browser helper are preserved.
+
+Verification completed:
+
+- JDK 17 / Android 35 compilation, AAPT2 packaging, D8, ZIP alignment and v2/v3 APK signature verification passed. All three bundled asset bytes match the canonical tester files. Private signing material and fixture code are absent from the release APK.
+- 114 independent request-policy checks and 52 native-transport fixture checks pass. They cover destination rejection before connection, HTTPS/redirect/cache/streaming settings, body/header limits, immutability, concurrent requests, deadlines, cancellation, safe errors and suppressed callbacks after closure.
+- 37 adversarial client checks and 15 actual headless Chromium UI scenarios pass. These cover native-only transport, missing/invalid bridge state, no browser fallback, request/response validation, sanitized exports, file-picker status messaging, read/command separation, restored unknown-command gating, transaction completion, cancellation and privacy. No unexpected network requests occurred. All Hyundai and Android transport responses in these suites are explicit fixtures.
+- Independent source review found and corrected two important exit cases: interrupted commands now persist a sanitized warning before transmission, and cancellation logging retains redaction values until completion. Enrollment URLs are structurally scrubbed even after session clearing.
+- The separate Android instrumentation APK compiles and is preserved under `android/tests/device/`. It is not included in the release.
+
+**Android execution remains unverified.** The Android 30 software emulator did not complete boot within the final 180-second bound on this host without KVM; earlier attempts encountered stale AVD locks. No Android launch, native bridge, actual lifecycle, or document-picker result was observed. Chromium fixtures do not substitute for those checks. The first phone launch and log export remain acceptance checks.
+
+No real Hyundai login, API availability, VIN-specific support or physical command has been tested. This is not an independent security audit. The signed APK is available for the account holder's supervised testing, not a verified automation release. The unchanged Python/Tasker files retain their earlier 92-test benchmark.
+
+APK: `android/dist/SantaFe-API-Lab-0.3.0.apk`, 54,104 bytes. SHA-256: `cc83c31a078a792042b56355ee853bfd5f2c80f754c946d6b80f9b0b08cfcc70`. Machine-readable evidence: `verification/android-verification.json`; fixture browser screenshot: `verification/diagnostic-android-fixture.png`.
+
+Reproduce app checks:
+
+```sh
+# From SantaFe/android, with the Android SDK configured:
+./build.sh
+./tests/run-policy-tests.sh
+JSON_JAR=/path/to/json-20240303.jar ./tests/transport/run-transport-tests.sh
+# From SantaFe, with Playwright and Chromium available:
+node --test tests/test_diagnostic.cjs
+SANTAFE_CHROMIUM=/path/to/chromium node tests/diagnostic_browser.cjs
+```
+
+Restore the privately preserved signing identity before rebuilding updates. Test instrumentation belongs on an isolated test device/emulator; it never submits credentials or contacts a real vehicle.
+
+# Earlier benchmark: API Lab 0.2.1 helper setup gate
 
 The user's initial browser screenshot showed no helper detected and a failed direct response read. That is a transport/setup failure, not proof of bad credentials. Connection setup now precedes credentials. Automatic/helper modes disable the account form until a valid helper handshake, refuse Enter/programmatic submissions without the helper, and never fall back to direct requests. Explicit Direct mode remains available for diagnostics.
 

@@ -1,36 +1,116 @@
 {
-  "generated_at": "2026-10-05T00:18:38.413Z",
+  "generated_at": "2026-10-05T01:50:42.957Z",
   "method": "Node VM UI fixture execution of shipped scripts; all HTTP responses mocked; no Hyundai account or vehicle used",
   "results": [
     {
       "test": "Helper-required setup blocks credentials and every programmatic login without direct fallback",
       "passed": true,
-      "elapsed_ms": 12
+      "elapsed_ms": 11
     },
     {
       "test": "Only a valid same-window helper hello enables credentials and Automatic uses the helper",
       "passed": true,
-      "elapsed_ms": 11
-    },
-    {
-      "test": "Login, enrollment and cached status run in order and clear credentials",
-      "passed": true,
-      "elapsed_ms": 6
-    },
-    {
-      "test": "Saved and copied logs redact credentials, identifiers, coordinates and echoed secrets",
-      "passed": true,
       "elapsed_ms": 7
     },
     {
-      "test": "Non-JSON authentication errors retain status without raw response text",
+      "test": "Bundled Android page enables login immediately and exclusively uses native Hyundai transport",
       "passed": true,
       "elapsed_ms": 3
     },
     {
-      "test": "Connection check after login sends no account identity, access token or service PIN",
+      "test": "Native interface cannot be used on a public origin or an unexpected bundled path",
+      "passed": true,
+      "elapsed_ms": 6
+    },
+    {
+      "test": "Absent or incomplete native interface keeps bundled credentials locked even in Direct mode",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "Native exports pass only sanitized data and distinguish choosing a file from saving it",
       "passed": true,
       "elapsed_ms": 4
+    },
+    {
+      "test": "Native export rejection does not claim a file was written",
+      "passed": true,
+      "elapsed_ms": 1
+    },
+    {
+      "test": "Native stop cancels once, ignores late responses and never retries login",
+      "passed": true,
+      "elapsed_ms": 2
+    },
+    {
+      "test": "Native pagehide during enrollment redacts encoded email after secret memory is cleared",
+      "passed": true,
+      "elapsed_ms": 5
+    },
+    {
+      "test": "Pagehide retains redaction values until an aborted request logs opaque echoed secrets",
+      "passed": true,
+      "elapsed_ms": 2
+    },
+    {
+      "test": "Native timeout cancels the request and does not fall back or retry",
+      "passed": true,
+      "elapsed_ms": 2
+    },
+    {
+      "test": "Native callbacks ignore unknown identifiers and reject malformed or failed responses",
+      "passed": true,
+      "elapsed_ms": 12
+    },
+    {
+      "test": "Native transaction headers reach polling and command acceptance remains distinct from completion",
+      "passed": true,
+      "elapsed_ms": 7
+    },
+    {
+      "test": "Native command guard and sanitized start record are persisted before transmission",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "Native restart preserves unknown-command gate while allowing reads and explicit physical acknowledgement",
+      "passed": true,
+      "elapsed_ms": 6
+    },
+    {
+      "test": "Definitive native SUCCESS or ERROR clears guard, while pending and unknown polling preserve it",
+      "passed": true,
+      "elapsed_ms": 20
+    },
+    {
+      "test": "Cancelled confirmation, invalid climate, and unavailable storage never save or send a command",
+      "passed": true,
+      "elapsed_ms": 7
+    },
+    {
+      "test": "Malformed persisted guard remains conservative and acknowledgement cannot bypass a failed storage clear",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "Login, enrollment and cached status run in order and clear credentials",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "Saved and copied logs redact credentials, identifiers, coordinates and echoed secrets",
+      "passed": true,
+      "elapsed_ms": 5
+    },
+    {
+      "test": "Non-JSON authentication errors retain status without raw response text",
+      "passed": true,
+      "elapsed_ms": 2
+    },
+    {
+      "test": "Connection check after login sends no account identity, access token or service PIN",
+      "passed": true,
+      "elapsed_ms": 3
     },
     {
       "test": "Empty HTTP 200 login does not invent an authenticated session or vehicle data",
@@ -40,42 +120,42 @@
     {
       "test": "Malformed enrollment and status response shapes cannot enable vehicle commands",
       "passed": true,
-      "elapsed_ms": 9
+      "elapsed_ms": 4
     },
     {
       "test": "HTTP 429 stops the read sequence and never retries",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 1
     },
     {
       "test": "CORS failure offers actionable helper instructions and sends no retry",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 1
     },
     {
       "test": "Duplicate login submissions while busy produce only one request",
       "passed": true,
-      "elapsed_ms": 10
+      "elapsed_ms": 2
     },
     {
       "test": "Stop waiting aborts the request and never retries or preserves password",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 2
     },
     {
       "test": "Accepted command without transaction ID stays unresolved and cannot be retried",
       "passed": true,
-      "elapsed_ms": 6
+      "elapsed_ms": 4
     },
     {
       "test": "Command is observed first and confirmed only after SUCCESS transaction result",
       "passed": true,
-      "elapsed_ms": 10
+      "elapsed_ms": 8
     },
     {
       "test": "Lights and horn/lights poll with their specific service type",
       "passed": true,
-      "elapsed_ms": 14
+      "elapsed_ms": 6
     },
     {
       "test": "Rereading enrollment after a command preserves polling for the same vehicle identifiers",
@@ -85,27 +165,27 @@
     {
       "test": "Climate validation blocks unsafe or unknown engine settings before transmission",
       "passed": true,
-      "elapsed_ms": 10
+      "elapsed_ms": 7
     },
     {
       "test": "Browser helper rejects non-Hyundai, unknown endpoints, invalid methods and injectable headers",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 2
     },
     {
       "test": "Browser helper ignores messages from other origins, windows or session channels",
       "passed": true,
-      "elapsed_ms": 2
+      "elapsed_ms": 1
     },
     {
       "test": "Browser helper honors cancellation and rejects third concurrent request",
       "passed": true,
-      "elapsed_ms": 2
+      "elapsed_ms": 1
     },
     {
       "test": "Browser helper suppresses response bodies after an unexpected cross-origin redirect",
       "passed": true,
-      "elapsed_ms": 2
+      "elapsed_ms": 1
     }
   ]
 }
