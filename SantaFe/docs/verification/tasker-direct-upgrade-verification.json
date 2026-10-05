@@ -1,6 +1,6 @@
 {
   "version": "Santa Fe Direct 1.1.0",
-  "checked_at": "2026-10-05T20:12:13.214Z",
+  "checked_at": "2026-10-05T20:20:11.896602+00:00",
   "project_sha256": "851c4cbac713570e194805692bb17bcfddac83e711c8dd098c9f95d161ecbb83",
   "phone_report": {
     "sfd_open_absent": true,
@@ -41,11 +41,17 @@
   "recovery_check": {
     "passed": false,
     "status": "QUEUED",
-    "workflow_run_id": 37367244302,
-    "tested_source_commit": "83bd90e1a7bd77ae6ec996494ca270892ab49f48",
+    "workflow_run_id": 37368933070,
+    "tested_source_commit": "3dc257c40b70e1defc53893e1eea81c79eea7dcc",
     "settings_retention_verified": false,
     "reported_platform_incident": "https://www.githubstatus.com/",
-    "method": "Select only old Santa Fe Direct project, Delete with contents, retain global variables, import distinctly named exact 1.1.0 XML, validate existing synthetic account, version and Home scene."
+    "method": "Select only old Santa Fe Direct project, Delete with contents, retain global variables, import distinctly named exact 1.1.0 XML, validate existing synthetic account, version and Home scene.",
+    "previous_attempt": {
+      "workflow_run_id": 37367244302,
+      "conclusion": "cancelled",
+      "steps_started": 0,
+      "no_recovery_result": true
+    }
   },
   "real_account_used": false,
   "vehicle_commands_run": false
