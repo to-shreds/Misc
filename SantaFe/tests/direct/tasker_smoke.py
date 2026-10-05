@@ -255,14 +255,17 @@ def scene_screen():
     root = screen()
     picture = RESULTS / f"scene-observation-{SEQUENCE:03d}.png"
     picture.write_bytes(adb("exec-out", "screencap", "-p"))
-    result = subprocess.run(["tesseract", str(picture), "stdout", "--psm", "11", "tsv"], capture_output=True, text=True, check=True, timeout=20)
-    picture.with_suffix(".tsv").write_text(result.stdout)
     lines = {}
-    for item in csv.DictReader(io.StringIO(result.stdout), delimiter="\t"):
-        if not item.get("text", "").strip() or float(item["conf"]) < 35:
-            continue
-        key = tuple(item[k] for k in ["block_num", "par_num", "line_num"])
-        lines.setdefault(key, []).append(item)
+    # Sparse text works well for most scenes; uniform text also reads smaller
+    # button labels accurately. Retain both observations and their real bounds.
+    for mode in [11, 6]:
+        result = subprocess.run(["tesseract", str(picture), "stdout", "--psm", str(mode), "tsv"], capture_output=True, text=True, check=True, timeout=20)
+        picture.with_suffix(".psm" + str(mode) + ".tsv").write_text(result.stdout)
+        for item in csv.DictReader(io.StringIO(result.stdout), delimiter="\t"):
+            if not item.get("text", "").strip() or float(item["conf"]) < 35:
+                continue
+            key = (mode,) + tuple(item[k] for k in ["block_num", "par_num", "line_num"])
+            lines.setdefault(key, []).append(item)
     rendered = E.Element("hierarchy")
     for words in lines.values():
         text = " ".join(w["text"] for w in words)
@@ -275,6 +278,15 @@ def scene_screen():
             for word in words:
                 x, y, w, h = [int(word[k]) for k in ["left", "top", "width", "height"]]
                 E.SubElement(rendered, "node", text=word["text"], enabled="true", clickable="true", bounds=f"[{x},{y}][{x+w},{y+h}]")
+            # Neighboring buttons can occupy one OCR line. Preserve observed
+            # contiguous phrases such as Start cold and Remote stop as well.
+            for length in range(2, min(4, len(words)) + 1):
+                for start in range(len(words) - length + 1):
+                    phrase = words[start:start + length]
+                    x = min(int(w["left"]) for w in phrase); y = min(int(w["top"]) for w in phrase)
+                    right = max(int(w["left"]) + int(w["width"]) for w in phrase)
+                    bottom = max(int(w["top"]) + int(w["height"]) for w in phrase)
+                    E.SubElement(rendered, "node", text=" ".join(w["text"] for w in phrase), enabled="true", clickable="true", bounds=f"[{x},{y}][{right},{bottom}]")
     if any(n.get("text", "").startswith("Santa Fe / ") for n in nodes(rendered)) or any(matching(rendered, text) is not None for text in ["Climate start", "Tasker phone interface", "Phone connection"]):
         REPORT["scene_observation"] = "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms."
         return rendered
