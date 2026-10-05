@@ -60,7 +60,10 @@ def native_xml(data):
     return E.fromstring(source)
 
 def matching(root, text):
-    return next((n for n in nodes(root) if n.get("text", "").casefold() == text.casefold() or n.get("content-desc", "").casefold() == text.casefold()), None)
+    matches = [n for n in nodes(root) if n.get("text", "").casefold() == text.casefold() or n.get("content-desc", "").casefold() == text.casefold()]
+    # A complete button caption outranks a phrase extracted from instructional
+    # text. Exact case also separates Settings from "settings" in a paragraph.
+    return min(matches, key=lambda n: (0 if text in [n.get("text"), n.get("content-desc")] else 1, 0 if n.get("ocr-kind", "line") == "line" else 1, int(n.get("ocr-words", "1")))) if matches else None
 
 def tap(node):
     bounds = [int(v) for v in re.findall(r"\d+", node.get("bounds", ""))]
@@ -271,13 +274,13 @@ def scene_screen():
         text = " ".join(w["text"] for w in words)
         left=min(int(w["left"]) for w in words); top=min(int(w["top"]) for w in words)
         right=max(int(w["left"])+int(w["width"]) for w in words); bottom=max(int(w["top"])+int(w["height"]) for w in words)
-        E.SubElement(rendered, "node", text=text, enabled="true", clickable="true", bounds=f"[{left},{top}][{right},{bottom}]")
+        E.SubElement(rendered, "node", text=text, enabled="true", clickable="true", bounds=f"[{left},{top}][{right},{bottom}]", attrib={"ocr-kind": "line", "ocr-words": str(len(words))})
         # HTML navigation can share a single OCR line. Preserve observed word
         # bounds too, so tapping Settings uses evidence rather than fixed pixels.
         if len(words) > 1:
             for word in words:
                 x, y, w, h = [int(word[k]) for k in ["left", "top", "width", "height"]]
-                E.SubElement(rendered, "node", text=word["text"], enabled="true", clickable="true", bounds=f"[{x},{y}][{x+w},{y+h}]")
+                E.SubElement(rendered, "node", text=word["text"], enabled="true", clickable="true", bounds=f"[{x},{y}][{x+w},{y+h}]", attrib={"ocr-kind": "phrase", "ocr-words": str(len(words))})
             # Neighboring buttons can occupy one OCR line. Preserve observed
             # contiguous phrases such as Start cold and Remote stop as well.
             for length in range(2, min(4, len(words)) + 1):
@@ -286,7 +289,7 @@ def scene_screen():
                     x = min(int(w["left"]) for w in phrase); y = min(int(w["top"]) for w in phrase)
                     right = max(int(w["left"]) + int(w["width"]) for w in phrase)
                     bottom = max(int(w["top"]) + int(w["height"]) for w in phrase)
-                    E.SubElement(rendered, "node", text=" ".join(w["text"] for w in phrase), enabled="true", clickable="true", bounds=f"[{x},{y}][{right},{bottom}]")
+                    E.SubElement(rendered, "node", text=" ".join(w["text"] for w in phrase), enabled="true", clickable="true", bounds=f"[{x},{y}][{right},{bottom}]", attrib={"ocr-kind": "phrase", "ocr-words": str(len(words))})
     if any(n.get("text", "").startswith("Santa Fe / ") for n in nodes(rendered)) or any(matching(rendered, text) is not None for text in ["Climate start", "Tasker phone interface", "Phone connection"]):
         REPORT["scene_observation"] = "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms."
         return rendered
