@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - "SantaFe/tasker/direct/**"
+      - "SantaFe/tasker/Santa_Fe_Direct.prj.xml"
+      - "SantaFe/control/**"
+      - "SantaFe/tools/build_tasker_direct.py"
       - "SantaFe/tests/direct/tasker_upgrade_smoke.py"
       - ".github/workflows/santafe-tasker-upgrade-ci.yml"
 permissions:
@@ -56,10 +60,10 @@ jobs:
         run: timeout 90 adb install -r "$RUNNER_TEMP/tasker-trial.apk"
       - name: Fetch pinned old standalone release
         run: |
-          curl -fsSL --connect-timeout 15 --max-time 120 https://raw.githubusercontent.com/to-shreds/Misc/bb0338e5502e5c3e227ab67af23634215e8d0d94/SantaFe/tasker/Santa_Fe_Direct.prj.xml -o "$RUNNER_TEMP/Santa_Fe_Direct-v1.0.0.prj.xml"
-          printf '%s  %s\n' 251ba44febe56d06acd9ad6dc4268078d081fd10a7cae3c0aced7d2deec91e0d "$RUNNER_TEMP/Santa_Fe_Direct-v1.0.0.prj.xml" | sha256sum -c -
+          curl -fsSL --connect-timeout 15 --max-time 120 https://raw.githubusercontent.com/to-shreds/Misc/5241f62ef414fe017bc5ee52043a082e36a26f0a/SantaFe/tasker/Santa_Fe_Direct_1_1_0_SCENES.prj.xml -o "$RUNNER_TEMP/Santa_Fe_Direct-v1.1.0.prj.xml"
+          printf '%s  %s\n' 851c4cbac713570e194805692bb17bcfddac83e711c8dd098c9f95d161ecbb83 "$RUNNER_TEMP/Santa_Fe_Direct-v1.1.0.prj.xml" | sha256sum -c -
       - name: Upgrade existing standalone project in actual Tasker
-        run: python3 SantaFe/tests/direct/tasker_upgrade_smoke.py --old "$RUNNER_TEMP/Santa_Fe_Direct-v1.0.0.prj.xml" --results "$RUNNER_TEMP/sfd-tasker-results"
+        run: python3 SantaFe/tests/direct/tasker_upgrade_smoke.py --old "$RUNNER_TEMP/Santa_Fe_Direct-v1.1.0.prj.xml" --results "$RUNNER_TEMP/sfd-tasker-results"
       - name: Capture diagnostic evidence
         if: always()
         run: |

@@ -163,7 +163,7 @@ def import_project():
         raise RuntimeError("No observed Import Project menu: " + str(visible(root)))
     for _ in range(20):
         root = screen()
-        if any(n.get("text", "").startswith("SFD ") for n in nodes(root)):
+        if matching(root, "SFD Core") is not None:
             return root
         if matching(root, "Tasks") is not None:
             if matching(root, "Apply") is not None:
@@ -174,7 +174,7 @@ def import_project():
             click(root, ["Tasks"])
             time.sleep(0.8)
             root = screen()
-            if any(n.get("text", "").startswith("SFD ") for n in nodes(root)):
+            if matching(root, "SFD Core") is not None:
                 return root
             explanation = next((n for n in nodes(root) if n.get("text", "").startswith("Profiles link contexts")), None)
             if explanation is not None:
@@ -300,9 +300,16 @@ def save_and_read():
     REPORT["roundtrip_source"] = path
     tasks = [t for t in root.iter("Task") if t.findtext("nme", "").startswith("SFD ")]
     counts = {t.findtext("nme"): len(t.findall("Action")) for t in tasks}
-    check(len(counts) == 41 and sum(counts.values()) == 89 and all(count > 0 for count in counts.values()), "Actual Tasker import retains all 41 tasks and 89 executable actions")
+    check(len(counts) == 64 and sum(counts.values()) == 134 and all(count > 0 for count in counts.values()), "Actual Tasker import retains all 64 tasks and 134 executable actions")
     scenes = [s for s in root.iter("Scene") if s.findtext("nme", "").startswith("SFD ")]
-    check(len(scenes) == 7, "Actual Tasker import retains all seven native scenes")
+    check(len(scenes) == 9, "Actual Tasker import retains all nine scenes")
+    profiles = [p for p in root.iter("Profile") if p.findtext("nme") == "SFD Location Heartbeat"]
+    check(len(profiles) == 1 and profiles[0].findtext("Time/rep") == "3" and profiles[0].findtext("Time/repval") == "1", "Actual Tasker retains the hourly location profile")
+    check(profiles[0].findtext("State/ConditionList/Condition/lhs") == "%SFDAutoLocation", "Periodic profile retains its opt-in condition")
+    join = next(p for p in root.iter("Profile") if p.findtext("nme") == "SFD Join Commands")
+    check(join.findtext("Event/Bundle/Vals/FilterText") == "hyundai=:=", "Actual Tasker retains the supplied Join filter")
+    web = next(s for s in scenes if s.findtext("nme") == "SFD Web").find("WebElement")
+    check(web.find('Int[@sr="arg1"]').get("val") == "2" and "SFD Web Receive" in web.findtext('Str[@sr="arg2"]'), "Actual Tasker retains the bundled HTML and local receiver")
     REPORT["imported_scene_names"] = [s.findtext("nme") for s in scenes]
     REPORT["imported_action_counts"] = counts
     delivered = E.parse(ROOT / "tasker/Santa_Fe_Direct.prj.xml").getroot()
@@ -436,24 +443,24 @@ def run():
     play(root)
     time.sleep(1)
     root = screen()
-    check(matching(root, "Santa Fe controls") is not None and matching(root, "Remote start") is not None, "Actual Tasker opens the control menu")
+    check(matching(root, "Santa Fe controls") is not None and matching(root, "Start regular") is not None, "Actual Tasker opens the control menu")
     check(not any("horn" in n.get("text", "").lower() or "lights" in n.get("text", "").lower() for n in nodes(root)), "Control menu contains no horn or lights option")
     check(click(root, ["Cancel"]), "Control menu cancels without any vehicle operation")
     time.sleep(1)
     back_to_tasks()
-    root = open_task("SFD Open")
+    root = open_task("SFD Open Home")
     play(root)
     root = wait_for("Santa Fe / Home")
     check(matching(root, "Santa Fe / Home") is not None, "Actual Tasker opens the native Home scene")
     check(not any("%SFDGui" in n.get("text", "") for n in nodes(root)), "Scene labels resolve their display variables")
     (RESULTS / "scene-home.png").write_bytes(adb("exec-out", "screencap", "-p"))
-    for page in ["Controls", "Status", "Account", "Climate", "Command", "Help"]:
+    for page in ["Controls", "Status", "Account", "Climate", "Command", "Help", "Location"]:
         check(click(root, [page]), "Home navigation opens " + page)
         root = wait_for("Santa Fe / " + page)
         check(matching(root, "Santa Fe / " + page) is not None, "Native " + page + " scene is visible")
         (RESULTS / ("scene-" + page.lower() + ".png")).write_bytes(adb("exec-out", "screencap", "-p"))
         if page == "Controls":
-            check(all(matching(root, text) is not None for text in ["Lock", "Unlock", "Remote start", "Remote stop"]), "Control scene displays all four confirmed controls")
+            check(all(matching(root, text) is not None for text in ["Lock", "Unlock", "Start regular", "Start cold", "Start hot", "Remote stop"]), "Control scene displays all six controls including presets")
             check(not any("horn" in n.get("text", "").lower() or "lights" in n.get("text", "").lower() for n in nodes(root)), "Control scene contains no unconfirmed controls")
         if page == "Account":
             check(click(root, ["Edit account"]), "Scene account button runs the saved settings form")
@@ -464,17 +471,36 @@ def run():
             root = wait_for("Santa Fe / Account")
             check(matching(root, "Santa Fe / Account") is not None, "Cancelled account form returns to its scene")
         if page == "Climate":
-            check(click(root, ["Edit climate"]), "Scene climate button opens settings without a command")
+            check(click(root, ["Edit regular"]), "Scene climate button opens settings without a command")
             root = wait_for("Remote start settings")
             check(matching(root, "Remote start settings") is not None, "Scene opens the native climate form")
             check(click(root, ["Cancel"]), "Scene climate edit can be cancelled")
             root = wait_for("Santa Fe / Climate")
             check(matching(root, "Santa Fe / Climate") is not None, "Cancelled climate form returns to its scene")
+            for label, title, temperature in [("Edit cold", "Cold start settings", "62"), ("Edit hot", "Hot start settings", "81")]:
+                check(click(root, [label]), "Scene opens " + title)
+                root = wait_for(title)
+                check(matching(root, temperature) is not None, title + " has the independent default")
+                check(click(root, ["Cancel"]), title + " cancels without a command")
+                root = wait_for("Santa Fe / Climate")
+        if page == "Location":
+            check(click(root, ["Location settings"]), "Scene opens offline location settings")
+            root = wait_for("Santa Fe location settings")
+            check(matching(root, "150") is not None, "Location settings show the distance threshold")
+            check(click(root, ["Cancel"]), "Location settings cancel without a GPS or Hyundai request")
+            root = wait_for("Santa Fe / Location")
         check(click(root, ["Home"]), "Native scene returns to Home from " + page)
         root = wait_for("Santa Fe / Home")
         check(matching(root, "Santa Fe / Home") is not None, "Home is restored after " + page)
     check(click(root, ["Close"]), "Native Close button dismisses the GUI")
     check(matching(scene_screen(), "Santa Fe / Home") is None, "GUI closes without any vehicle operation")
+    back_to_tasks(); play(open_task("SFD Open"))
+    root = wait_for("Climate start")
+    check(matching(root, "Climate start") is not None, "SFD Open renders the bundled HTML interface offline")
+    check(matching(root, "Tasker phone interface") is not None, "WebView detects the real Tasker JavaScript interface")
+    (RESULTS / "scene-web.png").write_bytes(adb("exec-out", "screencap", "-p"))
+    check(click(root, ["Native screens"]), "Bundled HTML returns to native Home without network")
+    root = wait_for("Santa Fe / Home"); click(root, ["Close"])
     REPORT["passed"] = True
 
 if __name__ == "__main__":

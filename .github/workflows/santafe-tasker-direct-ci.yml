@@ -4,10 +4,14 @@ on:
   push:
     paths:
       - "SantaFe/tasker/direct/**"
+      - "SantaFe/control/**"
       - "SantaFe/tasker/Santa_Fe_Direct.prj.xml"
       - "SantaFe/tools/build_tasker_direct.py"
       - "SantaFe/tests/direct/**"
       - "SantaFe/tests/test_tasker_direct.py"
+      - "SantaFe/tests/test_control.cjs"
+      - "SantaFe/tests/control_browser.cjs"
+      - "SantaFe/tests/fixtures/tasker/join-received-push.xml"
       - ".github/workflows/santafe-tasker-direct-ci.yml"
 permissions:
   contents: read
@@ -27,6 +31,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
       - run: python -m pip install --disable-pip-version-check pytest
       - name: All preserved Python and Tasker regressions
         working-directory: SantaFe
@@ -35,6 +42,33 @@ jobs:
         run: python -m pytest tests -q
       - name: Execute delivered BeanShell with intercepted HTTP fixtures
         run: bash SantaFe/tests/direct/run-runtime-tests.sh
+      - name: Join command contract and transport fixtures
+        run: node --test SantaFe/tests/test_control.cjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned browser test tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/sf-control-browser" playwright@1.56.1 --no-audit --no-fund
+          node "$RUNNER_TEMP/sf-control-browser/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Exercise browser and packaged phone interface without live accounts
+        run: CODEX_PRIMARY_RUNTIME_NODE_MODULES="$RUNNER_TEMP/sf-control-browser/node_modules" node SantaFe/tests/control_browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: santafe-controller-browser
+          path: |
+            SantaFe/docs/verification/controller-browser.json
+            SantaFe/docs/verification/controller-phone.png
+          retention-days: 14
   tasker-import:
     runs-on: ubuntu-latest
     timeout-minutes: 25

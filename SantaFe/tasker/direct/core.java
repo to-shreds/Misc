@@ -1,4 +1,4 @@
-// Santa Fe Direct 1.1.0 entry and command state. Credentials are Tasker settings.
+// Santa Fe Direct 1.2.0 entry and command state. Credentials are Tasker settings.
 // Tokens and transaction details stay in a volatile global Java object.
 import java.nio.channels.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -60,7 +60,7 @@ String sfPollBounded(boolean waitFirst) {
 String sfSubmit(String operation) {
     if (sfMarkerFile.exists()) sfFail("A previous command outcome is unresolved. Run SFD Check Command or check the vehicle and use SFD Resolve Unknown. No new command was sent.");
     JSONObject recipe = sfCommandRecipe(operation);
-    if (operation.equals("start") && !sfConfirm("Remote start", "Is the vehicle parked outdoors, clear of people and safe to start?", "Start").equals("yes")) return "CANCELLED";
+    if (operation.startsWith("start") && !sfWatchSafe && !sfConfirm("Remote start", "Is the vehicle parked outdoors, clear of people and safe to start?", "Start").equals("yes")) return "CANCELLED";
     // Obtain an actual status object before control submission, as in the tester.
     sfStatus(false);
     JSONObject selected = (JSONObject)sfSession.get("vehicle");
@@ -83,9 +83,80 @@ String sfReport(String state, String message) {
 }
 
 String sfDispatch(String operation) {
+    if (operation.equals("web_prepare")) {
+        sfPublishWeb(operation, "", false);
+        return "PHONE INTERFACE READY";
+    }
+    if (operation.equals("join_settings")) {
+        JSONObject settings = sfJoinForm();
+        if (settings.optBoolean("cancel")) return sfReport("CANCELLED", "Join settings unchanged.");
+        tasker.setVariable("SFDJoinEnabled", settings.getBoolean("enabled") ? "1" : "0");
+        return sfReport("SAVED", settings.getBoolean("enabled") ? "Join receiver enabled. Test connection sends no Hyundai request." : "Join receiver disabled.");
+    }
+    if (operation.equals("join") || operation.equals("web")) {
+        sfRemoteInvocation = true;
+        JSONObject command = sfAcceptRemote(sfValue("par2"), operation.equals("join"));
+        String mapped = command.getString("command"); sfWatchSafe = command.getBoolean("safe");
+        if (mapped.equals("ping")) return sfReport("PHONE REACHED", "Tasker received the connection test. No Hyundai request or car command was sent.");
+        tasker.setVariable("SFDState", "RUNNING");
+        sfPublishWeb(operation, "", false);
+        return sfDispatch(mapped);
+    }
+    if (operation.equals("location_settings")) {
+        JSONObject settings = sfLocationForm();
+        if (settings.optBoolean("cancel")) return sfReport("CANCELLED", "Location settings unchanged.");
+        if (settings.getBoolean("enabled") && (sfValue("SFDLocationVerified").length() == 0 || !sfValue("SFDLocationVerified").equals(sfValue("SFDCarVin"))))
+            sfFail("Use Read car GPS once successfully before enabling periodic checks.");
+        tasker.setVariable("SFDAutoLocation", settings.getBoolean("enabled") ? "1" : "0");
+        tasker.setVariable("SFDLocationHours", String.valueOf(settings.getInt("hours")));
+        tasker.setVariable("SFDNearMeters", String.valueOf(settings.getInt("meters")));
+        return sfReport("SAVED", "Location settings saved. Periodic checks compare only; they never control the car.");
+    }
+    if (operation.equals("location") || operation.equals("compare_location") || operation.equals("periodic_location")) {
+        boolean periodic = operation.equals("periodic_location");
+        if (periodic) {
+            if (!sfValue("SFDAutoLocation").equals("1") || sfValue("SFDLocationVerified").length() == 0) return "LOCATION CHECK DISABLED";
+            if (sfMarkerFile.exists()) return "LOCATION CHECK SKIPPED: unresolved command";
+            int hours = 1; long last = 0;
+            try { hours = Integer.parseInt(sfValue("SFDLocationHours")); } catch (Exception ignored) {}
+            if (hours < 1 || hours > 24) hours = 1;
+            try { last = Long.parseLong(sfValue("SFDLocationLastAttempt")); } catch (Exception ignored) {}
+            if (sfNow() - last < hours * 3600000L) return "LOCATION CHECK NOT DUE";
+            tasker.setVariable("SFDLocationLastAttempt", String.valueOf(sfNow()));
+        }
+        try {
+            String message;
+            if (operation.equals("compare_location")) message = sfCompareLocation();
+            else {
+                sfEnsureSession(false);
+                JSONObject selected = (JSONObject)sfSession.get("vehicle");
+                if (periodic && (!sfValue("SFDLocationVerified").equals(selected.getString("vin")) || !sfValue("SFDCarIdentity").equals(sfSession.get("identity"))))
+                    sfFail("Read car GPS again after changing the account or vehicle. Periodic check skipped.");
+                message = sfReadCarLocation();
+            }
+            sfLocationReport(message);
+            if (!periodic && !sfRemoteInvocation && !sfValue("par2").equals("gui")) sfMessage("Santa Fe location", message);
+            return message;
+        } catch (Exception failure) {
+            sfLocationFailed = true;
+            tasker.setVariable("SFDProximity", "Unknown"); tasker.setVariable("SFDDistanceMeters", "");
+            String message = failure.getMessage();
+            if (message == null || !message.startsWith("SF: ")) message = "Location lookup failed. No retry was sent. Previous car position retains its timestamp.";
+            else message = message.substring(4);
+            if (periodic) { tasker.setVariable("SFDAutoLocation", "0"); message += " Periodic checks paused. Connect/read car GPS, then enable them again."; }
+            sfLocationReport(message);
+            if (!periodic) tasker.showToast(message);
+            return message;
+        }
+    }
+    if (operation.equals("watch")) {
+        JSONObject command = sfAcceptWatch(sfValue("par2"));
+        operation = command.getString("command"); sfWatchSafe = command.getBoolean("safe");
+        if (operation.equals("ping")) return sfReport("WATCH PAIRED", "Signed watch test received. No Hyundai request or car command was sent.");
+    }
     if (operation.equals("controls")) {
-        operation = sfChoose("Santa Fe controls", new String[]{"Status", "Refresh status", "Lock", "Unlock", "Remote start", "Remote stop", "Check command", "Account settings", "Climate settings"},
-            new String[]{"status", "refresh", "lock", "unlock", "start", "stop", "poll", "setup", "climate"});
+        operation = sfChoose("Santa Fe controls", new String[]{"Status", "Refresh status", "Lock", "Unlock", "Start regular", "Start cold", "Start hot", "Remote stop", "Check command", "Account settings", "Climate settings", "Join settings"},
+            new String[]{"status", "refresh", "lock", "unlock", "start", "start_cold", "start_hot", "stop", "poll", "setup", "climate", "join_settings"});
     }
     if (operation.equals("cancel")) return sfReport("CANCELLED", "Cancelled. No request was sent.");
     if (operation.equals("verify")) {
@@ -94,7 +165,8 @@ String sfDispatch(String operation) {
         JSONObject sample = new JSONObject().put("doorLock", true).put("engine", false).put("airCtrlOn", false);
         String flags = sfStatusFlag(sample, "doorLock", "Locked", "Unlocked") + " / " + sfStatusFlag(sample, "engine", "Running", "Off") + " / " + sfStatusFlag(sample, "airCtrlOn", "On", "Off");
         if (!flags.equals("Locked / Off / Off")) sfFail("The status parser self-check failed. No request was sent.");
-        String message = sfReport("READY", "Santa Fe Direct 1.1.0 loaded. Core has " + actions + " executable action(s). Java, JSON and HTTP libraries are available. Status parser verified: " + flags + ". No network request was made.");
+        sfWatchSignature("0000000000000000000000000000000000000000000000000000000000000000", "offline-verification");
+        String message = sfReport("READY", "Santa Fe Direct 1.2.0 loaded. Core has " + actions + " executable action(s). Java, JSON, HTTP and Join command routing are available. Status parser verified: " + flags + ". No network request was made.");
         sfMessage("Santa Fe Direct verification", message);
         return message;
     }
@@ -102,23 +174,34 @@ String sfDispatch(String operation) {
         if (sfMarkerFile.exists()) sfFail("Check the pending command before changing account settings. Use SFD Check Command or SFD Resolve Unknown.");
         JSONObject account = sfAccountForm();
         if (account.optBoolean("cancel")) return sfReport("CANCELLED", "Account settings unchanged.");
+        if (!sfIdentity(sfValue("SFDEmail"), sfValue("SFDPassword"), sfValue("SFDPin")).equals(sfIdentity(account.getString("email"), account.getString("password"), account.getString("pin"))) || !sfValue("SFDVin").equals(account.getString("vin"))) sfClearLocation();
         tasker.setVariable("SFDEmail", account.getString("email")); tasker.setVariable("SFDPassword", account.getString("password"));
         tasker.setVariable("SFDPin", account.getString("pin")); tasker.setVariable("SFDVin", account.getString("vin"));
         sfSession.clear();
         return sfReport("SAVED", "Account saved in Tasker. Run SFD Connect once to verify it. No request was sent during setup.");
     }
-    if (operation.equals("climate")) {
-        JSONObject settings = sfClimateForm();
+    if (Arrays.asList(new String[]{"climate", "climate_cold", "climate_hot"}).contains(operation)) {
+        String prefix = operation.equals("climate_cold") ? "SFDCold" : operation.equals("climate_hot") ? "SFDHot" : "SFD";
+        JSONObject settings = sfClimateForm(prefix, operation.equals("climate_cold") ? "Cold start settings" : operation.equals("climate_hot") ? "Hot start settings" : "Remote start settings", operation.equals("climate_cold") ? 62 : operation.equals("climate_hot") ? 81 : 72, operation.equals("climate_hot"));
         if (settings.optBoolean("cancel")) return sfReport("CANCELLED", "Climate settings unchanged.");
-        tasker.setVariable("SFDTemperature", String.valueOf(settings.getInt("temperature")));
-        tasker.setVariable("SFDDuration", String.valueOf(settings.getInt("duration")));
-        tasker.setVariable("SFDDefrost", settings.getBoolean("defrost") ? "1" : "0");
+        tasker.setVariable(prefix + "Temperature", String.valueOf(settings.getInt("temperature")));
+        tasker.setVariable(prefix + "Duration", String.valueOf(settings.getInt("duration")));
+        tasker.setVariable(prefix + "Defrost", settings.getBoolean("defrost") ? "1" : "0");
         return sfReport("SAVED", "Remote start settings saved. No vehicle command was sent.");
+    }
+    if (operation.equals("watch_settings")) {
+        JSONObject settings = sfWatchForm();
+        if (settings.optBoolean("cancel")) return sfReport("CANCELLED", "Watch settings unchanged.");
+        sfWatchBytes(settings.getString("key"));
+        tasker.setVariable("SFDWatchKey", settings.getString("key"));
+        tasker.setVariable("SFDWatchEnabled", settings.getBoolean("enabled") ? "1" : "0");
+        return sfReport("SAVED", "Watch settings saved. Use Test connection on the watch first. No car command was sent.");
     }
     if (operation.equals("clear")) { sfSession.clear(); return sfReport("CLEARED", "Live login cleared. Saved account and any pending-command guard are retained."); }
     if (operation.equals("forget")) {
         if (!sfConfirm("Forget account", "Remove the email, password, PIN and selected VIN saved in this Tasker project? A pending command warning will remain.", "Forget").equals("yes")) return sfReport("CANCELLED", "Account settings unchanged.");
         for (String name : new String[]{"SFDEmail", "SFDPassword", "SFDPin", "SFDVin"}) tasker.setVariable(name, "");
+        sfClearLocation();
         sfSession.clear(); return sfReport("FORGOTTEN", "Account cleared from Tasker variables. Any earlier Tasker backups are separate. Pending-command guard retained.");
     }
     if (operation.equals("resolve")) {
@@ -126,7 +209,7 @@ String sfDispatch(String operation) {
         if (!sfConfirm("Unresolved command", "Check the car or MyHyundai first. Have you confirmed what the vehicle actually did? This clears the warning only. It does not cancel or repeat a command.", "I checked the vehicle").equals("yes")) return sfReport("CANCELLED", "Pending-command guard retained.");
         sfClearMarker(); return sfReport("ACKNOWLEDGED", "Physical outcome acknowledged. No API command was sent or retried.");
     }
-    if (!Arrays.asList(new String[]{"connect", "choose", "status", "refresh", "lock", "unlock", "start", "stop", "poll"}).contains(operation))
+    if (!Arrays.asList(new String[]{"connect", "choose", "status", "refresh", "lock", "unlock", "start", "start_cold", "start_hot", "stop", "poll"}).contains(operation))
         sfFail("Unknown task operation. No request was sent.");
     if (operation.equals("choose")) {
         if (sfMarkerFile.exists()) sfFail("Check the pending command before switching vehicles.");
@@ -145,11 +228,12 @@ String sfDispatch(String operation) {
         }
         String chosen = sfChoose("Choose your Santa Fe", labels, vins);
         if (chosen.equals("cancel")) return sfReport("CANCELLED", "Vehicle selection unchanged.");
+        if (!chosen.equals(sfValue("SFDCarVin"))) sfClearLocation();
         tasker.setVariable("SFDVin", chosen); sfSelectVehicle();
         return sfReport("SELECTED", "Vehicle selected. Run SFD Status.");
     }
     // With an unresolved outcome, controls are blocked before even logging in.
-    if (Arrays.asList(new String[]{"lock", "unlock", "start", "stop"}).contains(operation) && sfMarkerFile.exists())
+    if (Arrays.asList(new String[]{"lock", "unlock", "start", "start_cold", "start_hot", "stop"}).contains(operation) && sfMarkerFile.exists())
         sfFail("A previous command outcome is unresolved. Run SFD Check Command or check the vehicle and use SFD Resolve Unknown. No new request was sent.");
     if (operation.equals("poll")) {
         JSONObject previous = (JSONObject)sfSession.get("pending");
@@ -161,7 +245,7 @@ String sfDispatch(String operation) {
     if (operation.equals("connect") || operation.equals("status") || operation.equals("refresh")) {
         String status = sfStatus(operation.equals("refresh"));
         sfReport("READ", (operation.equals("connect") ? "Connected.\n" : "") + status);
-        if (!operation.equals("connect") && !sfValue("par2").equals("gui")) sfMessage("Santa Fe status", status);
+        if (!operation.equals("connect") && !sfRemoteInvocation && !sfValue("par2").equals("gui")) sfMessage("Santa Fe status", status);
         return sfValue("SFDResult");
     }
     String state = operation.equals("poll") ? sfPollBounded(false) : sfSubmit(operation);
@@ -176,6 +260,10 @@ String sfDispatch(String operation) {
 // ENTRY: the generator embeds api.java, ui.java and this file into one action.
 String operation = sfValue("par1");
 if (operation.length() == 0) operation = "verify";
+boolean sfWatchSafe = false;
+boolean sfRemoteInvocation = false;
+boolean sfLocationFailed = false;
+String sfRemoteCommand = "", sfRemoteId = "";
 Map sfSession = null;
 File sfMarkerFile = new File(context.getNoBackupFilesDir(), "santa-fe-direct-pending.json");
 RandomAccessFile sfLockFile = null; FileLock sfLock = null;
@@ -196,6 +284,7 @@ try {
         sfSession = (Map)tasker.getGlobalJavaVariables().get("sfDirectSession");
         if (sfSession == null) { sfSession = new HashMap(); tasker.setJavaVariable("sfDirectSession", sfSession); }
         tasker.setVariable("SFDLastHttp", "");
+        tasker.setVariable("SFDWebBusy", "1");
         sfOutput = sfDispatch(operation);
     }
 
@@ -207,6 +296,15 @@ try {
     if (unresolved) message += " A previous command may have reached the car. Run SFD Check Command or check the vehicle before SFD Resolve Unknown.";
     sfOutput = sfReport(unresolved ? "UNKNOWN" : "FAILED", message);
 } finally {
+    if (sfMutexHeld && sfLock != null) {
+        tasker.setVariable("SFDWebBusy", "0");
+        try { sfPublishWeb(operation, sfOutput, !operation.equals("web_prepare") && !sfOutput.startsWith("LOCATION CHECK ")); }
+        catch (Exception logFailure) {
+            tasker.setVariable("SFDLogNotice", "Could not save the private activity log. The vehicle result is unchanged.");
+            try { sfPublishWeb(operation, sfOutput, false); } catch (Exception ignored) {}
+        }
+        if (sfRemoteInvocation) sfRemoteNotification(sfRemoteSummary(operation, sfOutput));
+    }
     try {
         if (sfLock != null) sfLock.release();
     } finally {

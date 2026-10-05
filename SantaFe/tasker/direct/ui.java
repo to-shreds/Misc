@@ -95,7 +95,7 @@ JSONObject sfAccountForm() {
     });
     return (JSONObject)signal.blockingGet();
 }
-JSONObject sfClimateForm() {
+JSONObject sfClimateForm(String prefix, String title, int defaultTemperature, boolean defaultDefrost) {
     signal = SingleSubject.create();
     tasker.doWithActivity(new Consumer() {
         accept(Object object) {
@@ -103,10 +103,10 @@ JSONObject sfClimateForm() {
             activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
             LinearLayout layout = new LinearLayout(activity); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(24, 12, 24, 12);
             TextView explanation = new TextView(activity); explanation.setText("Temperature: 62 to 81 F. Duration: 1 to 10 minutes. Seats and steering-wheel heat remain off."); layout.addView(explanation);
-            EditText temperature = new EditText(activity); temperature.setHint("Temperature (F)"); temperature.setInputType(InputType.TYPE_CLASS_NUMBER); temperature.setText(sfValue("SFDTemperature").length() == 0 ? "72" : sfValue("SFDTemperature")); layout.addView(temperature);
-            EditText duration = new EditText(activity); duration.setHint("Minutes"); duration.setInputType(InputType.TYPE_CLASS_NUMBER); duration.setText(sfValue("SFDDuration").length() == 0 ? "10" : sfValue("SFDDuration")); layout.addView(duration);
-            CheckBox defrost = new CheckBox(activity); defrost.setText("Defrost"); defrost.setChecked(sfValue("SFDDefrost").equals("1")); layout.addView(defrost);
-            AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Remote start settings").setView(layout).setCancelable(false).setPositiveButton("Save", null)
+            EditText temperature = new EditText(activity); temperature.setHint("Temperature (F)"); temperature.setInputType(InputType.TYPE_CLASS_NUMBER); temperature.setText(sfValue(prefix + "Temperature").length() == 0 ? String.valueOf(defaultTemperature) : sfValue(prefix + "Temperature")); layout.addView(temperature);
+            EditText duration = new EditText(activity); duration.setHint("Minutes"); duration.setInputType(InputType.TYPE_CLASS_NUMBER); duration.setText(sfValue(prefix + "Duration").length() == 0 ? "10" : sfValue(prefix + "Duration")); layout.addView(duration);
+            CheckBox defrost = new CheckBox(activity); defrost.setText("Defrost"); defrost.setChecked(sfValue(prefix + "Defrost").length() == 0 ? defaultDefrost : sfValue(prefix + "Defrost").equals("1")); layout.addView(defrost);
+            AlertDialog dialog = new AlertDialog.Builder(activity).setTitle(title).setView(layout).setCancelable(false).setPositiveButton("Save", null)
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     onClick(DialogInterface dialog, int which) { signal.onSuccess(new JSONObject().put("cancel", true)); activity.finish(); }
                 }).create();
@@ -119,6 +119,89 @@ JSONObject sfClimateForm() {
                     if (temp < 62 || temp > 81) { temperature.setError("Use 62 to 81"); return; }
                     if (minutes < 1 || minutes > 10) { duration.setError("Use 1 to 10"); return; }
                     signal.onSuccess(new JSONObject().put("temperature", temp).put("duration", minutes).put("defrost", defrost.isChecked()));
+                    dialog.dismiss(); activity.finish();
+                }
+            });
+        }
+    });
+    return (JSONObject)signal.blockingGet();
+}
+
+JSONObject sfJoinForm() {
+    signal = SingleSubject.create();
+    tasker.doWithActivity(new Consumer() {
+        accept(Object object) {
+            final Activity activity = (Activity)object;
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            LinearLayout layout = new LinearLayout(activity); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(24, 12, 24, 12);
+            TextView explanation = new TextView(activity); explanation.setText("Accept hyundai=:= commands delivered by your Join account. The website asks you to confirm each start. Keep your Join API key private. Bare start commands ask for confirmation on the phone. Hyundai credentials stay in Tasker."); layout.addView(explanation);
+            CheckBox enabled = new CheckBox(activity); enabled.setText("Enable Join car commands"); enabled.setChecked(sfValue("SFDJoinEnabled").equals("1")); layout.addView(enabled);
+            new AlertDialog.Builder(activity).setTitle("Santa Fe Join settings").setView(layout).setCancelable(false)
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    onClick(DialogInterface dialog, int which) { signal.onSuccess(new JSONObject().put("enabled", enabled.isChecked())); activity.finish(); }
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    onClick(DialogInterface dialog, int which) { signal.onSuccess(new JSONObject().put("cancel", true)); activity.finish(); }
+                }).show();
+        }
+    });
+    return (JSONObject)signal.blockingGet();
+}
+
+JSONObject sfWatchForm() {
+    signal = SingleSubject.create();
+    final String existingKey = sfValue("SFDWatchKey");
+    final String pairingKey = existingKey.matches("[0-9a-f]{64}") ? existingKey : sfNewWatchKey();
+    tasker.doWithActivity(new Consumer() {
+        accept(Object object) {
+            final Activity activity = (Activity)object;
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            LinearLayout layout = new LinearLayout(activity); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(24, 12, 24, 12);
+            TextView explanation = new TextView(activity); explanation.setText("Copy the pairing key into Santa Fe Watch's Zepp settings. Hyundai credentials stay in Tasker. Starts require confirmation on the watch. Test connection sends no car command."); layout.addView(explanation);
+            CheckBox enabled = new CheckBox(activity); enabled.setText("Enable signed watch commands"); enabled.setChecked(sfValue("SFDWatchEnabled").equals("1")); layout.addView(enabled);
+            Button copy = new Button(activity); copy.setText("Copy pairing key"); layout.addView(copy);
+            copy.setOnClickListener(new android.view.View.OnClickListener() {
+                onClick(android.view.View view) {
+                    android.content.ClipboardManager clipboard = (android.content.ClipboardManager)activity.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Santa Fe watch pairing", pairingKey));
+                    tasker.showToast("Pairing key copied. Save these settings before testing the watch.");
+                }
+            });
+            new AlertDialog.Builder(activity).setTitle("Santa Fe watch settings").setView(layout).setCancelable(false)
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    onClick(DialogInterface dialog, int which) { signal.onSuccess(new JSONObject().put("enabled", enabled.isChecked()).put("key", pairingKey)); activity.finish(); }
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    onClick(DialogInterface dialog, int which) { signal.onSuccess(new JSONObject().put("cancel", true)); activity.finish(); }
+                }).show();
+        }
+    });
+    return (JSONObject)signal.blockingGet();
+}
+
+JSONObject sfLocationForm() {
+    signal = SingleSubject.create();
+    tasker.doWithActivity(new Consumer() {
+        accept(Object object) {
+            final Activity activity = (Activity)object;
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            LinearLayout layout = new LinearLayout(activity); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(24, 12, 24, 12);
+            TextView explanation = new TextView(activity); explanation.setText("Read car GPS successfully once before enabling. Checks only compare positions. Hyundai can return cached coordinates. Give Tasker precise/background location permission. Schedule uses an hourly heartbeat; checks may be delayed by Android."); layout.addView(explanation);
+            CheckBox enabled = new CheckBox(activity); enabled.setText("Enable periodic location comparison"); enabled.setChecked(sfValue("SFDAutoLocation").equals("1")); layout.addView(enabled);
+            EditText hours = new EditText(activity); hours.setHint("Check interval (1 to 24 hours)"); hours.setInputType(InputType.TYPE_CLASS_NUMBER); hours.setText(sfValue("SFDLocationHours").length() == 0 ? "1" : sfValue("SFDLocationHours")); layout.addView(hours);
+            EditText meters = new EditText(activity); meters.setHint("Near threshold (25 to 5000 meters)"); meters.setInputType(InputType.TYPE_CLASS_NUMBER); meters.setText(sfValue("SFDNearMeters").length() == 0 ? "150" : sfValue("SFDNearMeters")); layout.addView(meters);
+            ScrollView scroll = new ScrollView(activity); scroll.addView(layout);
+            AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Santa Fe location settings").setView(scroll).setCancelable(false).setPositiveButton("Save", null)
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    onClick(DialogInterface dialog, int which) { signal.onSuccess(new JSONObject().put("cancel", true)); activity.finish(); }
+                }).create();
+            dialog.show();
+            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new android.view.View.OnClickListener() {
+                onClick(android.view.View view) {
+                    int interval = 0, threshold = 0;
+                    try { interval = Integer.parseInt(hours.getText().toString()); } catch (Exception ignored) {}
+                    try { threshold = Integer.parseInt(meters.getText().toString()); } catch (Exception ignored) {}
+                    if (interval < 1 || interval > 24) { hours.setError("Use 1 to 24 hours"); return; }
+                    if (threshold < 25 || threshold > 5000) { meters.setError("Use 25 to 5000 meters"); return; }
+                    signal.onSuccess(new JSONObject().put("enabled", enabled.isChecked()).put("hours", interval).put("meters", threshold));
                     dialog.dismiss(); activity.finish();
                 }
             });

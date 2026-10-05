@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Build standalone direct API tasks and native Tasker scene navigation."""
 import argparse
+import copy
 import pathlib
 import xml.etree.ElementTree as E
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 STAMP = "1791223200000"
 TASKS = [
     ("SFD Verify Actions", "verify"), ("SFD Setup", "setup"),
@@ -17,7 +18,9 @@ TASKS = [
     ("SFD Climate Settings", "climate"), ("SFD Controls", "controls"),
     ("SFD Clear Session", "clear"), ("SFD Forget Account", "forget"),
 ]
-PAGES = ["Home", "Controls", "Status", "Account", "Climate", "Command", "Help"]
+BASE_PAGES = ["Home", "Controls", "Status", "Account", "Climate", "Command", "Help"]
+PAGES = BASE_PAGES + ["Location"]
+ALL_SCENES = PAGES + ["Web"]
 # Every network/settings button closes the scene, runs the existing guarded
 # core once and reopens an updated display. Navigation itself is offline.
 OPERATIONS = [
@@ -83,6 +86,23 @@ def show(name):
         arg(node, index, value, True)
     return node
 
+def control_bundle():
+    """One UI source, packaged locally so a privileged WebView stays offline."""
+    folder = ROOT / "control"
+    source = (folder / "index.html").read_text()
+    source = source.replace('<link rel="stylesheet" href="control.css">', '<style>' + (folder / "control.css").read_text() + '</style>')
+    for name in ["protocol.js", "control.js"]:
+        source = source.replace('<script src="' + name + '" defer></script>', '<script>' + (folder / name).read_text() + '</script>')
+    source = source.replace("script-src 'self'; style-src 'self'", "script-src 'unsafe-inline'; style-src 'unsafe-inline'")
+    source = source.replace('<a href="../START-HERE.md" target="_blank" rel="noopener noreferrer">Setup instructions</a>', 'Setup instructions accompany the project download')
+    # Inline scripts run after the document exists, including in a Direct WebView.
+    start = source.index('<script>')
+    end = source.index('</script>', source.index('</script>', start) + 9) + 9
+    scripts = source[start:end]
+    source = source[:start] + source[end:]
+    source = source.replace('</body>', scripts + '\n</body>')
+    return source
+
 def build(destination):
     root = E.Element("TaskerData", sr="", dvi="1", tv="6.7.6-beta")
     field(root, "dmetric", "1440.0,3120.0")
@@ -96,17 +116,32 @@ def build(destination):
         for index, item in enumerate(actions):
             item.set("sr", "act" + str(index))
             node.append(item)
-    core = "\n\n".join((ROOT / "tasker/direct" / name).read_text() for name in ["api.java", "ui.java", "core.java"])
+    core = "\n\n".join((ROOT / "tasker/direct" / name).read_text() for name in ["api.java", "ui.java", "watch.java", "location.java", "remote.java", "core.java"])
     task("SFD Core", [java(core)])
     for name, operation in TASKS:
         task(name, [call("SFD Core", operation)])
     task("SFD GUI Prepare", [java((ROOT / "tasker/direct/gui.java").read_text())])
-    task("SFD Close GUI", [destroy("SFD " + page) for page in PAGES])
-    for page in PAGES:
+    task("SFD Close GUI", [destroy("SFD " + page) for page in ALL_SCENES])
+    for page in BASE_PAGES:
         task("SFD Open " + page, [call("SFD Close GUI"), call("SFD GUI Prepare"), show("SFD " + page)])
-    task("SFD Open", [call("SFD Open Home")])
+    task("SFD Open", [call("SFD Open Web")])
     for title, operation, page in OPERATIONS:
         task("SFD GUI " + title, [call("SFD Close GUI"), call("SFD Core", operation, "gui"), call("SFD Open " + page)])
+    # Append additions after the original 41 tasks so existing task IDs stay stable.
+    for name, operation in [("SFD Start Cold", "start_cold"), ("SFD Start Hot", "start_hot"), ("SFD Cold Settings", "climate_cold"), ("SFD Hot Settings", "climate_hot"), ("SFD Join Settings", "join_settings")]:
+        task(name, [call("SFD Core", operation)])
+    task("SFD Join Receive", [call("SFD Core", "join", "%par1")])
+    task("SFD Join Event", [call("SFD Join Receive", "%joincomm")])
+    for title, operation, page in [("Start cold", "start_cold", "Command"), ("Start hot", "start_hot", "Command"), ("Edit cold", "climate_cold", "Climate"), ("Edit hot", "climate_hot", "Climate"), ("Join settings", "join_settings", "Account")]:
+        task("SFD GUI " + title, [call("SFD Close GUI"), call("SFD Core", operation, "gui"), call("SFD Open " + page)])
+    task("SFD Open Location", [call("SFD Close GUI"), call("SFD GUI Prepare"), show("SFD Location")])
+    for name, operation in [("SFD Read Location", "location"), ("SFD Compare Locations", "compare_location"), ("SFD Location Settings", "location_settings"), ("SFD Periodic Location", "periodic_location")]:
+        task(name, [call("SFD Core", operation)])
+    for title, operation in [("Read car GPS", "location"), ("Compare GPS", "compare_location"), ("Location settings", "location_settings")]:
+        task("SFD GUI " + title, [call("SFD Close GUI"), call("SFD Core", operation, "gui"), call("SFD Open Location")])
+    task("SFD Web Receive", [call("SFD Core", "web", "%par1")])
+    task("SFD Web Prepare", [call("SFD Core", "web_prepare")])
+    task("SFD Open Web", [call("SFD Close GUI"), call("SFD Web Prepare"), show("SFD Web")])
 
     def scene(page):
         node = E.SubElement(root, "Scene", sr="sceneSFD " + page)
@@ -115,7 +150,7 @@ def build(destination):
         return node
     def geometry(x, y, w, h, lx, ly, lw, lh):
         return ",".join(map(str, [x, y, w, h, lx, ly, lw, lh]))
-    def label(node, name, text, y, height, size=19, color="#FFF3F6F7", landscape_y=None, landscape_h=None):
+    def label(node, name, text, y, height, size=12, color="#FFF3F6F7", landscape_y=None, landscape_h=None):
         index = len(list(node.findall("TextElement"))) + len(list(node.findall("ButtonElement")))
         item = E.SubElement(node, "TextElement", sr="elements" + str(index), ve="3")
         field(item, "flags", 4)
@@ -133,7 +168,7 @@ def build(destination):
             field(item, "geom", geometry(50 + i % 2 * 620, start + i // 2 * 170, 600, 140, 50 + i % 4 * 530, landscape_start + i // 4 * 150, 510, 130))
             for n, value in [(0, "Button" + str(i)), (1, title), (4, "#FFDBFAE9"), (5, "")]:
                 arg(item, n, value)
-            for n, value in [(2, 19), (3, 100), (6, 0)]:
+            for n, value in [(2, 13), (3, 100), (6, 0)]:
                 arg(item, n, value, True)
             E.SubElement(item, "Img", sr="arg7", ve="2")
     def finish(node, page):
@@ -144,44 +179,78 @@ def build(destination):
     navigation = [("Home", "SFD Open Home"), ("Close", "SFD Close GUI")]
     for page in PAGES:
         node = scene(page)
-        label(node, "Title", "Santa Fe / " + page, 35, 115, 28, "#FFDBFAE9")
+        label(node, "Title", "Santa Fe / " + page, 35, 115, 20, "#FFDBFAE9")
         if page == "Home":
-            label(node, "Status", "%SFDGuiStatus", 180, 380, 21, landscape_y=170, landscape_h=230)
-            label(node, "State", "Last result: %SFDGuiState\n%SFDGuiPending", 590, 260, 18, landscape_y=415, landscape_h=145)
-            items = [(name, "SFD Open " + name) for name in ["Controls", "Status", "Account", "Climate", "Command", "Help"]] + [("Connect", "SFD GUI Connect"), ("Close", "SFD Close GUI")]
+            label(node, "Status", "%SFDGuiStatus", 180, 380, 14, landscape_y=170, landscape_h=230)
+            label(node, "State", "Last result: %SFDGuiState\n%SFDGuiPending", 590, 260, 12, landscape_y=415, landscape_h=145)
+            items = [(name, "SFD Open " + name) for name in ["Controls", "Status", "Account", "Climate", "Command", "Location", "Help"]] + [("Connect", "SFD GUI Connect"), ("Close", "SFD Close GUI")]
         elif page == "Controls":
-            label(node, "Status", "%SFDGuiStatus", 180, 380, 21, landscape_y=170, landscape_h=230)
-            label(node, "Notice", "One manual command at a time. Remote start asks you to confirm the car is outdoors.\n%SFDGuiPending", 590, 270, 18, landscape_y=415, landscape_h=145)
-            items = [("Lock", "SFD GUI Lock"), ("Unlock", "SFD GUI Unlock"), ("Remote start", "SFD GUI Start"), ("Remote stop", "SFD GUI Stop"), ("Climate settings", "SFD Open Climate"), ("Command result", "SFD Open Command")] + navigation
+            label(node, "Status", "%SFDGuiStatus", 180, 380, 14, landscape_y=170, landscape_h=230)
+            label(node, "Notice", "Regular uses saved climate settings. Cold/hot use their own presets. Starts ask you to confirm the car is outdoors.\n%SFDGuiPending", 590, 270, 12, landscape_y=415, landscape_h=145)
+            items = [("Lock", "SFD GUI Lock"), ("Unlock", "SFD GUI Unlock"), ("Start regular", "SFD GUI Start"), ("Remote stop", "SFD GUI Stop"), ("Start cold", "SFD GUI Start cold"), ("Start hot", "SFD GUI Start hot"), ("Climate presets", "SFD Open Climate"), ("Command result", "SFD Open Command")] + navigation
         elif page == "Status":
-            label(node, "Status", "%SFDGuiStatus", 180, 410, 22, landscape_y=170, landscape_h=250)
-            label(node, "Notice", "This is the last status sample Hyundai returned. A refresh request can still return cached data. Unknown means no recognized value.\n%SFDGuiVehicle", 610, 260, 18, landscape_y=435, landscape_h=135)
+            label(node, "Status", "%SFDGuiStatus", 180, 410, 14, landscape_y=170, landscape_h=250)
+            label(node, "Notice", "This is the last status sample Hyundai returned. A refresh request can still return cached data. Unknown means no recognized value.\n%SFDGuiVehicle", 610, 260, 12, landscape_y=435, landscape_h=135)
             items = [("Read status", "SFD GUI Read status"), ("Request refresh", "SFD GUI Refresh status"), ("Connect", "SFD GUI Connect"), ("Choose vehicle", "SFD GUI Choose vehicle")] + navigation
         elif page == "Account":
-            label(node, "Account", "%SFDGuiAccount\n\n%SFDGuiVehicle", 180, 380, 21, landscape_y=170, landscape_h=230)
-            label(node, "Notice", "Edit account opens the masked settings form. Blank password/PIN retain saved values. Clear session keeps the saved account. Forget removes it. Tasker backups can contain credentials.", 590, 270, 18, landscape_y=415, landscape_h=155)
-            items = [("Edit account", "SFD GUI Edit account"), ("Connect", "SFD GUI Connect"), ("Choose vehicle", "SFD GUI Choose vehicle"), ("Clear session", "SFD GUI Clear session"), ("Forget account", "SFD GUI Forget account"), ("Help", "SFD Open Help")] + navigation
+            label(node, "Account", "%SFDGuiAccount\n\n%SFDGuiVehicle", 180, 380, 14, landscape_y=170, landscape_h=230)
+            label(node, "Notice", "Edit account opens the masked settings form. Blank password/PIN retain saved values. Clear session keeps the saved account. Forget removes it. Tasker backups can contain credentials.", 590, 270, 12, landscape_y=415, landscape_h=155)
+            items = [("Edit account", "SFD GUI Edit account"), ("Connect", "SFD GUI Connect"), ("Choose vehicle", "SFD GUI Choose vehicle"), ("Clear session", "SFD GUI Clear session"), ("Forget account", "SFD GUI Forget account"), ("Join settings", "SFD GUI Join settings"), ("Help", "SFD Open Help")] + navigation
         elif page == "Climate":
-            label(node, "Climate", "%SFDGuiClimate", 180, 410, 22, landscape_y=170, landscape_h=250)
-            label(node, "Notice", "Editing these settings sends no car command. Start uses the saved settings and asks for outdoor/safe-to-start confirmation.\n%SFDGuiPending", 610, 260, 18, landscape_y=435, landscape_h=135)
-            items = [("Edit climate", "SFD GUI Edit climate"), ("Remote start", "SFD GUI Start"), ("Remote stop", "SFD GUI Stop"), ("Command result", "SFD Open Command")] + navigation
+            label(node, "Climate", "%SFDGuiClimate", 180, 410, 14, landscape_y=170, landscape_h=250)
+            label(node, "Notice", "Cold defaults to 62 F without defrost; hot to 81 F with defrost. Each preset is editable. Seats and steering-wheel heat stay off. Editing sends no car command.\n%SFDGuiPending", 610, 260, 12, landscape_y=435, landscape_h=135)
+            items = [("Start regular", "SFD GUI Start"), ("Remote stop", "SFD GUI Stop"), ("Start cold", "SFD GUI Start cold"), ("Start hot", "SFD GUI Start hot"), ("Edit regular", "SFD GUI Edit climate"), ("Edit cold", "SFD GUI Edit cold"), ("Edit hot", "SFD GUI Edit hot"), ("Command result", "SFD Open Command")] + navigation
         elif page == "Command":
-            label(node, "Result", "State: %SFDGuiState\n%SFDGuiResult\n\nHTTP: %SFDGuiHttp", 180, 410, 21, landscape_y=170, landscape_h=250)
-            label(node, "Notice", "%SFDGuiPending\nAccepted is different from completed. Check command follows the existing transaction. Resolve unknown requires checking the car and never resends it.", 610, 280, 18, landscape_y=435, landscape_h=145)
+            label(node, "Result", "State: %SFDGuiState\n%SFDGuiResult\n\nHTTP: %SFDGuiHttp", 180, 410, 14, landscape_y=170, landscape_h=250)
+            label(node, "Notice", "%SFDGuiPending\nAccepted is different from completed. Check command follows the existing transaction. Resolve unknown requires checking the car and never resends it.", 610, 280, 12, landscape_y=435, landscape_h=145)
             items = [("Check command", "SFD GUI Check command"), ("Resolve unknown", "SFD GUI Resolve unknown"), ("Vehicle status", "SFD Open Status"), ("Controls", "SFD Open Controls")] + navigation
+        elif page == "Location":
+            label(node, "Location", "%SFDGuiLocation", 180, 1100, 12, landscape_y=160, landscape_h=580)
+            label(node, "Schedule", "%SFDGuiLocationSchedule", 1300, 180, 12, landscape_y=750, landscape_h=85)
+            items = [("Read car GPS", "SFD GUI Read car GPS"), ("Compare phone GPS", "SFD GUI Compare GPS"), ("Location settings", "SFD GUI Location settings"), ("Status", "SFD Open Status")] + navigation
         else:
-            label(node, "Help", "FIRST USE\nAccount > Edit account > Connect. Choose your car if asked.\n\nDAILY USE\nControls has lock, unlock, remote start and stop. Climate stores the start settings.\n\nRESULTS\nStatus is the last vehicle sample. Command shows the latest operation result. If an outcome is unresolved, check the command or the actual car before resolving it.\n\nOpening pages does not contact Hyundai. Horn, lights and automatic profiles are absent.", 180, 1200, 19, landscape_y=160, landscape_h=590)
+            label(node, "Help", "FIRST USE\nAccount > Edit account > Connect. Choose your car if asked.\n\nDAILY USE\nSFD Open shows the HTML phone interface. Native Controls has regular/cold/hot start, stop, lock and unlock.\n\nJOIN\nAccount > Join settings enables commands from your Join account. Test connection first. Join receipt means sent; the phone shows Hyundai's result.\n\nRESULTS\nStatus is the last vehicle sample. An unresolved outcome blocks another command. Check the car before resolving it.\n\nGPS\nRead car GPS once before opting into periodic comparisons. These never operate the car.", 180, 1200, 12, landscape_y=160, landscape_h=590)
             items = [("Account", "SFD Open Account"), ("Command result", "SFD Open Command")] + navigation
-        buttons(node, items, start=1470 if page == "Help" else 980, landscape_start=785 if page == "Help" else 625)
+        buttons(node, items, start=1510 if page == "Location" else 1470 if page == "Help" else 980, landscape_start=850 if page == "Location" else 785 if page == "Help" else 625)
         finish(node, page)
+    node = scene("Web")
+    web = E.SubElement(node, "WebElement", sr="elements0", ve="2")
+    field(web, "flags", 4); field(web, "geom", "0,0,1320,2030,0,0,2200,1010")
+    arg(web, 0, "Santa Fe controls"); arg(web, 1, 2, True); arg(web, 2, control_bundle())
+    for index in [3, 4, 5, 6, 7]: arg(web, index, 1, True)
+    # The privileged WebView receives our bundled HTML, never a mutable URL.
+    buttons(node, [("Native screens", "SFD Open Home"), ("Close", "SFD Close GUI")], start=2050, landscape_start=1030)
+    # buttons() counts the WebElement's slot too; avoid duplicate elements0.
+    for i, button in enumerate(node.findall("ButtonElement"), 1): button.set("sr", "elements" + str(i))
+    finish(node, "Web")
+    profile = E.SubElement(root, "Profile", sr="prof34501", ve="2")
+    for tag, value in [("cdate", STAMP), ("edate", STAMP), ("clp", "true"), ("id", 34501), ("mid0", ids["SFD Periodic Location"]), ("nme", "SFD Location Heartbeat")]:
+        field(profile, tag, value)
+    repeat = E.SubElement(profile, "Time", sr="con0")
+    for tag, value in [("fh", -1), ("fm", -1), ("rep", 3), ("repval", 1), ("th", -1), ("tm", -1)]:
+        field(repeat, tag, value)
+    state = E.SubElement(profile, "State", sr="con1", ve="2")
+    field(state, "code", 165)
+    conditions = E.SubElement(state, "ConditionList", sr="if")
+    condition = E.SubElement(conditions, "Condition", sr="c0", ve="3")
+    field(condition, "lhs", "%SFDAutoLocation"); field(condition, "op", 2); field(condition, "rhs", "1")
+    profile = E.SubElement(root, "Profile", sr="prof34502", ve="2")
+    for tag, value in [("cdate", STAMP), ("edate", STAMP), ("clp", "true"), ("id", 34502), ("mid0", ids["SFD Join Event"]), ("nme", "SFD Join Commands")]: field(profile, tag, value)
+    event = copy.deepcopy(E.parse(ROOT / "tests/fixtures/tasker/join-received-push.xml").getroot())
+    event.set("sr", "con0"); profile.append(event)
+    state = E.SubElement(profile, "State", sr="con1", ve="2"); field(state, "code", 165)
+    conditions = E.SubElement(state, "ConditionList", sr="if")
+    condition = E.SubElement(conditions, "Condition", sr="c0", ve="3")
+    field(condition, "lhs", "%SFDJoinEnabled"); field(condition, "op", 2); field(condition, "rhs", "1")
     project = E.SubElement(root, "Project", sr="proj0", ve="2")
-    for tag, value in [("cdate", STAMP), ("id", "6a226f09-759f-44e2-8bf8-92f407b7b021"), ("name", "Santa Fe Direct"), ("psort", "Alpha"), ("scenes", ",".join("SFD " + page for page in PAGES)), ("tids", ",".join(map(str, ids.values())))]:
+    for tag, value in [("cdate", STAMP), ("id", "6a226f09-759f-44e2-8bf8-92f407b7b021"), ("name", "Santa Fe Direct"), ("psort", "Alpha"), ("scenes", ",".join("SFD " + page for page in ALL_SCENES)), ("tids", ",".join(map(str, ids.values())))]:
         field(project, tag, value)
+    field(project, "pids", "34501,34502")
     native_order(root)
     E.indent(root, space="\t")
     destination.parent.mkdir(parents=True, exist_ok=True)
     E.ElementTree(root).write(destination, encoding="utf-8", xml_declaration=False)
-    print(f"Santa Fe Direct {VERSION}: {len(ids)} tasks, {len(list(root.iter('Action')))} actions, {len(PAGES)} native scenes, no profiles. {destination}")
+    print(f"Santa Fe Direct {VERSION}: {len(ids)} tasks, {len(list(root.iter('Action')))} actions, {len(ALL_SCENES)} scenes. {destination}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

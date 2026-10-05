@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://joinjoaomgcd.appspot.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <meta name="theme-color" content="#102024">
+  <title>Santa Fe Controls</title>
+  <link rel="stylesheet" href="control.css">
+  <script src="protocol.js" defer></script>
+  <script src="control.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><div><p class="eyebrow">YOUR CAR, YOUR PHONE</p><h1>Santa Fe</h1></div><span id="mode" class="badge">Join controller</span></header>
+    <nav aria-label="Pages">
+      <button data-tab="controls" class="selected" aria-current="page">Controls</button><button data-tab="status">Status</button><button data-tab="location">Location</button><button data-tab="settings">Settings</button><button data-tab="log">Log</button>
+    </nav>
+    <div id="notice" class="notice" role="status" aria-live="polite">Save your Join settings once, then test the connection.</div>
+    <section id="controls" class="page">
+      <div class="section-title"><h2>Climate start</h2><span>Tap, then confirm</span></div>
+      <div class="start-grid">
+        <button class="command preset" data-command="ignition_on"><span class="symbol">◉</span><strong>Regular</strong><small id="preset-regular">Saved in Tasker</small></button>
+        <button class="command preset cold" data-command="ignition_on_cold"><span class="symbol">❄</span><strong>Cold</strong><small id="preset-cold">62°F · 10 min</small></button>
+        <button class="command preset hot" data-command="ignition_on_hot"><span class="symbol">☀</span><strong>Hot</strong><small id="preset-hot">81°F · defrost</small></button>
+      </div>
+      <div class="actions"><button class="command stop" data-command="ignition_off">Stop engine</button><button class="command" data-command="lock">Lock</button><button class="command" data-command="unlock">Unlock</button></div>
+      <p class="hint">Each preset has its own temperature, duration and defrost settings in Tasker. Seats and steering-wheel heat stay off.</p>
+      <div class="card"><div class="section-title"><h2>Last result</h2><span id="last-time">No command yet</span></div><strong id="last-state">Ready to configure</strong><p id="last-message">Hyundai login and vehicle commands run on your phone.</p><button class="command secondary" data-command="poll">Check command</button></div>
+      <div id="delivery-unknown" class="card warning" hidden><p>Delivery could not be confirmed. Check Tasker or the car before sending another vehicle command.</p><button id="acknowledge">I checked the phone / car</button></div>
+      <div id="phone-tools" class="native-only" hidden><button data-task="SFD Open Home" class="secondary">Native screens</button><button data-task="SFD Close GUI" class="secondary">Close</button></div>
+    </section>
+    <section id="status" class="page" hidden>
+      <div class="section-title"><h2>Vehicle status</h2><span id="vehicle-label">From your phone</span></div>
+      <dl class="values"><div><dt>Doors</dt><dd id="doors">Unknown</dd></div><div><dt>Engine</dt><dd id="engine">Unknown</dd></div><div><dt>Climate</dt><dd id="climate-state">Unknown</dd></div><div><dt>Vehicle timestamp</dt><dd id="vehicle-time">Not read yet</dd></div><div><dt>Last status read</dt><dd id="status-read">Not read yet</dd></div></dl>
+      <div class="actions"><button class="command" data-command="status">Read status</button><button class="command secondary" data-command="refresh">Request refresh</button></div>
+      <p class="hint external-note">In a browser, these buttons request a read on your phone. View the result in Tasker. The Tasker WebView displays the returned values here.</p>
+      <p class="hint">Hyundai may return cached data, even after a refresh. A completed control does not make an older status sample current.</p>
+    </section>
+    <section id="location" class="page" hidden>
+      <div class="section-title"><h2>Car &amp; phone</h2><span id="proximity">Not compared yet</span></div>
+      <dl class="values"><div><dt>Distance</dt><dd id="distance">Unknown</dd></div><div><dt>Car coordinates</dt><dd id="car-coordinates">Not read yet</dd></div><div><dt>Car timestamp</dt><dd id="car-time">Unknown</dd></div><div><dt>Phone GPS accuracy</dt><dd id="phone-accuracy">Unknown</dd></div><div><dt>Comparison time</dt><dd id="comparison-time">Never</dd></div><div><dt>Periodic checks</dt><dd id="location-schedule">Off</dd></div></dl>
+      <div class="actions"><button class="command" data-command="location">Read car GPS</button><button class="command secondary" data-command="compare_location">Compare phone GPS</button><button data-task="SFD Location Settings" class="native-only secondary" hidden>Periodic settings</button></div>
+      <p class="hint">The comparison uses your phone's GPS, not the device viewing this page. Old coordinates or poor GPS accuracy produce Unknown. Periodic checks only compare locations.</p>
+      <p class="hint external-note">Results appear on your phone. Open SFD Open Web in Tasker to see them here.</p>
+    </section>
+    <section id="settings" class="page" hidden>
+      <h2>Join connection</h2>
+      <p class="hint">This page needs your Join API key and phone ID. Your Hyundai account stays in Tasker.</p>
+      <form id="settings-form" autocomplete="off">
+        <label for="join-link">Paste your Join API link <span>Optional shortcut</span></label><input id="join-link" type="password" autocomplete="off" placeholder="Paste once to fill the two fields">
+        <label for="device-id">Phone device ID</label><input id="device-id" spellcheck="false" autocomplete="off" maxlength="32">
+        <label for="api-key">Join API key</label><input id="api-key" type="password" spellcheck="false" autocomplete="off" maxlength="128">
+        <label class="check"><input id="remember" type="checkbox" checked> Remember Join settings on this device</label>
+        <div class="actions"><button type="submit">Save settings</button><button id="forget" type="button" class="secondary">Forget Join settings</button></div>
+      </form>
+      <p id="saved-settings" class="hint">No Join settings saved.</p>
+      <p class="hint">Remembered Join settings use this browser's local storage. They are not uploaded to GitHub or included in exported logs.</p>
+      <button class="command secondary" data-command="ping">Test connection</button><p class="hint">This test reaches Tasker without contacting Hyundai or operating the car.</p>
+      <div class="card"><h2>Phone settings</h2><p class="hint">In Tasker, save the Hyundai account once and enable SFD Join Settings. The phone interface below opens the existing masked account editor.</p><div class="actions native-only" hidden><button data-task="SFD Setup">Hyundai account</button><button data-task="SFD Connect">Connect</button><button data-task="SFD Choose Vehicle">Choose car</button><button data-task="SFD Join Settings">Join receiver</button><button data-task="SFD Climate Settings">Regular preset</button><button data-task="SFD Cold Settings">Cold preset</button><button data-task="SFD Hot Settings">Hot preset</button><button data-task="SFD Location Settings">Location checks</button></div></div>
+      <p class="hint">Controller 1.2.0 · <a href="../START-HERE.md" target="_blank" rel="noopener noreferrer">Setup instructions</a></p>
+    </section>
+    <section id="log" class="page" hidden>
+      <div class="section-title"><h2>Activity</h2><span>Newest first</span></div><div class="actions"><button id="export-log" class="secondary">Download log</button><button id="clear-log" class="secondary">Clear browser log</button></div><p class="hint">Logs keep command names, times and outcomes. They omit API keys, passwords, PINs, tokens, full VINs and GPS coordinates.</p><ol id="activity"></ol>
+    </section>
+    <footer>Browser → Join → your phone → Hyundai</footer>
+  </main>
+  <dialog id="confirmation"><form method="dialog"><h2 id="confirm-title">Confirm command</h2><p id="confirm-message"></p><label id="safe-label" class="check" hidden><input id="safe" type="checkbox"> The car is outdoors and safe to start.</label><div class="actions"><button value="cancel" class="secondary">Cancel</button><button id="confirm-send" value="send">Send command</button></div></form></dialog>
+</body>
+</html>
