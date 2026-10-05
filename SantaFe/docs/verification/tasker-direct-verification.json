@@ -1,14 +1,14 @@
 {
-  "version": "Santa Fe Direct 1.0.0",
-  "verified_at": "2026-10-05T09:02:23Z",
+  "version": "Santa Fe Direct 1.1.0",
+  "verified_at": "2026-10-05T19:02:53.738037+00:00",
   "project": {
     "path": "tasker/Santa_Fe_Direct.prj.xml",
-    "bytes": 50279,
-    "sha256": "251ba44febe56d06acd9ad6dc4268078d081fd10a7cae3c0aced7d2deec91e0d",
-    "tasks": 17,
-    "executable_actions": 17,
+    "bytes": 119057,
+    "sha256": "851c4cbac713570e194805692bb17bcfddac83e711c8dd098c9f95d161ecbb83",
+    "tasks": 41,
+    "executable_actions": 89,
     "profiles": 0,
-    "scenes": 0
+    "scenes": 7
   },
   "user_confirmation": {
     "lock": true,
@@ -23,17 +23,24 @@
     "passed": true,
     "interpreter": "BeanShell 2.0b5",
     "http_client": "OkHttp 3.14.9",
-    "scenarios": 37,
-    "assertions": 2291,
+    "scenarios": 43,
+    "assertions": 2553,
     "network": "Application interceptor emits synthetic replies; zero real Hyundai requests.",
     "android_dialogs": "Substituted in host fixtures. Actual Tasker UI test recorded separately.",
     "stdout": [
       "PARSE OK api.java",
       "PARSE OK ui.java",
       "PARSE OK core.java",
+      "PARSE OK gui.java",
       "PASS offline imported action self-check",
       "PASS setup remembers account without network",
       "PASS initial login and cached status",
+      "PASS status labels cover both boolean states",
+      "PASS string booleans render without a boxed-type gate",
+      "PASS missing and malformed status flags stay unknown",
+      "PASS scene preparation is offline before setup",
+      "PASS scene preparation shows saved settings without secrets",
+      "PASS scene preparation retains unresolved outcome",
       "PASS live session reused and explicit refresh",
       "PASS expired session authenticates before read",
       "PASS lock completes after bounded pending poll",
@@ -68,24 +75,26 @@
       "PASS header injection prevented before network",
       "PASS enrollment encoding matches confirmed literal-at recipe",
       "PASS overlapping tasks blocked before opening guard channel",
-      "PASS 2291 runtime assertions; 37 scenarios; zero real network requests or vehicle operations."
+      "PASS 2553 runtime assertions; 43 scenarios; zero real network requests or vehicle operations."
     ]
   },
   "regressions": {
-    "python_passed": 96,
+    "python_passed": 97,
     "javascript_passed": 64,
-    "python_body_guard_test": "Oversized declared Content-Length, small wire body; verifies early 413 without client broken-pipe race."
+    "python_body_guard_test": "Oversized declared Content-Length, small wire body; verifies early 413 without client broken-pipe race.",
+    "javascript_scope": "Preserved 64-test benchmark; diagnostic.js byte hash unchanged."
   },
   "source_sha256": {
-    "tasker/direct/api.java": "43c753cf3e5e25d41df43c366a85b58b4fb3f2258067b8b468dc36341f0fad81",
+    "tasker/direct/api.java": "e072f986d5b59c603822538145cc4a0812b2d924335e9357814a1aa08771bb89",
     "tasker/direct/ui.java": "6415b4a080774c36782cd2dad5e84aa923d2d4a6c27deed3edfa5b2b22150f5e",
-    "tasker/direct/core.java": "8729b22254ed6d68a98d07e73df40a35c222a34b609335505e618ffeb63d17f3",
-    "tools/build_tasker_direct.py": "994fab0b5d4f180acaa9a5d02a4b0c7a3f6c2d19d46b398499b67b0b40cc51de",
-    "tests/direct/DirectRuntimeTest.java": "ba54e72fb1a91bcf5ab4353befea189298d596a7c4684a486da872a67329cd7c",
-    "tests/direct/run-runtime-tests.sh": "1fad3d9bae256c3fdbe9e6d1cdc85e5cd7081899d946f86c3cbb7dbf9f851fcf",
-    "tests/test_tasker_direct.py": "20af8a5918fdbe831ad2fc18ed7f285c6b1fcd25435a0f50ab3d1e2a0effc2df",
+    "tasker/direct/core.java": "1b09e68f66f1bbc628fd6994850d8f09dbfc5f210c13eee889713206f205a104",
+    "tools/build_tasker_direct.py": "a7146d5e172e8d2e2eb224193ab736dc1ebdd2e87c37b599e0a5c80f7b022645",
+    "tests/direct/DirectRuntimeTest.java": "468d9d1e23d6bba9210fad22f9492dd09d8b9f72ae9046431bb8c3244495e3d4",
+    "tests/direct/run-runtime-tests.sh": "f6d82f4628f9f529d4ef8a7023e32eedf813166e6c3c5a3b08a8f4b3bfe5c8ff",
+    "tests/test_tasker_direct.py": "6c207b217ff7b2d6fc33d152b9da7486b421d55037e82a518d3bb673fbb3f670",
     "tests/test_http.py": "c8a255c2e80638bccb5f52fb10932828c314c0030f009a47899b339313cdd416",
-    "tests/direct/tasker_smoke.py": "0031a6532fcb640a3cdc94e5a8c40b58158a4954a9527eb0b4b8e06c17985e4e"
+    "tests/direct/tasker_smoke.py": "97ad40ee919289f58d700c3fbcd8bcdb426c82d56e6d6ffa886a8ed05dc0b678",
+    "tasker/direct/gui.java": "ca0bc83b00436be937f4eb69bd1a3f13f2bb722e16ce6ae6e7e8c78c3bd6124e"
   },
   "preserved_sha256": {
     "tasker/Santa_Fe_Control_Center.prj.xml": "b707725dbc5bcce13c43c5fe886b28ced708e514d1fc229e2cb0af6f5cac1749",
@@ -96,8 +105,48 @@
   "session_secrets": "Volatile global Java object. Persistent minimal private action/time marker only.",
   "real_account_used": false,
   "vehicle_commands_run": false,
-  "phone_acceptance": "Jon must confirm manual Tasker operations on his installed 6.7.6-beta. Automatic profiles are not included.",
-  "native_tasker": {
+  "phone_acceptance": "User has confirmed 1.0.0 login/selection/lock/unlock on Tasker 6.7.6-beta. Updated 1.1.0 scenes and status labels, and remote start/stop from Tasker, remain phone checks. No automatic profiles.",
+  "cloud_regression": {
+    "passed": true,
+    "workflow_run_id": 37358500605,
+    "tested_source_commit": "59ca5f9e25d8405dfb25bae1231d017051d2373d"
+  },
+  "phone_confirmation": {
+    "version": "1.0.0",
+    "date": "2026-10-05",
+    "login": true,
+    "correct_vehicle_selection": true,
+    "lock_physical_success": true,
+    "unlock_physical_success": true,
+    "timestamp_received": true,
+    "status_flags": "Unknown",
+    "basis": "User report and screenshot; no additional export requested.",
+    "updated_gui_and_status_phone_acceptance": false,
+    "remote_start_stop_from_tasker": false
+  },
+  "status_display_change": {
+    "reader": "JSONObject.getBoolean directly, with missing/null/invalid values Unknown",
+    "prior_log_field_types": "doorLock, engine, airCtrlOn are Boolean in the existing supplied tester export",
+    "old_host_boolean_fixture": "Rendered correctly; exact 6.7.6-beta runtime difference not reproduced",
+    "new_checks": [
+      "both Boolean states",
+      "string Booleans",
+      "missing/null/malformed fields",
+      "actual Tasker offline parser check"
+    ],
+    "real_response_not_requested_again": true
+  },
+  "scene_pages": [
+    "Home",
+    "Controls",
+    "Status",
+    "Account",
+    "Climate",
+    "Command",
+    "Help"
+  ],
+  "scene_behavior": "Offline navigation. The saved masked account/climate form returns to its scene. GUI operations call the guarded core once and show updated state/result.",
+  "previous_native_tasker": {
     "passed": true,
     "checks": 20,
     "tasker_version": "6.6.20",
@@ -110,11 +159,24 @@
     "network_or_vehicle_commands_run": false,
     "workflow_run_id": 37286734266,
     "tested_source_commit": "80e1073e7f11f9d6f8cf7fb8c53a788e3e5f0c48",
-    "report": "tasker-direct-emulator.json"
+    "report": "to-shreds/ProjectStatus/projects/santa-fe-control-center/artifacts/tasker-direct-emulator-v1.0.0.json"
   },
-  "cloud_regression": {
+  "native_tasker": {
     "passed": true,
-    "workflow_run_id": 37286734304,
-    "tested_source_commit": "80e1073e7f11f9d6f8cf7fb8c53a788e3e5f0c48"
-  }
+    "checks": 60,
+    "tasker_version": "6.6.20",
+    "android_api": 35,
+    "imported_tasks": 41,
+    "imported_executable_actions": 89,
+    "imported_scenes": 7,
+    "scene_navigation_and_settings_return": true,
+    "network_or_vehicle_commands_run": false,
+    "workflow_run_id": 37358500720,
+    "tested_source_commit": "59ca5f9e25d8405dfb25bae1231d017051d2373d",
+    "report": "tasker-direct-emulator.json",
+    "scene_observation": "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms.",
+    "workflow_run_attempt": 2,
+    "workflow_publish_note": "Native test step passed; rerun report push was rejected because an earlier bot report already advanced the branch. Passed artifact report was recovered and published manually."
+  },
+  "workflow_sha256": "439f290a8168c95b2a4aa911386fa433e11d8719aad501da373a46a488ed9b5e"
 }

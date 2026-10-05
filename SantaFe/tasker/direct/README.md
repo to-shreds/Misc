@@ -1,18 +1,32 @@
-# Santa Fe Direct 1.0.0
+# Santa Fe Direct 1.1.0
 
-Standalone Tasker controls for Jon's confirmed Hyundai USA API calls. Tasker contacts Hyundai directly. The API Lab app, Termux, a bridge, plugins and a computer are not required to run this project.
+A standalone Tasker interface for the confirmed Hyundai USA calls. Jon has now confirmed login, vehicle selection, locking and unlocking from Tasker on his own phone. Tasker contacts Hyundai directly using the saved account.
 
-## Install and use
+## Install or update
 
-Download [Santa_Fe_Direct.prj.xml](https://to-shreds.github.io/Misc/SantaFe/tasker/Santa_Fe_Direct.prj.xml). In Tasker, long-press a project tab at the bottom, choose **Import Project**, and select the downloaded file. It creates a separate **Santa Fe Direct** project, preserving the earlier **Santa Fe Control Center** project.
+Download the attached XML file to the phone and import it using Tasker's **Import Project** command. It is the **Santa Fe Direct** project, separate from the earlier bridge project. Version 1.1.0 keeps the original project ID, task names and account variable names. If Tasker offers to replace the existing project, accept that replacement. Keep the saved global variables; do not run Forget account during the update.
 
-1. Run **SFD Setup** and save your email, password and four-digit Bluelink PIN. The VIN is optional when your account has exactly one active vehicle.
-2. Run **SFD Connect**. This authenticates, finds the active vehicle and reads its status. It sends no vehicle command. With multiple active vehicles, run **SFD Choose Vehicle** to select the Santa Fe once.
-3. Run **SFD Controls**, or use the individual **SFD Lock**, **SFD Unlock**, **SFD Remote Start** and **SFD Remote Stop** tasks. They can also be assigned to Tasker shortcuts or widgets.
+Run **SFD Verify Actions** once. It should identify version 1.1.0 and show **Status parser verified: Locked / Off / Off** from its offline fixture. That check sends no network request and does not describe the actual car.
 
-**SFD Climate Settings** saves temperature, duration and defrost. Defaults are 72 F, ten minutes and defrost off. Seats and steering-wheel heat remain off. Remote start asks you to confirm the car is outdoors and safe to start.
+Run **SFD Open** for the GUI. Assign that task to a home-screen shortcut or widget if desired. Existing accounts remain available. For first use, open **Account**, tap **Edit account**, save email/password/four-digit PIN, then tap **Connect**. With multiple active cars, use **Choose vehicle**. The VIN is optional when the account has one active vehicle.
 
-Tasker Java Code must be available. The export targets Jon's Tasker 6.7.6-beta and follows the privately inspected native action structure. **SFD Verify Actions** is an offline check that the core executes and its libraries load. Actual Tasker 6.6.20 on Android 15 passed import, core execution, masked native forms and saved-account restoration after process restart. Your first manual control still checks Hyundai operation on your installed version.
+## Scene interface
+
+- **Home:** last returned doors/engine/climate status, vehicle timestamp, current result and navigation.
+- **Controls:** lock, unlock, remote start and remote stop, plus access to climate settings and command follow-up.
+- **Status:** read or request refresh, reconnect, select a vehicle and inspect the returned timestamp.
+- **Account:** masked account editor, Connect, Choose vehicle, Clear session and confirmed Forget account.
+- **Climate:** saved temperature, duration and defrost, with editor and start/stop buttons. Defaults are 72 F, ten minutes, defrost off; seats and steering-wheel heat stay off.
+- **Command:** latest operation state/result, last HTTP code, unresolved-outcome warning, Check command and Resolve unknown. This is the latest result, not a history of physical car states.
+- **Help:** first-use and daily-use instructions.
+
+Each page has Home/Close navigation. Navigation is offline. Account and climate edits use the existing native settings forms, then return to their scene. Each operation closes the page, calls the existing guarded core once and opens the updated status/result page. A control can take up to roughly two minutes to finish checking its transaction; do not run another control while waiting. Remote start retains its outdoor/safe-to-start confirmation.
+
+The original individual tasks and the compact **SFD Controls** menu remain available. No bridge, APK, Termux, plugin or computer is needed. Horn, lights and automatic profiles are excluded.
+
+## Status display correction
+
+Version 1.0.0 showed Unknown for doors, engine and climate on Jon's Tasker even while receiving a valid timestamp. The prior tester log already contains real true/false fields. Version 1.1.0 reads the JSON Boolean directly instead of requiring a boxed Boolean type check, and explicitly tests both states, string booleans, missing/null values and malformed fields. Unknown is retained for values that cannot be recognized. The exact 6.7.6-beta runtime cause was not reproduced in the older host interpreter; the updated native reader and phone display must be distinguished from host-only behavior.
 
 ## Account and command behavior
 
@@ -28,13 +42,13 @@ Status can be cached, even after **SFD Refresh Status**. The displayed vehicle t
 
 ## Included tasks
 
-The project contains 17 tasks, each with an executable action: the shared **SFD Core**, **SFD Verify Actions**, **SFD Setup**, **SFD Connect**, **SFD Choose Vehicle**, **SFD Status**, **SFD Refresh Status**, **SFD Lock**, **SFD Unlock**, **SFD Remote Start**, **SFD Remote Stop**, **SFD Check Command**, **SFD Resolve Unknown**, **SFD Climate Settings**, **SFD Controls**, **SFD Clear Session** and **SFD Forget Account**.
+The project contains 41 tasks, 89 executable actions and seven native scenes. Its original 17 API/settings tasks remain: the shared **SFD Core**, **SFD Verify Actions**, **SFD Setup**, **SFD Connect**, **SFD Choose Vehicle**, **SFD Status**, **SFD Refresh Status**, **SFD Lock**, **SFD Unlock**, **SFD Remote Start**, **SFD Remote Stop**, **SFD Check Command**, **SFD Resolve Unknown**, **SFD Climate Settings**, **SFD Controls**, **SFD Clear Session** and **SFD Forget Account**.
 
-No automatic profiles, horn or lights actions are included. Jon confirmed lock/unlock and remote start/stop physically in the tester. Additional exports were not required for his start/stop confirmation. Automated tests use synthetic data and never access his account or operate the car. Final phone checks must establish Tasker behavior on his installed version.
+No automatic profiles, horn or lights actions are included. Jon confirmed lock/unlock and remote start/stop physically in the tester. Additional exports were not required for his start/stop confirmation. Automated tests use synthetic data and never access his account or operate the car. Login, vehicle selection, lock and unlock are physically confirmed from Tasker 1.0.0 on Jon's installed version. Updated scene/status behavior and remote start/stop from Tasker remain phone acceptance checks; start/stop were already confirmed in the tester.
 
 ## Rebuild and verify
 
-Run `python3 SantaFe/tools/build_tasker_direct.py` from the repository root. It deterministically embeds `api.java`, `ui.java` and `core.java` into the project. No external Java file has to be copied to the phone.
+Run `python3 SantaFe/tools/build_tasker_direct.py` from the repository root. It deterministically embeds `api.java`, `ui.java`, `core.java` and the offline `gui.java` display preparation into the project. No external Java file has to be copied to the phone.
 
 Run `PYTHONPATH=. python3 -m pytest tests -q` from SantaFe and `bash SantaFe/tests/direct/run-runtime-tests.sh` from the repository root with JDK 17. The latter checks pinned dependency hashes and executes the delivered BeanShell with real OkHttp request construction and intercepted replies. Android dialogs are substituted only in host fixtures; the separate emulator smoke test imports the actual XML and exercises the offline core and native forms in an official Tasker trial.
 

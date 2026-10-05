@@ -12,20 +12,21 @@ def test_native_action_shapes_and_membership():
     fixture = E.parse(ROOT / "tests/fixtures/tasker/native-action-shapes.xml").getroot()
     shapes = {a.findtext("code"): [(c.tag, c.get("sr")) for c in a if c.get("sr", "").startswith("arg")] for a in fixture.iter("Action")}
     tasks = root.findall("Task")
-    assert len(tasks) == 17 and len(list(root.iter("Action"))) == 17
-    assert not root.findall("Profile") and not root.findall("Scene")
+    assert len(tasks) == 41 and len(list(root.iter("Action"))) == 89
+    assert not root.findall("Profile") and len(root.findall("Scene")) == 7
     assert root.find("Project").findtext("name") == "Santa Fe Direct"
     assert set(root.find("Project").findtext("tids").split(",")) == {t.findtext("id") for t in tasks}
     names = {t.findtext("nme") for t in tasks}
     assert len(names) == len(tasks)
     for task in tasks:
         actions = task.findall("Action")
-        assert actions and [a.get("sr") for a in actions] == ["act0"]
+        assert actions and [a.get("sr") for a in actions] == ["act" + str(i) for i in range(len(actions))]
         for action in actions:
             assert list(action.attrib) == ["sr", "ve"]
-            assert [(c.tag, c.get("sr")) for c in action if c.get("sr", "").startswith("arg")] == shapes[action.findtext("code")]
+            if action.findtext("code") in shapes:
+                assert [(c.tag, c.get("sr")) for c in action if c.get("sr", "").startswith("arg")] == shapes[action.findtext("code")]
             if action.findtext("code") == "130":
-                assert action.findtext('Str[@sr="arg0"]') == "SFD Core"
+                assert action.findtext('Str[@sr="arg0"]') in names
     for node in root.iter():
         if node.get("sr") is not None:
             assert next(iter(node.attrib)) == "sr"
@@ -59,3 +60,30 @@ def test_preserved_bridge_project_has_distinct_identifiers():
     assert old.find("Project").findtext("id") != new.find("Project").findtext("id")
     assert not {t.findtext("id") for t in old.findall("Task")} & {t.findtext("id") for t in new.findall("Task")}
     assert not {t.findtext("nme") for t in old.findall("Task")} & {t.findtext("nme") for t in new.findall("Task")}
+
+
+def test_scene_navigation_and_control_wiring():
+    root = E.parse(PROJECT).getroot()
+    tasks = {t.findtext("nme"): t for t in root.findall("Task")}
+    by_id = {t.findtext("id"): t.findtext("nme") for t in tasks.values()}
+    scenes = {s.findtext("nme"): s for s in root.findall("Scene")}
+    assert set(scenes) == {"SFD " + p for p in ["Home", "Controls", "Status", "Account", "Climate", "Command", "Help"]}
+    assert set(root.find("Project").findtext("scenes").split(",")) == set(scenes)
+    assert tasks["SFD Open"].findtext('Action/Str[@sr="arg0"]') == "SFD Open Home"
+    assert not list(root.iter("WebElement"))
+    for name, scene in scenes.items():
+        texts = [e.findtext('Str[@sr="arg1"]', "") for e in scene if e.tag in ["TextElement", "ButtonElement"]]
+        assert not any(secret in text for text in texts for secret in ["%SFDPassword", "%SFDPin", "%SFDEmail", "%SFDVin"])
+        for button in scene.findall("ButtonElement"):
+            assert button.findtext("clickTask") in by_id
+        for element in list(scene.findall("ButtonElement")) + list(scene.findall("TextElement")):
+            x,y,w,h,lx,ly,lw,lh = map(int, element.findtext("geom").split(","))
+            assert min(x,y,lx,ly) >= 0 and min(w,h,lw,lh) > 0
+            assert x+w <= 1320 and y+h <= 2200 and lx+lw <= 2200 and ly+lh <= 1180
+    for title, operation in [("Lock", "lock"), ("Unlock", "unlock"), ("Start", "start"), ("Stop", "stop")]:
+        actions = tasks["SFD GUI " + title].findall("Action")
+        assert actions[0].findtext('Str[@sr="arg0"]') == "SFD Close GUI"
+        assert actions[1].findtext('Str[@sr="arg0"]') == "SFD Core"
+        assert actions[1].findtext('Str[@sr="arg2"]') == operation
+        assert actions[1].findtext('Str[@sr="arg3"]') == "gui"
+        assert actions[2].findtext('Str[@sr="arg0"]') == "SFD Open Command"

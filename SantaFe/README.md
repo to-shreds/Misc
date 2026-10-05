@@ -1,6 +1,6 @@
 # Santa Fe
 
-**Standalone Tasker:** download [Santa_Fe_Direct.prj.xml](https://to-shreds.github.io/Misc/SantaFe/tasker/Santa_Fe_Direct.prj.xml), import it as a new project, then run **SFD Setup** and **SFD Connect**. It contacts Hyundai directly using the confirmed lock, unlock, remote start and stop calls. Credentials are saved once in Tasker. The APK and local bridge are not required. See [Tasker instructions](tasker/direct/README.md). Horn, lights and automatic profiles are excluded.
+**Standalone Tasker:** Santa Fe Direct 1.1.0 provides seven native scene pages. Import [Santa_Fe_Direct.prj.xml](https://to-shreds.github.io/Misc/SantaFe/tasker/Santa_Fe_Direct.prj.xml), then run **SFD Open**. Save the account once under Account, connect, and use Controls. Jon confirmed login, car selection, lock and unlock from Tasker itself; tester start/stop recipes are also physically confirmed. The update reads status flags directly and retains unknown-outcome guards. See [Tasker instructions](tasker/direct/README.md). Horn, lights and automatic profiles are absent.
 
 The API Lab tester below is preserved for further diagnostics.
 

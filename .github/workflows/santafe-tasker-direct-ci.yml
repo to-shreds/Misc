@@ -54,6 +54,8 @@ jobs:
           printf '%s  %s\n' a2e7623f0adec61e6726dfc7c5c0389e7a0193066d95c627155a03d7b35042ea "$RUNNER_TEMP/tasker-trial.apk" | sha256sum -c -
       - name: Prepare Android emulator
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y tesseract-ocr
           sdkmanager "emulator" "system-images;android-35;google_apis;x86_64"
           if [ -e /dev/kvm ]; then sudo chmod 666 /dev/kvm; fi
           mkdir -p "$RUNNER_TEMP/sfd-android/avd" "$RUNNER_TEMP/sfd-tasker-results"

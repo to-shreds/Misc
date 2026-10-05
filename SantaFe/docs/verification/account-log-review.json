@@ -74,7 +74,7 @@
     "attachment_sha256": "9ed7fb49fc5fd0ea521713e5e25b0af35a54b2d62fb70347f44e6fb7b01c5ab4",
     "confirmed": "Login, same-session literal-@ vehicle enrollment and status reads succeeded for this account. Encoded-@ enrollment failed. A refresh request was accepted but returned the earlier identical sample."
   },
-  "next_step": "Import the standalone Santa Fe Direct project, save account settings once in SFD Setup, then run SFD Connect and one confirmed manual control.",
+  "next_step": "Import 1.1.0 with native scenes, retain saved account globals, run SFD Open and read status. Confirm the updated labels.",
   "subsequent_user_confirmation": {
     "date": "2026-10-05",
     "remote_start_physical_success": true,
@@ -84,7 +84,20 @@
     "still_unconfirmed": [
       "lights",
       "horn_lights",
-      "Tasker controls on Jon's phone"
+      "remote start/stop from Tasker",
+      "updated status display and GUI"
     ]
+  },
+  "tasker_phone_confirmation": {
+    "date": "2026-10-05",
+    "version": "Santa Fe Direct 1.0.0",
+    "login": true,
+    "correct_vehicle_selection": true,
+    "lock_physical_success": true,
+    "unlock_physical_success": true,
+    "status_timestamp_received": true,
+    "status_flags_displayed": "Unknown",
+    "basis": "User report and screenshot. No new log requested.",
+    "updated_status_reader_and_scenes_phone_acceptance": false
   }
 }

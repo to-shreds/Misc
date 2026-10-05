@@ -1,4 +1,14 @@
-# Current benchmark: Santa Fe Direct 1.0.0
+# Current benchmark: Santa Fe Direct 1.1.0 native scenes and status display
+
+Jon confirmed login, correct vehicle selection, lock and unlock physically from the standalone Tasker project. Its three status flags showed Unknown even with a returned timestamp. The already supplied tester log has Boolean fields, so no new export was requested. The older host interpreter rendered Boolean fixtures correctly; the exact phone runtime difference was not reproduced there. The updated reader directly calls JSONObject.getBoolean, with missing/null/malformed fields kept Unknown.
+
+The update adds seven native scenes, 41 tasks and 89 executable actions. SFD Open launches Home; Controls, Status, Account, Climate, Command and Help provide offline navigation and the existing guarded operation/settings tasks. Account/climate buttons close the scene, open the masked native form and return to the scene. All original API tasks, saved credential names, command rules, API Lab assets and bridge exports are preserved.
+
+Verification: all 43 actual BeanShell scenarios pass with 2,553 assertions; all 97 Python regressions pass. New tests cover correct status labels for both states, string Booleans, missing/invalid data, offline GUI preparation, no credential/session secrets in scene summaries, retained pending markers, button task wiring and portrait/landscape element bounds. Actual official Tasker 6.6.20 on Android 15 passed 60 checks in run 37358500720, source 59ca5f9e25d8405dfb25bae1231d017051d2373d. All 41 tasks, 89 actions and seven scenes survived import; the offline status reader passed, every scene opened and returned Home, account/climate edits returned to their page, and Close dismissed the GUI. Screenshots are retained in the run artifact. No real account, Hyundai request or vehicle operation was used. The exact-hash report is verification/tasker-direct-emulator.json.
+
+Project SHA256: 851c4cbac713570e194805692bb17bcfddac83e711c8dd098c9f95d161ecbb83, 119,057 bytes. Updated phone status and scene acceptance remain, as do Tasker remote start/stop checks. Those API recipes were already physically confirmed in the tester.
+
+# Previous benchmark: Santa Fe Direct 1.0.0
 
 Jon confirmed lock/unlock and remote start/stop physically in the tester. The subsequent start/stop confirmation comes from his report, not a new exported log. He explicitly requested standalone Tasker API calls and accepted ordinary Tasker credential variables. The new project includes those four controls, reads, account/climate settings and command follow-up. Horn, lights, APK linkage and automatic profiles are excluded.
 

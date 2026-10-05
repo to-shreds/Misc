@@ -27,5 +27,5 @@ sf_classpath="$sf_dependencies/bsh.jar:$sf_dependencies/json.jar:$sf_dependencie
 sf_classes="$(mktemp -d)"
 trap 'rm -rf "$sf_classes"' EXIT
 javac -cp "$sf_classpath" -d "$sf_classes" "$sf_root/tests/direct/DirectRuntimeTest.java" "$sf_root/tools/ParseBeanShell.java"
-java -cp "$sf_classpath:$sf_classes" ParseBeanShell "$sf_root/tasker/direct/api.java" "$sf_root/tasker/direct/ui.java" "$sf_root/tasker/direct/core.java"
+java -cp "$sf_classpath:$sf_classes" ParseBeanShell "$sf_root/tasker/direct/api.java" "$sf_root/tasker/direct/ui.java" "$sf_root/tasker/direct/core.java" "$sf_root/tasker/direct/gui.java"
 java -cp "$sf_classpath:$sf_classes" DirectRuntimeTest "$sf_root/tasker/direct"

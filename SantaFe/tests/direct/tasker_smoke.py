@@ -6,7 +6,9 @@ run. No real account is entered and no control task runs. Failures retain UI
 evidence for diagnosis.
 """
 import argparse
+import csv
 import hashlib
+import io
 import json
 import pathlib
 import re
@@ -195,11 +197,28 @@ def open_task(name):
     for _ in range(4):
         adb("shell", "input", "swipe", "500", "450", "500", "1500", "150")
     root = screen()
-    for _ in range(12):
+    for _ in range(20):
         node = matching(root, name)
         if node is not None:
+            bounds = [int(v) for v in re.findall(r"\d+", node.get("bounds", ""))]
+            if len(bounds) == 4 and (bounds[1] + bounds[3]) // 2 > 1800:
+                # A visible label can overlap the bottom project bar. Move it
+                # into the middle of the task list before tapping it.
+                adb("shell", "input", "swipe", "500", "1600", "500", "1000", "300")
+                time.sleep(0.5)
+                root = screen()
+                continue
             tap(node)
-            return screen()
+            root = screen()
+            if matching(root, "Task Edit") is not None or any(
+                word in n.get("text", "") for n in nodes(root)
+                for word in ["Java Code", "Perform Task", "Destroy Scene"]
+            ):
+                return root
+            # Re-observe a task-list transition; never try Run on the list.
+            time.sleep(0.5)
+            root = screen()
+            continue
         adb("shell", "input", "swipe", "500", "1500", "500", "450", "300")
         time.sleep(0.5)
         root = screen()
@@ -213,6 +232,42 @@ def play(root):
     if click(root, ["Run", "Play", "Run Task"]):
         return
     raise RuntimeError("No observed task Run control: " + str(visible(root)))
+
+def scene_screen():
+    # Tasker's scene window is visible and tappable, but UiAutomator reports
+    # the editor underneath it. Read the actual rendered title/button bounds
+    # from a retained screenshot instead of inventing fixed tap coordinates.
+    root = screen()
+    picture = RESULTS / f"scene-observation-{SEQUENCE:03d}.png"
+    picture.write_bytes(adb("exec-out", "screencap", "-p"))
+    result = subprocess.run(["tesseract", str(picture), "stdout", "--psm", "11", "tsv"], capture_output=True, text=True, check=True, timeout=20)
+    picture.with_suffix(".tsv").write_text(result.stdout)
+    lines = {}
+    for item in csv.DictReader(io.StringIO(result.stdout), delimiter="\t"):
+        if not item.get("text", "").strip() or float(item["conf"]) < 35:
+            continue
+        key = tuple(item[k] for k in ["block_num", "par_num", "line_num"])
+        lines.setdefault(key, []).append(item)
+    rendered = E.Element("hierarchy")
+    for words in lines.values():
+        text = " ".join(w["text"] for w in words)
+        left=min(int(w["left"]) for w in words); top=min(int(w["top"]) for w in words)
+        right=max(int(w["left"])+int(w["width"]) for w in words); bottom=max(int(w["top"])+int(w["height"]) for w in words)
+        E.SubElement(rendered, "node", text=text, enabled="true", clickable="true", bounds=f"[{left},{top}][{right},{bottom}]")
+    if any(n.get("text", "").startswith("Santa Fe / ") for n in nodes(rendered)):
+        REPORT["scene_observation"] = "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms."
+        return rendered
+    return root
+
+def wait_for(text):
+    # First Java-action compilation and scene transitions can outlast the
+    # fixture's short delay. Observe until the target exists; never retap.
+    for _ in range(15):
+        root = scene_screen() if text.startswith("Santa Fe / ") else screen()
+        if matching(root, text) is not None:
+            return root
+        time.sleep(1)
+    return root
 
 def back_to_tasks():
     adb("shell", "input", "keyevent", "4")
@@ -245,7 +300,10 @@ def save_and_read():
     REPORT["roundtrip_source"] = path
     tasks = [t for t in root.iter("Task") if t.findtext("nme", "").startswith("SFD ")]
     counts = {t.findtext("nme"): len(t.findall("Action")) for t in tasks}
-    check(len(counts) == 17 and all(count == 1 for count in counts.values()), "Actual Tasker import retains all 17 tasks and 17 executable actions")
+    check(len(counts) == 41 and sum(counts.values()) == 89 and all(count > 0 for count in counts.values()), "Actual Tasker import retains all 41 tasks and 89 executable actions")
+    scenes = [s for s in root.iter("Scene") if s.findtext("nme", "").startswith("SFD ")]
+    check(len(scenes) == 7, "Actual Tasker import retains all seven native scenes")
+    REPORT["imported_scene_names"] = [s.findtext("nme") for s in scenes]
     REPORT["imported_action_counts"] = counts
     delivered = E.parse(ROOT / "tasker/Santa_Fe_Direct.prj.xml").getroot()
     original = next(t for t in delivered.iter("Task") if t.findtext("nme") == "SFD Core").findtext('Action/Str[@sr="arg0"]')
@@ -314,6 +372,7 @@ def run():
             break
         time.sleep(1)
     check(matching(root, "Santa Fe Direct verification") is not None and any("Core has 1 executable action(s)" in n.get("text", "") for n in nodes(root)), "Actual Tasker executes offline Core verification and reports one executable action")
+    check(any("Status parser verified: Locked / Off / Off" in n.get("text", "") for n in nodes(root)), "Actual Tasker JSON reader maps boolean status flags correctly")
     check(click(root, ["OK"]), "Offline verification dialog closes normally")
     time.sleep(1)
     back_to_tasks()
@@ -380,6 +439,42 @@ def run():
     check(matching(root, "Santa Fe controls") is not None and matching(root, "Remote start") is not None, "Actual Tasker opens the control menu")
     check(not any("horn" in n.get("text", "").lower() or "lights" in n.get("text", "").lower() for n in nodes(root)), "Control menu contains no horn or lights option")
     check(click(root, ["Cancel"]), "Control menu cancels without any vehicle operation")
+    time.sleep(1)
+    back_to_tasks()
+    root = open_task("SFD Open")
+    play(root)
+    root = wait_for("Santa Fe / Home")
+    check(matching(root, "Santa Fe / Home") is not None, "Actual Tasker opens the native Home scene")
+    check(not any("%SFDGui" in n.get("text", "") for n in nodes(root)), "Scene labels resolve their display variables")
+    (RESULTS / "scene-home.png").write_bytes(adb("exec-out", "screencap", "-p"))
+    for page in ["Controls", "Status", "Account", "Climate", "Command", "Help"]:
+        check(click(root, [page]), "Home navigation opens " + page)
+        root = wait_for("Santa Fe / " + page)
+        check(matching(root, "Santa Fe / " + page) is not None, "Native " + page + " scene is visible")
+        (RESULTS / ("scene-" + page.lower() + ".png")).write_bytes(adb("exec-out", "screencap", "-p"))
+        if page == "Controls":
+            check(all(matching(root, text) is not None for text in ["Lock", "Unlock", "Remote start", "Remote stop"]), "Control scene displays all four confirmed controls")
+            check(not any("horn" in n.get("text", "").lower() or "lights" in n.get("text", "").lower() for n in nodes(root)), "Control scene contains no unconfirmed controls")
+        if page == "Account":
+            check(click(root, ["Edit account"]), "Scene account button runs the saved settings form")
+            root = wait_for("Santa Fe account")
+            inputs = [n for n in nodes(root) if n.get("class") == "android.widget.EditText"]
+            check(len(inputs) == 4 and inputs[0].get("text") == "fixture@example.invalid" and sum(n.get("password") == "true" for n in inputs) == 2, "Account scene retains the saved synthetic account and masks secrets")
+            check(click(root, ["Cancel"]), "Scene account edit can be cancelled")
+            root = wait_for("Santa Fe / Account")
+            check(matching(root, "Santa Fe / Account") is not None, "Cancelled account form returns to its scene")
+        if page == "Climate":
+            check(click(root, ["Edit climate"]), "Scene climate button opens settings without a command")
+            root = wait_for("Remote start settings")
+            check(matching(root, "Remote start settings") is not None, "Scene opens the native climate form")
+            check(click(root, ["Cancel"]), "Scene climate edit can be cancelled")
+            root = wait_for("Santa Fe / Climate")
+            check(matching(root, "Santa Fe / Climate") is not None, "Cancelled climate form returns to its scene")
+        check(click(root, ["Home"]), "Native scene returns to Home from " + page)
+        root = wait_for("Santa Fe / Home")
+        check(matching(root, "Santa Fe / Home") is not None, "Home is restored after " + page)
+    check(click(root, ["Close"]), "Native Close button dismisses the GUI")
+    check(matching(scene_screen(), "Santa Fe / Home") is None, "GUI closes without any vehicle operation")
     REPORT["passed"] = True
 
 if __name__ == "__main__":
