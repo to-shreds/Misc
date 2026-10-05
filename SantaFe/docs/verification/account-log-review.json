@@ -74,5 +74,17 @@
     "attachment_sha256": "9ed7fb49fc5fd0ea521713e5e25b0af35a54b2d62fb70347f44e6fb7b01c5ab4",
     "confirmed": "Login, same-session literal-@ vehicle enrollment and status reads succeeded for this account. Encoded-@ enrollment failed. A refresh request was accepted but returned the earlier identical sample."
   },
-  "next_step": "Use saved account settings to continue remaining manual tests. Preserve transaction/unknown-outcome guards; build later Tasker behavior from individually confirmed recipes."
+  "next_step": "Import the standalone Santa Fe Direct project, save account settings once in SFD Setup, then run SFD Connect and one confirmed manual control.",
+  "subsequent_user_confirmation": {
+    "date": "2026-10-05",
+    "remote_start_physical_success": true,
+    "remote_stop_physical_success": true,
+    "basis": "Jon's later report in the conversation. No new export was requested; the historical not_confirmed list above describes the reviewed attachment.",
+    "architecture": "Standalone Tasker, with credentials entered once in Tasker and direct Hyundai API calls. No APK or local bridge dependency.",
+    "still_unconfirmed": [
+      "lights",
+      "horn_lights",
+      "Tasker controls on Jon's phone"
+    ]
+  }
 }

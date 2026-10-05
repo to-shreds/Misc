@@ -1,6 +1,6 @@
-CURRENT START (2026-10-04): open [Santa Fe API Lab](https://to-shreds.github.io/Misc/SantaFe/) first. Follow the page's Firefox/Tampermonkey helper setup, connect, run read tests, and download the sanitized log. No Termux setup is needed for API Lab. Real-account results must guide the live Tasker build.
+CURRENT START (2026-10-05): use the standalone [Santa Fe Direct Tasker project](https://to-shreds.github.io/Misc/SantaFe/tasker/Santa_Fe_Direct.prj.xml). Import it as a new project, run **SFD Setup** once to save your account, then **SFD Connect** and **SFD Controls**. It uses the confirmed API calls directly. Read [the current Tasker instructions](tasker/direct/README.md). No API Lab app, Termux, bridge or browser helper is required.
 
-The Tasker generator now matches native export serialization and its new XML contains 113 actions. Actual phone import is still unverified. The old zero-action artifact is archived in `tasker/archive/`. The local bridge setup below is preserved for reference and is not required for API Lab.
+The [API Lab Android tester](https://to-shreds.github.io/Misc/SantaFe/android/dist/SantaFe-API-Lab-0.3.3.apk) remains available. Lock, unlock, remote start and stop are physically confirmed by Jon; horn and lights can wait. The old bridge project and its setup below are preserved as an earlier implementation.
 
 # Santa Fe Control Center 0.1.0
 

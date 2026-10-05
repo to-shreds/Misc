@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-05T03:59:35.250967Z",
+  "generated_at": "2026-10-05T07:33:29.940337+00:00",
   "evidence": "account-log-review.json",
   "canonical_implementation": "SantaFe/diagnostic.js 0.3.3",
   "source_commit": "82801884bdf619c5f2a35ff6bbae1693d2e1a3e8",
-  "scope": "Confirmed in user-supplied 0.3.1/0.3.2 native phone sessions and physical lock/unlock report. Placeholder identities only; no real account request submitted by the agent.",
+  "scope": "Confirmed login/enrollment/status and lock/unlock phone evidence, plus Jon's subsequent physical confirmation that remote start and stop work. Those start/stop calls follow the working API Lab 0.3.3 implementation; no additional export was required. Placeholder identities only.",
   "base_url": "https://api.telematics.hyundaiusa.com",
   "common_headers": {
     "Content-Type": "application/json;charset=UTF-8",
@@ -121,19 +121,60 @@
         "service_type": "REMOTE_POLL"
       },
       "confirmed": "HTTP 200 with nextPollingInterval, tid and status. Unlock poll PENDING; lock poll SUCCESS. Empty command bodies do not imply completion."
+    },
+    {
+      "label": "Remote start (Santa Fe Hybrid, generation 3)",
+      "method": "POST",
+      "path": "/ac/v2/rcs/rsc/start",
+      "body": {
+        "Ims": 0,
+        "airCtrl": 1,
+        "airTemp": {
+          "unit": 1,
+          "value": "<whole-number temperature 62 to 81 F>"
+        },
+        "defrost": "<boolean>",
+        "heating1": 0,
+        "igniOnDuration": "<whole-number minutes 1 to 10>",
+        "seatHeaterVentInfo": {
+          "drvSeatHeatState": 0,
+          "astSeatHeatState": 0,
+          "rlSeatHeatState": 0,
+          "rrSeatHeatState": 0
+        },
+        "username": "<entered username>",
+        "vin": "<selected enrollment regid>"
+      },
+      "authenticated_headers": true,
+      "vehicle_headers": true,
+      "confirmed": "Jon reports physical success in the tester. This is a user confirmation, not a newly supplied transaction export.",
+      "engine_type": "N",
+      "vehicle_generation": 3,
+      "important_body_mapping": "The non-EV start body vin is the registration ID, while the vehicle header vin is the VIN."
+    },
+    {
+      "label": "Remote stop (Santa Fe Hybrid, generation 3)",
+      "method": "POST",
+      "path": "/ac/v2/rcs/rsc/stop",
+      "body": null,
+      "authenticated_headers": true,
+      "vehicle_headers": true,
+      "confirmed": "Jon reports physical success in the tester. This is a user confirmation, not a newly supplied transaction export.",
+      "engine_type": "N",
+      "vehicle_generation": 3
     }
   ],
   "unconfirmed_remote_features": [
-    "climate_start",
-    "climate_stop",
     "lights",
     "horn_lights"
   ],
   "tasker_constraints": [
-    "Keep token and session secrets in volatile Java objects; any remembered credentials must use native encrypted storage, never ordinary persistent Tasker variables",
-    "Preserve original bridge project; confirm actual imported actions and runtime on the phone",
-    "Lock and unlock have user-reported physical success; other controls and automatic profiles remain disabled until individually confirmed",
-    "Never resend a command with unknown outcome; preserve its transaction and physical acknowledgement gate"
+    "Jon explicitly chose standalone Tasker and authorized saved credentials in ordinary Tasker variables; do not add an APK or local bridge dependency.",
+    "Distributed XML/source contains no personal credentials. Session tokens and transaction details remain volatile Java objects; no secret-bearing response body is copied into result variables.",
+    "Only the four confirmed controls are included. Horn/lights and automatic profiles remain excluded.",
+    "Preserve the earlier bridge project. Check actual imported action counts and runtime before claiming Tasker readiness.",
+    "Never resend a command with unknown outcome. Preserve its private pending marker across process loss and require physical acknowledgement when needed."
   ],
-  "recipe_correction": "Earlier derived documentation incorrectly named owners.hyundaiusa.com. The confirmed runtime and supplied requests consistently use api.telematics.hyundaiusa.com; runtime endpoints were not changed."
+  "recipe_correction": "Earlier derived documentation incorrectly named owners.hyundaiusa.com. The confirmed runtime and supplied requests consistently use api.telematics.hyundaiusa.com; runtime endpoints were not changed.",
+  "standalone_tasker": "tasker/Santa_Fe_Direct.prj.xml 1.0.0; no APK linkage"
 }

@@ -1,4 +1,23 @@
-# Current benchmark: API Lab 0.3.3 saved accounts
+# Current benchmark: Santa Fe Direct 1.0.0
+
+Jon confirmed lock/unlock and remote start/stop physically in the tester. The subsequent start/stop confirmation comes from his report, not a new exported log. He explicitly requested standalone Tasker API calls and accepted ordinary Tasker credential variables. The new project includes those four controls, reads, account/climate settings and command follow-up. Horn, lights, APK linkage and automatic profiles are excluded.
+
+The delivered XML contains 17 tasks and 17 native executable actions. Its deterministic generator embeds the complete Java core and uses the native action structure from Jon's 6.7.6-beta export. The existing 40-task bridge project and all prior APKs remain unchanged.
+
+Verification:
+
+- 37 actual BeanShell runtime scenarios pass with 2,291 assertions. The interpreter executes the delivered source with real OkHttp request construction and synthetic intercepted HTTP responses. This covers every control's exact path, headers and body, credential escaping, token reuse/expiry, failed login/enrollment, rate limiting, pending/unknown results, process-loss guards, no command retries, transaction mismatch, multiple vehicles and concurrent execution. No real account or vehicle is contacted. Host dialog functions are fixture substitutes.
+- All 96 Python regressions pass, including native action shapes, membership, deterministic embedded source and separation from the preserved bridge project. An existing oversized-upload test now advertises its oversized Content-Length with a small body to observe the early 413 reliably, avoiding a client broken-pipe race without changing the server.
+- The preserved 64 JavaScript client regressions pass. API Lab assets, the signed 0.3.3 APK and the old Tasker project retain their hashes.
+- Actual official Tasker 6.6.20 on Android 15/API 35 passed 20 native checks in [run 37286734266](https://github.com/to-shreds/Misc/actions/runs/37286734266), tested source 80e1073e7f11f9d6f8cf7fb8c53a788e3e5f0c48. The imported project retained all 17 tasks, 17 executable actions and the complete delivered Java source; offline verification executed. Native account setup masks password/PIN, saves synthetic credentials, restores them after a full Tasker process restart and accepts blank fields to retain saved secrets. Climate settings and the four-control menu opened and cancelled correctly. No login or vehicle command ran. Evidence: verification/tasker-direct-emulator.json. Tasker's private autobackup omits spaces between attributes; the evidence parser inserts spaces inside tags only and compares the unchanged decoded core source. The official trial differs from Jon's 6.7.6-beta.
+- The actual native form test caught a password/PIN masking issue caused by the order of Android input setup. Explicit password transformation and corrected setup order resolved it, and the final native test verified both fields.
+- The existing Android workflow also passed in [run 37286734304](https://github.com/to-shreds/Misc/actions/runs/37286734304) on the same source. Public API Lab assets and APK bytes were preserved.
+
+Project: tasker/Santa_Fe_Direct.prj.xml, 50,279 bytes; SHA256 251ba44febe56d06acd9ad6dc4268078d081fd10a7cae3c0aced7d2deec91e0d. Machine-readable host evidence: verification/tasker-direct-verification.json. Reproduce with `python3 SantaFe/tools/build_tasker_direct.py`, `PYTHONPATH=. python3 -m pytest tests -q` from SantaFe and `bash SantaFe/tests/direct/run-runtime-tests.sh` with JDK 17 from the repository root.
+
+Final operation on Jon's installed Tasker and desired automation profiles remain acceptance/design steps. Automated tests never submit a real car command.
+
+# Earlier benchmark: API Lab 0.3.3 saved accounts
 
 The latest private 0.3.2 phone export confirms lock submission followed by SUCCESS polling. Unlock submissions returned HTTP 200; the recorded unlock poll was PENDING. Jon reports that both controls worked physically. Later cached timestamps advanced. Only safe derived evidence and placeholder recipes are published; the raw account response is private.
 
