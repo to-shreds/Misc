@@ -245,7 +245,10 @@ def save_and_read():
     REPORT["roundtrip_source"] = path
     tasks = [t for t in root.iter("Task") if t.findtext("nme", "").startswith("SFD ")]
     counts = {t.findtext("nme"): len(t.findall("Action")) for t in tasks}
-    check(len(counts) == 17 and all(count == 1 for count in counts.values()), "Actual Tasker import retains all 17 tasks and 17 executable actions")
+    check(len(counts) == 41 and sum(counts.values()) == 89 and all(count > 0 for count in counts.values()), "Actual Tasker import retains all 41 tasks and 89 executable actions")
+    scenes = [s for s in root.iter("Scene") if s.findtext("nme", "").startswith("SFD ")]
+    check(len(scenes) == 7, "Actual Tasker import retains all seven native scenes")
+    REPORT["imported_scene_names"] = [s.findtext("nme") for s in scenes]
     REPORT["imported_action_counts"] = counts
     delivered = E.parse(ROOT / "tasker/Santa_Fe_Direct.prj.xml").getroot()
     original = next(t for t in delivered.iter("Task") if t.findtext("nme") == "SFD Core").findtext('Action/Str[@sr="arg0"]')
@@ -314,6 +317,7 @@ def run():
             break
         time.sleep(1)
     check(matching(root, "Santa Fe Direct verification") is not None and any("Core has 1 executable action(s)" in n.get("text", "") for n in nodes(root)), "Actual Tasker executes offline Core verification and reports one executable action")
+    check(any("Status parser verified: Locked / Off / Off" in n.get("text", "") for n in nodes(root)), "Actual Tasker JSON reader maps boolean status flags correctly")
     check(click(root, ["OK"]), "Offline verification dialog closes normally")
     time.sleep(1)
     back_to_tasks()
@@ -380,6 +384,45 @@ def run():
     check(matching(root, "Santa Fe controls") is not None and matching(root, "Remote start") is not None, "Actual Tasker opens the control menu")
     check(not any("horn" in n.get("text", "").lower() or "lights" in n.get("text", "").lower() for n in nodes(root)), "Control menu contains no horn or lights option")
     check(click(root, ["Cancel"]), "Control menu cancels without any vehicle operation")
+    time.sleep(1)
+    back_to_tasks()
+    root = open_task("SFD Open")
+    play(root)
+    time.sleep(2)
+    root = screen()
+    check(matching(root, "Santa Fe / Home") is not None, "Actual Tasker opens the native Home scene")
+    check(not any("%SFDGui" in n.get("text", "") for n in nodes(root)), "Scene labels resolve their display variables")
+    (RESULTS / "scene-home.png").write_bytes(adb("exec-out", "screencap", "-p"))
+    for page in ["Controls", "Status", "Account", "Climate", "Command", "Help"]:
+        check(click(root, [page]), "Home navigation opens " + page)
+        root = screen()
+        check(matching(root, "Santa Fe / " + page) is not None, "Native " + page + " scene is visible")
+        (RESULTS / ("scene-" + page.lower() + ".png")).write_bytes(adb("exec-out", "screencap", "-p"))
+        if page == "Controls":
+            check(all(matching(root, text) is not None for text in ["Lock", "Unlock", "Remote start", "Remote stop"]), "Control scene displays all four confirmed controls")
+            check(not any("horn" in n.get("text", "").lower() or "lights" in n.get("text", "").lower() for n in nodes(root)), "Control scene contains no unconfirmed controls")
+        if page == "Account":
+            check(click(root, ["Edit account"]), "Scene account button runs the saved settings form")
+            root = screen()
+            inputs = [n for n in nodes(root) if n.get("class") == "android.widget.EditText"]
+            check(len(inputs) == 4 and inputs[0].get("text") == "fixture@example.invalid" and sum(n.get("password") == "true" for n in inputs) == 2, "Account scene retains the saved synthetic account and masks secrets")
+            check(click(root, ["Cancel"]), "Scene account edit can be cancelled")
+            time.sleep(1)
+            root = screen()
+            check(matching(root, "Santa Fe / Account") is not None, "Cancelled account form returns to its scene")
+        if page == "Climate":
+            check(click(root, ["Edit climate"]), "Scene climate button opens settings without a command")
+            root = screen()
+            check(matching(root, "Remote start settings") is not None, "Scene opens the native climate form")
+            check(click(root, ["Cancel"]), "Scene climate edit can be cancelled")
+            time.sleep(1)
+            root = screen()
+            check(matching(root, "Santa Fe / Climate") is not None, "Cancelled climate form returns to its scene")
+        check(click(root, ["Home"]), "Native scene returns to Home from " + page)
+        root = screen()
+        check(matching(root, "Santa Fe / Home") is not None, "Home is restored after " + page)
+    check(click(root, ["Close"]), "Native Close button dismisses the GUI")
+    check(matching(screen(), "Santa Fe / Home") is None, "GUI closes without any vehicle operation")
     REPORT["passed"] = True
 
 if __name__ == "__main__":

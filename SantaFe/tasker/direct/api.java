@@ -176,6 +176,13 @@ void sfEnsureSession(boolean explicit) {
     if (Boolean.TRUE.equals(sfSession.get("authBlocked")) || !sfSession.containsKey("token") || sfNow() >= ((Number)sfSession.get("expires")).longValue()) sfLogin();
     else sfSelectVehicle();
 }
+String sfStatusFlag(JSONObject status, String key, String yes, String no) {
+    // Read the JSON value directly. Tasker's interpreter can represent a
+    // returned Boolean differently from a boxed java.lang.Boolean type check.
+    if (!status.has(key) || status.isNull(key)) return "Unknown";
+    try { return status.getBoolean(key) ? yes : no; }
+    catch (Exception unrecognized) { return "Unknown"; }
+}
 String sfStatus(boolean refresh) {
     Map extra = new HashMap(); extra.put("refresh", refresh ? "true" : "false");
     JSONObject data = sfRequest("GET", "/ac/v2/rcs/rvs/vehicleStatus", null, true, true, extra).getJSONObject("data");
@@ -185,9 +192,9 @@ String sfStatus(boolean refresh) {
     String timestamp = status.optString("dateTime", "Unknown");
     if (timestamp.length() > 60 || !timestamp.matches("[0-9TtZz:+ .\\-/]*")) timestamp = "Unknown";
     tasker.setVariable("SFDVehicleTime", timestamp);
-    String lock = status.has("doorLock") && status.opt("doorLock") instanceof Boolean ? (status.getBoolean("doorLock") ? "Locked" : "Unlocked") : "Unknown";
-    String engine = status.has("engine") && status.opt("engine") instanceof Boolean ? (status.getBoolean("engine") ? "Running" : "Off") : "Unknown";
-    String climate = status.has("airCtrlOn") && status.opt("airCtrlOn") instanceof Boolean ? (status.getBoolean("airCtrlOn") ? "On" : "Off") : "Unknown";
+    String lock = sfStatusFlag(status, "doorLock", "Locked", "Unlocked");
+    String engine = sfStatusFlag(status, "engine", "Running", "Off");
+    String climate = sfStatusFlag(status, "airCtrlOn", "On", "Off");
     tasker.setVariable("SFDDoorLock", lock); tasker.setVariable("SFDEngine", engine); tasker.setVariable("SFDClimate", climate);
     String summary = "Doors: " + lock + "\nEngine: " + engine + "\nClimate: " + climate + "\nVehicle timestamp: " + timestamp
         + "\nHyundai may return cached data, including after a refresh request.";

@@ -1,4 +1,4 @@
-// Santa Fe Direct 1.0.0 entry and command state. Credentials are Tasker settings.
+// Santa Fe Direct 1.1.0 entry and command state. Credentials are Tasker settings.
 // Tokens and transaction details stay in a volatile global Java object.
 import java.nio.channels.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -91,7 +91,10 @@ String sfDispatch(String operation) {
     if (operation.equals("verify")) {
         int actions = tasker.getTask().getActionCount();
         if (actions < 1) sfFail("Tasker reports no executable actions.");
-        String message = sfReport("READY", "Santa Fe Direct 1.0.0 loaded. Core has " + actions + " executable action(s). Java, JSON and HTTP libraries are available. No network request was made.");
+        JSONObject sample = new JSONObject().put("doorLock", true).put("engine", false).put("airCtrlOn", false);
+        String flags = sfStatusFlag(sample, "doorLock", "Locked", "Unlocked") + " / " + sfStatusFlag(sample, "engine", "Running", "Off") + " / " + sfStatusFlag(sample, "airCtrlOn", "On", "Off");
+        if (!flags.equals("Locked / Off / Off")) sfFail("The status parser self-check failed. No request was sent.");
+        String message = sfReport("READY", "Santa Fe Direct 1.1.0 loaded. Core has " + actions + " executable action(s). Java, JSON and HTTP libraries are available. Status parser verified: " + flags + ". No network request was made.");
         sfMessage("Santa Fe Direct verification", message);
         return message;
     }
@@ -158,7 +161,7 @@ String sfDispatch(String operation) {
     if (operation.equals("connect") || operation.equals("status") || operation.equals("refresh")) {
         String status = sfStatus(operation.equals("refresh"));
         sfReport("READ", (operation.equals("connect") ? "Connected.\n" : "") + status);
-        if (!operation.equals("connect")) sfMessage("Santa Fe status", status);
+        if (!operation.equals("connect") && !sfValue("par2").equals("gui")) sfMessage("Santa Fe status", status);
         return sfValue("SFDResult");
     }
     String state = operation.equals("poll") ? sfPollBounded(false) : sfSubmit(operation);
