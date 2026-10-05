@@ -17,6 +17,7 @@
     return null;
   })();
   const nativeTasks = new Set(['SFD Open Home', 'SFD Close GUI', 'SFD Setup', 'SFD Connect', 'SFD Choose Vehicle', 'SFD Join Settings', 'SFD Climate Settings', 'SFD Cold Settings', 'SFD Hot Settings', 'SFD Location Settings']);
+  const nativeEditors = { 'SFD Setup': 'setup', 'SFD Connect': 'connect', 'SFD Choose Vehicle': 'choose', 'SFD Join Settings': 'join_settings', 'SFD Climate Settings': 'climate', 'SFD Cold Settings': 'climate_cold', 'SFD Hot Settings': 'climate_hot', 'SFD Location Settings': 'location_settings' };
   const safeText = value => String(value == null ? '' : value).slice(0, 3000);
   const dateText = value => Number.isFinite(Number(value)) && Number(value) > 0 ? new Date(Number(value)).toLocaleString() : 'Not read yet';
   function cleanEntry(entry) {
@@ -119,7 +120,7 @@
   }
   document.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => tab(button.dataset.tab)));
   document.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => confirm(button.dataset.command)));
-  document.querySelectorAll('[data-task]').forEach(button => button.addEventListener('click', () => { if (!bridge || busy || phoneBusy || !nativeTasks.has(button.dataset.task)) return; try { bridge.run(button.dataset.task); } catch (_) { notice('Open this setting from the native Tasker screens.', true); } }));
+  document.querySelectorAll('[data-task]').forEach(button => button.addEventListener('click', () => { if (!bridge || busy || phoneBusy || !nativeTasks.has(button.dataset.task)) return; try { const task = button.dataset.task, editor = nativeEditors[task]; const accepted = bridge.run(editor ? 'SFD Web Settings' : task, editor || ''); if (accepted === false || accepted === 'false') throw new Error('Task refused'); } catch (_) { notice('Open this setting from the native Tasker screens.', true); } }));
   $('safe').addEventListener('change', () => { $('confirm-send').disabled = !$('safe').checked; });
   $('confirmation').addEventListener('close', () => { if ($('confirmation').returnValue === 'send' && selectedCommand) send(selectedCommand, P.starts(selectedCommand) && $('safe').checked); selectedCommand = ''; });
   $('settings-form').addEventListener('submit', event => {

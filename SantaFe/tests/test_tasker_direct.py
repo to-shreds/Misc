@@ -12,7 +12,7 @@ def test_native_action_shapes_and_membership():
     fixture = E.parse(ROOT / "tests/fixtures/tasker/native-action-shapes.xml").getroot()
     shapes = {a.findtext("code"): [(c.tag, c.get("sr")) for c in a if c.get("sr", "").startswith("arg")] for a in fixture.iter("Action")}
     tasks = root.findall("Task")
-    assert len(tasks) == 64 and len(list(root.iter("Action"))) == 134
+    assert len(tasks) == 65 and len(list(root.iter("Action"))) == 137
     assert len(root.findall("Profile")) == 2 and len(root.findall("Scene")) == 9
     assert root.find("Project").findtext("name") == "Santa Fe Direct"
     assert set(root.find("Project").findtext("tids").split(",")) == {t.findtext("id") for t in tasks}

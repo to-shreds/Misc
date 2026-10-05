@@ -336,7 +336,7 @@ def save_and_read():
     REPORT["roundtrip_source"] = path
     tasks = [t for t in root.iter("Task") if t.findtext("nme", "").startswith("SFD ")]
     counts = {t.findtext("nme"): len(t.findall("Action")) for t in tasks}
-    check(len(counts) == 64 and sum(counts.values()) == 134 and all(count > 0 for count in counts.values()), "Actual Tasker import retains all 64 tasks and 134 executable actions")
+    check(len(counts) == 65 and sum(counts.values()) == 137 and all(count > 0 for count in counts.values()), "Actual Tasker import retains all 65 tasks and 137 executable actions")
     scenes = [s for s in root.iter("Scene") if s.findtext("nme", "").startswith("SFD ")]
     check(len(scenes) == 9, "Actual Tasker import retains all nine scenes")
     profiles = [p for p in root.iter("Profile") if p.findtext("nme") == "SFD Location Heartbeat"]
@@ -543,6 +543,9 @@ def run():
     check(len(fields) == 4 and fields[0].get("text") == "fixture@example.invalid" and sum(n.get("password") == "true" for n in fields) == 2, "HTML settings use the saved masked account form")
     check(click(form, ["Cancel"]), "Account editor opened from HTML can be cancelled")
     check(matching(screen(), "Santa Fe account") is None, "Account editor actually closes above the WebView")
+    root = wait_for("Climate start")
+    check(matching(root, "Climate start") is not None, "Account editor returns to the local HTML controls")
+    check(click(root, ["Settings"]), "HTML settings reopen after the native editor")
     root = wait_for("Phone connection")
     check(click(root, ["Test connection"]), "Actual HTML button dispatches an offline request to Tasker")
     root = scene_screen(); check(click(root, ["Controls"]), "HTML returns to Controls after the connection test")

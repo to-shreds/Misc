@@ -108,7 +108,7 @@
 		<pids>34501,34502</pids>
 		<psort>Alpha</psort>
 		<scenes>SFD Home,SFD Controls,SFD Status,SFD Account,SFD Climate,SFD Command,SFD Help,SFD Location,SFD Web</scenes>
-		<tids>34001,34002,34003,34004,34005,34006,34007,34008,34009,34010,34011,34012,34013,34014,34015,34016,34017,34018,34019,34020,34021,34022,34023,34024,34025,34026,34027,34028,34029,34030,34031,34032,34033,34034,34035,34036,34037,34038,34039,34040,34041,34042,34043,34044,34045,34046,34047,34048,34049,34050,34051,34052,34053,34054,34055,34056,34057,34058,34059,34060,34061,34062,34063,34064</tids>
+		<tids>34001,34002,34003,34004,34005,34006,34007,34008,34009,34010,34011,34012,34013,34014,34015,34016,34017,34018,34019,34020,34021,34022,34023,34024,34025,34026,34027,34028,34029,34030,34031,34032,34033,34034,34035,34036,34037,34038,34039,34040,34041,34042,34043,34044,34045,34046,34047,34048,34049,34050,34051,34052,34053,34054,34055,34056,34057,34058,34059,34060,34061,34062,34063,34064,34065</tids>
 	</Project>
 	<Scene sr="sceneSFD Account">
 		<cdate>1791223200000</cdate>
@@ -1387,6 +1387,8 @@ Read car GPS once before opting into periodic comparisons. These never operate t
   &lt;meta name="theme-color" content="#102024"&gt;
   &lt;title&gt;Santa Fe Controls&lt;/title&gt;
   &lt;style&gt;:root{color-scheme:dark;--bg:#102024;--panel:#192d31;--line:#34494c;--text:#f2f7f6;--muted:#a9bbbc;--accent:#d3f9e5;font:14px/1.45 system-ui,sans-serif}*{box-sizing:border-box}body{display:block;margin:0;background:var(--bg);color:var(--text)}main{max-width:760px;margin:0 auto;padding:18px 14px max(18px,env(safe-area-inset-bottom))}header,.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px}h1{font-size:25px;margin:0}h2{font-size:16px;margin:0 0 8px}p{margin:7px 0}.eyebrow{font-size:10px;letter-spacing:1.5px;color:var(--muted);margin:0}.badge{font-size:11px;border:1px solid var(--line);border-radius:20px;padding:5px 9px;color:var(--muted)}nav{display:flex;gap:4px;margin:17px 0 12px}button,input{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--accent);color:#183b30;font-weight:650;min-height:44px}button:disabled{opacity:.42;cursor:default}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #87ceff;outline-offset:2px}nav button{background:transparent;color:var(--muted);flex:1;font-size:12px;padding:7px 3px;border:1px solid transparent;min-height:40px}nav .selected{background:var(--panel);border-color:var(--line);color:var(--text)}.notice{padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:17px;font-size:13px}.notice.error,.warning{border-color:#db9785;color:#f7c0b3}.section-title&gt;span{font-size:11px;color:var(--muted)}.start-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.preset{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:113px;background:var(--panel);color:var(--text)}.symbol{font-size:22px;color:var(--accent)}.cold .symbol{color:#9fddff}.hot .symbol{color:#ffc98c}.preset strong{font-size:15px}.preset small{font-size:11px;font-weight:400;color:var(--muted)}.actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.actions&gt;button{flex:1}.stop{background:#edcfbb}.secondary{background:var(--panel);color:var(--text)}.hint{font-size:12px;color:var(--muted)}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;margin:17px 0}.card p{font-size:13px;white-space:pre-line;overflow-wrap:anywhere}.values{margin:6px 0 16px;border:1px solid var(--line);border-radius:10px;overflow:hidden}.values&gt;div{display:grid;grid-template-columns:43% 57%;padding:10px 12px;border-bottom:1px solid var(--line);gap:6px}.values&gt;div:last-child{border:0}.values dt{color:var(--muted);font-size:12px}.values dd{margin:0;font-size:13px;overflow-wrap:anywhere}label{display:block;margin:12px 0 5px;font-size:13px}label span{color:var(--muted);font-size:11px}input:not([type=checkbox]){width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--text);min-width:0}.check{display:flex;align-items:center;gap:9px;font-size:12px}.check input{width:18px;height:18px;accent-color:#9ce8c2;flex-shrink:0}a{color:var(--accent)}footer{margin-top:22px;font-size:11px;color:var(--muted);text-align:center}#activity{list-style:none;margin:12px 0;padding:0}#activity li{padding:11px 0;border-bottom:1px solid var(--line);font-size:12px;overflow-wrap:anywhere}#activity li strong{display:block;font-size:13px}#activity li time{color:var(--muted)}dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:13px;padding:20px;width:min(430px,calc(100% - 28px))}dialog::backdrop{background:#0009}[hidden]{display:none!important}@media(min-width:620px){main{padding-top:28px}.actions&gt;button{flex:0 1 auto;min-width:120px}.preset{min-height:130px;padding:15px}.start-grid{gap:12px}}
+
+.phone-editors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.phone-editors&gt;button{min-width:0}
 &lt;/style&gt;
   
 &lt;/head&gt;
@@ -1437,7 +1439,7 @@ Read car GPS once before opting into periodic comparisons. These never operate t
       &lt;p id="saved-settings" class="hint"&gt;No Join settings saved.&lt;/p&gt;
       &lt;p class="hint external-note"&gt;Remembered Join settings use this browser's local storage. They are not uploaded to GitHub or included in exported logs.&lt;/p&gt;
       &lt;button class="command secondary" data-command="ping"&gt;Test connection&lt;/button&gt;&lt;p class="hint"&gt;This test reaches Tasker without contacting Hyundai or operating the car.&lt;/p&gt;
-      &lt;div class="card"&gt;&lt;h2&gt;Phone settings&lt;/h2&gt;&lt;p class="hint"&gt;In Tasker, save the Hyundai account once and enable SFD Join Settings. The phone interface below opens the existing masked account editor.&lt;/p&gt;&lt;div class="actions native-only" hidden&gt;&lt;button data-task="SFD Setup"&gt;Hyundai account&lt;/button&gt;&lt;button data-task="SFD Connect"&gt;Connect&lt;/button&gt;&lt;button data-task="SFD Choose Vehicle"&gt;Choose car&lt;/button&gt;&lt;button data-task="SFD Join Settings"&gt;Join receiver&lt;/button&gt;&lt;button data-task="SFD Climate Settings"&gt;Regular preset&lt;/button&gt;&lt;button data-task="SFD Cold Settings"&gt;Cold preset&lt;/button&gt;&lt;button data-task="SFD Hot Settings"&gt;Hot preset&lt;/button&gt;&lt;button data-task="SFD Location Settings"&gt;Location checks&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;div class="card"&gt;&lt;h2&gt;Phone settings&lt;/h2&gt;&lt;p class="hint"&gt;Save your account once, then enable the Join receiver. These editors return to the phone controls when finished.&lt;/p&gt;&lt;div class="actions phone-editors native-only" hidden&gt;&lt;button data-task="SFD Setup"&gt;Hyundai account&lt;/button&gt;&lt;button data-task="SFD Connect"&gt;Connect&lt;/button&gt;&lt;button data-task="SFD Choose Vehicle"&gt;Choose car&lt;/button&gt;&lt;button data-task="SFD Join Settings"&gt;Join receiver&lt;/button&gt;&lt;button data-task="SFD Climate Settings"&gt;Regular preset&lt;/button&gt;&lt;button data-task="SFD Cold Settings"&gt;Cold preset&lt;/button&gt;&lt;button data-task="SFD Hot Settings"&gt;Hot preset&lt;/button&gt;&lt;button data-task="SFD Location Settings"&gt;Location checks&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
       &lt;p class="hint"&gt;Controller 1.2.0 · Setup instructions accompany the project download&lt;/p&gt;
     &lt;/section&gt;
     &lt;section id="log" class="page" hidden&gt;
@@ -1530,6 +1532,7 @@ Read car GPS once before opting into periodic comparisons. These never operate t
     return null;
   })();
   const nativeTasks = new Set(['SFD Open Home', 'SFD Close GUI', 'SFD Setup', 'SFD Connect', 'SFD Choose Vehicle', 'SFD Join Settings', 'SFD Climate Settings', 'SFD Cold Settings', 'SFD Hot Settings', 'SFD Location Settings']);
+  const nativeEditors = { 'SFD Setup': 'setup', 'SFD Connect': 'connect', 'SFD Choose Vehicle': 'choose', 'SFD Join Settings': 'join_settings', 'SFD Climate Settings': 'climate', 'SFD Cold Settings': 'climate_cold', 'SFD Hot Settings': 'climate_hot', 'SFD Location Settings': 'location_settings' };
   const safeText = value =&gt; String(value == null ? '' : value).slice(0, 3000);
   const dateText = value =&gt; Number.isFinite(Number(value)) &amp;&amp; Number(value) &gt; 0 ? new Date(Number(value)).toLocaleString() : 'Not read yet';
   function cleanEntry(entry) {
@@ -1632,7 +1635,7 @@ Read car GPS once before opting into periodic comparisons. These never operate t
   }
   document.querySelectorAll('[data-tab]').forEach(button =&gt; button.addEventListener('click', () =&gt; tab(button.dataset.tab)));
   document.querySelectorAll('[data-command]').forEach(button =&gt; button.addEventListener('click', () =&gt; confirm(button.dataset.command)));
-  document.querySelectorAll('[data-task]').forEach(button =&gt; button.addEventListener('click', () =&gt; { if (!bridge || busy || phoneBusy || !nativeTasks.has(button.dataset.task)) return; try { bridge.run(button.dataset.task); } catch (_) { notice('Open this setting from the native Tasker screens.', true); } }));
+  document.querySelectorAll('[data-task]').forEach(button =&gt; button.addEventListener('click', () =&gt; { if (!bridge || busy || phoneBusy || !nativeTasks.has(button.dataset.task)) return; try { const task = button.dataset.task, editor = nativeEditors[task]; const accepted = bridge.run(editor ? 'SFD Web Settings' : task, editor || ''); if (accepted === false || accepted === 'false') throw new Error('Task refused'); } catch (_) { notice('Open this setting from the native Tasker screens.', true); } }));
   $('safe').addEventListener('change', () =&gt; { $('confirm-send').disabled = !$('safe').checked; });
   $('confirmation').addEventListener('close', () =&gt; { if ($('confirmation').returnValue === 'send' &amp;&amp; selectedCommand) send(selectedCommand, P.starts(selectedCommand) &amp;&amp; $('safe').checked); selectedCommand = ''; });
   $('settings-form').addEventListener('submit', event =&gt; {
@@ -5319,6 +5322,62 @@ return "DISPLAY READY";
 			<Int sr="arg5" val="0" />
 			<Int sr="arg6" val="0" />
 			<Int sr="arg7" val="1" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task34065">
+		<cdate>1791223200000</cdate>
+		<edate>1791223200000</edate>
+		<id>34065</id>
+		<nme>SFD Web Settings</nme>
+		<pri>6</pri>
+		<rty>0</rty>
+		<Action sr="act0" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Close GUI</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Core</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3">%par1</Str>
+			<Str sr="arg3" ve="3">gui</Str>
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
+			<Int sr="arg8" val="0" />
+			<Int sr="arg9" val="0" />
+		</Action>
+		<Action sr="act2" ve="7">
+			<code>130</code>
+			<Str sr="arg0" ve="3">SFD Open Web</Str>
+			<Int sr="arg1">
+				<var>%priority</var>
+			</Int>
+			<Int sr="arg10" val="1" />
+			<Str sr="arg2" ve="3" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3">%sfd_return</Str>
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+			<Str sr="arg7" ve="3" />
 			<Int sr="arg8" val="0" />
 			<Int sr="arg9" val="0" />
 		</Action>

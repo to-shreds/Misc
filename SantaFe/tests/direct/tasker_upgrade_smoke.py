@@ -102,7 +102,7 @@ def run(old):
         remove_old_project()
         import_update()
     after=configuration('after_update')
-    m.check(after=={'tasks':64,'actions':134,'scenes':9},'Updating existing project imports all 64 tasks, 134 actions and nine scenes')
+    m.check(after=={'tasks':65,'actions':137,'scenes':9},'Updating existing project imports all 65 tasks, 137 actions and nine scenes')
     m.startup();m.play(m.open_task('SFD Verify Actions'))
     root=m.wait_for('Santa Fe Direct verification')
     m.check(any('1.2.0' in n.get('text','') for n in m.nodes(root)),'Updated verification task actually reports 1.2.0')

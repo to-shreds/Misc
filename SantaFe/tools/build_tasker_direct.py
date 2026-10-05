@@ -142,6 +142,9 @@ def build(destination):
     task("SFD Web Receive", [call("SFD Core", "web", "%par1")])
     task("SFD Web Prepare", [call("SFD Core", "web_prepare")])
     task("SFD Open Web", [call("SFD Close GUI"), call("SFD Web Prepare"), show("SFD Web")])
+    # Native dialogs need the overlay closed, just like the native GUI wrappers.
+    # Reopen the local HTML after the editor or connection task has finished.
+    task("SFD Web Settings", [call("SFD Close GUI"), call("SFD Core", "%par1", "gui"), call("SFD Open Web")])
 
     def scene(page):
         node = E.SubElement(root, "Scene", sr="sceneSFD " + page)
