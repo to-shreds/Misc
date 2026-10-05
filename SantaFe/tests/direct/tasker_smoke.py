@@ -6,7 +6,9 @@ run. No real account is entered and no control task runs. Failures retain UI
 evidence for diagnosis.
 """
 import argparse
+import csv
 import hashlib
+import io
 import json
 import pathlib
 import re
@@ -231,11 +233,37 @@ def play(root):
         return
     raise RuntimeError("No observed task Run control: " + str(visible(root)))
 
+def scene_screen():
+    # Tasker's scene window is visible and tappable, but UiAutomator reports
+    # the editor underneath it. Read the actual rendered title/button bounds
+    # from a retained screenshot instead of inventing fixed tap coordinates.
+    root = screen()
+    picture = RESULTS / f"scene-observation-{SEQUENCE:03d}.png"
+    picture.write_bytes(adb("exec-out", "screencap", "-p"))
+    result = subprocess.run(["tesseract", str(picture), "stdout", "--psm", "11", "tsv"], capture_output=True, text=True, check=True, timeout=20)
+    picture.with_suffix(".tsv").write_text(result.stdout)
+    lines = {}
+    for item in csv.DictReader(io.StringIO(result.stdout), delimiter="\t"):
+        if not item.get("text", "").strip() or float(item["conf"]) < 35:
+            continue
+        key = tuple(item[k] for k in ["block_num", "par_num", "line_num"])
+        lines.setdefault(key, []).append(item)
+    rendered = E.Element("hierarchy")
+    for words in lines.values():
+        text = " ".join(w["text"] for w in words)
+        left=min(int(w["left"]) for w in words); top=min(int(w["top"]) for w in words)
+        right=max(int(w["left"])+int(w["width"]) for w in words); bottom=max(int(w["top"])+int(w["height"]) for w in words)
+        E.SubElement(rendered, "node", text=text, enabled="true", clickable="true", bounds=f"[{left},{top}][{right},{bottom}]")
+    if any(n.get("text", "").startswith("Santa Fe / ") for n in nodes(rendered)):
+        REPORT["scene_observation"] = "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms."
+        return rendered
+    return root
+
 def wait_for(text):
     # First Java-action compilation and scene transitions can outlast the
     # fixture's short delay. Observe until the target exists; never retap.
     for _ in range(15):
-        root = screen()
+        root = scene_screen() if text.startswith("Santa Fe / ") else screen()
         if matching(root, text) is not None:
             return root
         time.sleep(1)
@@ -446,7 +474,7 @@ def run():
         root = wait_for("Santa Fe / Home")
         check(matching(root, "Santa Fe / Home") is not None, "Home is restored after " + page)
     check(click(root, ["Close"]), "Native Close button dismisses the GUI")
-    check(matching(screen(), "Santa Fe / Home") is None, "GUI closes without any vehicle operation")
+    check(matching(scene_screen(), "Santa Fe / Home") is None, "GUI closes without any vehicle operation")
     REPORT["passed"] = True
 
 if __name__ == "__main__":
