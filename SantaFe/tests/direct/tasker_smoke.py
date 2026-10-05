@@ -159,9 +159,8 @@ def import_project():
             if matching(root, "Apply") is not None:
                 click(root, ["Apply"])
                 root = screen()
-            if matching(root, "Santa Fe Direct") is not None:
-                click(root, ["Santa Fe Direct"])
-                root = screen()
+            # Tasker selects the newly imported project. Tapping that already
+            # selected tab opens its context menu rather than selecting Tasks.
             click(root, ["Tasks"])
             time.sleep(0.8)
             root = screen()
@@ -272,6 +271,10 @@ def capture_native_configuration():
         if not path.endswith(".xml"):
             continue
         data = adb("exec-out", "cat", path, check=False)
+        if path.endswith("autobackup.xml"):
+            (RESULTS / "native-autobackup.data").write_bytes(data)
+            REPORT["native_backup_bytes"] = len(data)
+            REPORT["native_backup_prefix"] = data[:80].decode(errors="replace")
         try:
             root = E.fromstring(data)
         except E.ParseError:
