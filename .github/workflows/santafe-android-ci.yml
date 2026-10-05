@@ -129,10 +129,26 @@ jobs:
             sudo chmod 666 /dev/kvm
           fi
 
+      - name: Configure isolated emulator directories
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/santafe-ci-android/avd" "$RUNNER_TEMP/santafe-ci-results"
+          printf 'ANDROID_USER_HOME=%s\n' "$RUNNER_TEMP/santafe-ci-android" >> "$GITHUB_ENV"
+          printf 'ANDROID_EMULATOR_HOME=%s\n' "$RUNNER_TEMP/santafe-ci-android" >> "$GITHUB_ENV"
+          printf 'ANDROID_AVD_HOME=%s\n' "$RUNNER_TEMP/santafe-ci-android/avd" >> "$GITHUB_ENV"
+
       - name: Create Android 15 emulator
         shell: bash
         run: |
-          echo "no" | avdmanager create avd             --force             --name santafe-ci             --package "system-images;android-35;google_apis;x86_64"             --device "pixel_6"
+          echo "no" | avdmanager create avd \
+            --force --name santafe-ci \
+            --package "system-images;android-35;google_apis;x86_64" \
+            --device "pixel_6" --path "$ANDROID_AVD_HOME/santafe-ci.avd"
+          test -f "$ANDROID_AVD_HOME/santafe-ci.ini"
+          avdmanager list avd
+          "$ANDROID_SDK_ROOT/emulator/emulator" -list-avds \
+            | tee "$RUNNER_TEMP/santafe-ci-results/avds.txt"
+          grep -Fx 'santafe-ci' "$RUNNER_TEMP/santafe-ci-results/avds.txt"
 
       - name: Boot emulator
         shell: bash
@@ -185,6 +201,9 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/santafe-ci-results"
+          if [ -f "$RUNNER_TEMP/santafe-ci-results/emulator.log" ]; then
+            tail -n 200 "$RUNNER_TEMP/santafe-ci-results/emulator.log"
+          fi
           timeout 15 adb logcat -d > "$RUNNER_TEMP/santafe-ci-results/logcat.txt" || true
           timeout 15 adb shell dumpsys package com.jon.santafelab             > "$RUNNER_TEMP/santafe-ci-results/package.txt" || true
 
