@@ -23,7 +23,7 @@
           <p class="eyebrow">CONFIRM THE CALLS. CAPTURE THE RESULTS.</p>
           <h1 id="pageTitle">Test your Santa Fe connection.</h1>
           <p id="introCopy" class="intro-copy">Use the Android app to connect directly to Bluelink, inspect your vehicle, and keep a useful test log. Start with read tests, then try individual controls when you are ready.</p>
-          <p id="appDownload"><a class="button primary" href="./android/dist/SantaFe-API-Lab-0.3.2.apk" download>Download Android app</a></p>
+          <p id="appDownload"><a class="button primary" href="./android/dist/SantaFe-API-Lab-0.3.3.apk" download>Download Android app</a></p>
         </div>
         <div class="connection-indicators" aria-label="Connection status">
           <div><span class="indicator-label">Connection</span><span id="transportStatus" class="status-pill">Checking connection method</span></div>
@@ -39,8 +39,8 @@
           <details id="connectionSetup" class="setup-details" open>
             <summary>Connection setup <span class="details-hint">Use the Android app</span></summary>
             <div class="details-body">
-              <p><a href="./android/dist/SantaFe-API-Lab-0.3.2.apk" download>Download the Android app</a>, install it, and open <strong>Santa Fe API Lab</strong>. The same tester runs inside the app and sends requests directly to Hyundai. No Tampermonkey or cloud relay is needed.</p>
-              <p>The app handles your login credentials locally. They are not saved. Sanitized test logs can be exported using Android's file picker.</p>
+              <p><a href="./android/dist/SantaFe-API-Lab-0.3.3.apk" download>Download the Android app</a>, install it, and open <strong>Santa Fe API Lab</strong>. The same tester runs inside the app and sends requests directly to Hyundai. No Tampermonkey or cloud relay is needed.</p>
+              <p>Account settings in the app can remember your login on this phone. Sanitized test logs can be exported using Android's file picker.</p>
               <details id="manualBrowserSetup"><summary>Manual browser testing</summary>
               <p>For existing browser-helper users only: the helper extension handles your credentials while sending requests to Hyundai. Ordinary browser requests were blocked in testing. The Android app avoids this extension dependency.</p>
               <ol class="setup-steps">
@@ -61,12 +61,22 @@
           </details>
 
           <form id="loginForm">
+            <details id="accountSettings" class="setup-details account-settings" open>
+              <summary><span>Account settings</span><span id="accountState" class="details-hint">Enter your account</span></summary>
+              <div class="details-body">
             <label for="email">Email address</label>
             <input id="email" name="email" type="email" disabled autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com" required>
             <label for="password">Password</label>
             <input id="password" name="password" type="password" disabled autocomplete="current-password" required>
             <label for="pin">Bluelink PIN <span class="field-note">For remote controls</span></label>
             <input id="pin" name="pin" type="password" disabled inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="4 digits">
+                <div id="savedAccountControls" class="account-save-controls" hidden>
+                  <label class="checkbox-label" for="rememberAccount"><input id="rememberAccount" type="checkbox" checked><span>Remember account on this phone</span></label>
+                  <div class="button-row wrap"><button id="saveAccountBtn" class="button secondary" type="button">Save account</button><button id="forgetAccountBtn" class="button quiet" type="button" disabled>Forget saved account</button></div>
+                </div>
+                <p id="accountStorageHelp" class="field-help">The Android app can remember your account. This browser page keeps credentials only for the current session.</p>
+              </div>
+            </details>
             <div class="button-row login-actions">
               <button id="loginBtn" class="button primary" type="submit" disabled>Open Android app</button>
               <button id="disconnectBtn" class="button secondary" type="button" disabled>Disconnect</button>

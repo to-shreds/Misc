@@ -67,6 +67,13 @@ input:disabled, select:disabled { opacity: .6; }
 .button-row.wrap { flex-wrap: wrap; }
 .login-actions { margin-top: 21px; }
 .login-actions .primary { flex: 1; }
+.account-settings { margin-top: 19px; }
+.account-settings .details-body { color: var(--text); }
+.account-settings label:first-child { margin-top: 0; }
+.account-save-controls { display: grid; gap: 13px; margin-top: 18px; }
+.account-save-controls .checkbox-label { align-items: flex-start; }
+.account-save-controls input[type="checkbox"] { margin-top: 1px; }
+.account-save-controls .button { padding-left: 11px; padding-right: 11px; }
 .full-width { width: 100%; }
 .privacy-note { display: flex; align-items: flex-start; gap: 7px; font-size: 10px; color: var(--muted); line-height: 1.65; margin: 16px 0 22px; }
 .small-lock { color: var(--accent); font-size: 6px; padding-top: 6px; }

@@ -57,12 +57,19 @@ async function pageFixture(fixtures, opts = {}) {
         return {abort:()=>{cancelled=true;clearTimeout(timer);opts.onabort();}};};\n`;
     await page.addInitScript({ content: shim + fs.readFileSync(path.join(ROOT, 'santafe-network.user.js'), 'utf8') });
   }
-  if(opts.native)await page.addInitScript({content:`window.__testRequests=[];window.__testFixtures=${JSON.stringify(fixtures)};window.__testExports=[];window.__testCancels=[];window.__testNativeCallbacks={};
+  if(opts.native)await page.addInitScript({content:`window.__testRequests=[];window.__testFixtures=${JSON.stringify(fixtures)};window.__testExports=[];window.__testCancels=[];window.__testNativeCallbacks={};window.__testAccountCalls={loads:0,saves:[],forgets:0};
     window.SantaFeNative={request(json){const envelope=JSON.parse(json),next=window.__testFixtures.shift();window.__testRequests.push({...envelope.request,id:envelope.id});
       const respond=()=>{if(!next){window.SantaFeAndroid.onResponse(envelope.id,null,'Fixture queue exhausted.');return;}
         const response=next.rawResponse || {status:next.status || 200,text:next.text!==undefined?next.text:JSON.stringify(next.data || {}),headers:next.headers || {}};
         window.SantaFeAndroid.onResponse(envelope.id,response,next.error || null);};window.__testNativeCallbacks[envelope.id]=respond;if(!next?.delay)setTimeout(respond,5);},
-      cancel(id){window.__testCancels.push(id);},exportLog(json){window.__testExports.push(JSON.parse(json));return true;}};`});
+      cancel(id){window.__testCancels.push(id);},exportLog(json){window.__testExports.push(JSON.parse(json));return true;}};
+    ${opts.account ? `
+      if(!sessionStorage.getItem('fixture-account-initialized')){sessionStorage.setItem('fixture-account-initialized','1');${opts.account.value ? `sessionStorage.setItem('fixture-native-account',${JSON.stringify(JSON.stringify(opts.account.value))});` : ''}}
+      Object.assign(window.SantaFeNative,{
+        loadAccount(){window.__testAccountCalls.loads++;return ${opts.account.loadError ? `JSON.stringify({saved:false,error:${JSON.stringify(opts.account.loadError)}})` : `(sessionStorage.getItem('fixture-native-account')?JSON.stringify({saved:true,...JSON.parse(sessionStorage.getItem('fixture-native-account'))}):JSON.stringify({saved:false}))`};},
+        saveAccount(json){window.__testAccountCalls.saves.push(JSON.parse(json));${opts.account.saveFailure ? 'return false;' : `sessionStorage.setItem('fixture-native-account',json);return true;`}},
+        forgetAccount(){window.__testAccountCalls.forgets++;${opts.account.forgetFailure ? 'return false;' : `sessionStorage.removeItem('fixture-native-account');return true;`}}
+      });` : ''}`});
   await page.goto(opts.native?'https://santafe.local/index.html':url); await page.waitForFunction(() => document.getElementById('sessionStatus')?.textContent === 'Signed out');
   if(opts.native)await page.waitForFunction(()=>document.getElementById('transportStatus').textContent==='Direct Hyundai connection');
   else if (opts.helper) await page.waitForFunction(() => document.getElementById('transportStatus').textContent === 'Browser helper ready');
@@ -70,7 +77,7 @@ async function pageFixture(fixtures, opts = {}) {
   return { page, context, calls, errors, async requests() { return opts.helper || opts.native ? page.evaluate(() => window.__testRequests) : calls; }, async close() { await context.close(); } };
 }
 async function idle(page) { await page.waitForFunction(() => document.getElementById('stopBtn').disabled); }
-async function login(page) { await page.fill('#email', USER); await page.fill('#password', PASSWORD); await page.fill('#pin', PIN); await page.click('#loginBtn'); await idle(page); }
+async function login(page) { await page.locator('#accountSettings').evaluate(el=>{el.open=true;}); await page.fill('#email', USER); await page.fill('#password', PASSWORD); await page.fill('#pin', PIN); await page.click('#loginBtn'); await idle(page); }
 async function controls(page, action = 'lock') { await page.locator('.command-panel').evaluate(el => { el.open = true; }); await page.selectOption('#commandSelect', action); await page.check('#confirmCommand'); await page.click('#commandBtn'); await idle(page); }
 async function exported(page) {
   const pending = page.waitForEvent('download'); await page.click('#downloadLogBtn'); const download = await pending; return JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
@@ -82,8 +89,8 @@ async function exported(page) {
   await scenario('Default Automatic setup precedes login and blocks Enter/programmatic submits without network', async () => {
     const h = await pageFixture([], { mode: 'auto' }); try {
       assert.equal(await h.page.inputValue('#transportMode'), 'auto');
-      assert.equal(await h.page.locator('.setup-details').evaluate(el => el.open), true);
-      assert.equal(await h.page.locator('.setup-details').evaluate(el => Boolean(el.compareDocumentPosition(document.getElementById('loginForm')) & Node.DOCUMENT_POSITION_FOLLOWING)), true);
+      assert.equal(await h.page.locator('#connectionSetup').evaluate(el => el.open), true);
+      assert.equal(await h.page.locator('#connectionSetup').evaluate(el => Boolean(el.compareDocumentPosition(document.getElementById('loginForm')) & Node.DOCUMENT_POSITION_FOLLOWING)), true);
       for (const id of ['email', 'password', 'pin', 'loginBtn']) assert.equal(await h.page.isEnabled('#' + id), false, `${id} enabled before helper installation`);
       await h.page.keyboard.press('Enter');
       await h.page.evaluate(({ user, password, pin }) => {
@@ -114,11 +121,76 @@ async function exported(page) {
       await h.page.click('#downloadLogBtn');assert.match(await h.page.locator('#notice').innerText(),/Choose where to save/);
       const report=await h.page.evaluate(()=>window.__testExports.at(-1)),raw=JSON.stringify(report);
       for(const value of [USER,encodeURIComponent(USER),PASSWORD,PIN,V1.vin,V1.regid,'fixture-access-secret','fixture-refresh-secret','42.04684','-71.11242'])assert.equal(raw.includes(value),false,`Native export leaked ${value}`);
-      assert.equal(report.version,'0.3.2');assert.ok(report.requests.filter(r=>r.transport).every(r=>r.transport==='native Android'));
+      assert.equal(report.version,'0.3.3');assert.ok(report.requests.filter(r=>r.transport).every(r=>r.transport==='native Android'));
       await h.page.evaluate(()=>window.SantaFeAndroid.onExportResult(true,null));assert.equal(await h.page.locator('#notice').innerText(),'Sanitized log saved.');
       const layout=await h.page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));assert.ok(layout.scroll<=layout.client+1);
       await h.page.screenshot({path:path.join(OUT,'diagnostic-android-fixture.png'),fullPage:true});
       await h.page.click('#disconnectBtn');assert.equal(await h.page.inputValue('#email'),'');assert.deepEqual(h.errors,[]);
+    }finally{await h.close();}
+  });
+  await scenario('Native account settings save once, reload masked details, then connect and reconnect without retyping', async () => {
+    const h = await pageFixture([...basics(), ...basics()], { native: true, mobile: true, account: { value: null } }); try {
+      assert.equal((await h.requests()).length, 0); assert.equal(await h.page.locator('#savedAccountControls').isVisible(), true);
+      await h.page.fill('#email', USER); await h.page.fill('#password', PASSWORD); await h.page.fill('#pin', PIN);
+      await h.page.click('#saveAccountBtn');
+      assert.equal((await h.requests()).length, 0); assert.equal(await h.page.inputValue('#password'), ''); assert.equal(await h.page.inputValue('#pin'), '');
+      assert.equal(await h.page.locator('#accountSettings').evaluate(el=>el.open), false);
+      await h.page.reload(); await h.page.waitForFunction(()=>document.getElementById('sessionStatus').textContent==='Signed out');
+      assert.equal((await h.requests()).length, 0); assert.equal(await h.page.inputValue('#email'), USER);
+      assert.equal(await h.page.inputValue('#password'), ''); assert.equal(await h.page.inputValue('#pin'), '');
+      assert.equal(await h.page.locator('#accountSettings').evaluate(el=>el.open), false);
+      await h.page.click('#loginBtn'); await idle(h.page); assert.equal((await h.requests()).length, 3);
+      assert.deepEqual(JSON.parse((await h.requests())[0].body), { username: USER, password: PASSWORD });
+      await h.page.click('#disconnectBtn'); assert.equal(await h.page.inputValue('#email'), USER); assert.equal((await h.requests()).length, 3);
+      await h.page.click('#loginBtn'); await idle(h.page); assert.equal((await h.requests()).length, 6);
+      assert.equal(await h.page.locator('#sessionStatus').innerText(), 'Signed in for this app');
+      await h.page.click('#downloadLogBtn');
+      const raw=await h.page.evaluate(()=>JSON.stringify({logs:window.__testExports.at(-1),storage:Object.fromEntries(Object.entries(localStorage))}));
+      for(const value of [USER, PASSWORD, PIN, 'fixture-access-secret', V1.vin])assert.equal(raw.includes(value),false,'Saved-account flow leaked a secret into exported log or app web storage');
+      const layout=await h.page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));assert.ok(layout.scroll<=layout.client+1);
+      await h.page.screenshot({path:path.join(OUT,'diagnostic-saved-account-mobile.png'),fullPage:true});assert.deepEqual(h.errors,[]);
+    } finally { await h.close(); }
+  });
+  await scenario('Saved native account supports consecutive deliberate commands and export without another login', async () => {
+    const h=await pageFixture([...basics(),{text:'',headers:{TmsTid:'unlock-fixture-tx'}},{data:{status:'SUCCESS'}},{text:'',headers:{TmsTid:'lock-fixture-tx'}},{data:{status:'SUCCESS'}}],{native:true,mobile:true,account:{value:{username:USER,password:PASSWORD,pin:PIN}}});try{
+      assert.equal((await h.requests()).length,0);await h.page.click('#loginBtn');await idle(h.page);
+      await controls(h.page,'unlock');await h.page.click('#pollBtn');await idle(h.page);
+      await h.page.click('#downloadLogBtn');await h.page.evaluate(()=>window.SantaFeAndroid.onExportResult(true,null));
+      assert.equal(await h.page.locator('#sessionStatus').innerText(),'Signed in for this app');
+      await controls(h.page,'lock');await h.page.click('#pollBtn');await idle(h.page);
+      const requests=await h.requests();assert.equal(requests.length,7);assert.equal(requests.filter(r=>r.url.endsWith('/oauth/token')).length,1);
+      assert.equal(requests[3].url,API+'/ac/v2/rcs/rdo/on');assert.equal(requests[5].url,API+'/ac/v2/rcs/rdo/off');
+      assert.equal(await h.page.inputValue('#password'),'');assert.equal(await h.page.inputValue('#pin'),'');assert.deepEqual(h.errors,[]);
+    }finally{await h.close();}
+  });
+  await scenario('Native saved-account load and save failures stay generic and never cause automatic requests', async () => {
+    const load=await pageFixture([],{native:true,account:{value:null,loadError:'private native failure '+PASSWORD}});try{
+      assert.equal((await load.requests()).length,0);assert.match(await load.page.locator('#notice').innerText(),/saved account.*read/i);
+      assert.equal((await load.page.locator('#notice').innerText()).includes(PASSWORD),false);
+      await load.page.click('#loginBtn');assert.equal((await load.requests()).length,0);assert.deepEqual(load.errors,[]);
+    }finally{await load.close();}
+    const save=await pageFixture(basics(),{native:true,account:{value:null,saveFailure:true}});try{
+      await login(save.page);assert.equal((await save.requests()).length,3);assert.equal(await save.page.locator('#sessionStatus').innerText(),'Signed in for this app');
+      assert.match(await save.page.locator('#notice').innerText(),/could not confirm saving/i);assert.equal(await save.page.inputValue('#password'),'');assert.equal(await save.page.inputValue('#pin'),'');
+      assert.equal(await save.page.evaluate(()=>sessionStorage.getItem('fixture-native-account')),null);assert.deepEqual(save.errors,[]);
+    }finally{await save.close();}
+  });
+  await scenario('Forgetting native account removes saved details and keeps the interrupted-command guard', async () => {
+    const h=await pageFixture([],{native:true,account:{value:{username:USER,password:PASSWORD,pin:PIN}}});try{
+      await h.page.evaluate(()=>localStorage.setItem('santafe-pending-command-v1',JSON.stringify({action:'unlock',at:'2026-10-05T04:00:00Z'})));
+      await h.page.reload();await h.page.waitForFunction(()=>!document.getElementById('unknownCommandPanel').hidden);
+      await h.page.locator('#accountSettings').evaluate(el=>{el.open=true;});await h.page.click('#forgetAccountBtn');
+      assert.equal((await h.requests()).length,0);assert.equal(await h.page.inputValue('#email'),'');assert.equal(await h.page.inputValue('#password'),'');assert.equal(await h.page.inputValue('#pin'),'');
+      assert.equal(await h.page.locator('#unknownCommandPanel').isVisible(),true);assert.equal(await h.page.isEnabled('#commandBtn'),false);
+      assert.equal(await h.page.evaluate(()=>sessionStorage.getItem('fixture-native-account')),null);assert.notEqual(await h.page.evaluate(()=>localStorage.getItem('santafe-pending-command-v1')),null);assert.deepEqual(h.errors,[]);
+    }finally{await h.close();}
+  });
+  await scenario('Native Remember account unchecked keeps the connection transient and saves no credentials',async()=>{
+    const h=await pageFixture(basics(),{native:true,account:{value:null}});try{
+      await h.page.uncheck('#rememberAccount');await login(h.page);assert.equal((await h.requests()).length,3);
+      assert.equal(await h.page.evaluate(()=>window.__testAccountCalls.saves.length),0);assert.equal(await h.page.evaluate(()=>sessionStorage.getItem('fixture-native-account')),null);
+      await h.page.click('#disconnectBtn');assert.equal(await h.page.inputValue('#email'),'');
+      await h.page.click('#loginBtn');assert.equal((await h.requests()).length,3);assert.equal(await h.page.locator('#accountSettings').evaluate(el=>el.open),true,'Connect must expose required unsaved credentials for manual reentry');assert.deepEqual(h.errors,[]);
     }finally{await h.close();}
   });
   await scenario('Native enrollment and persisted old logs scrub device identifiers while retaining model and protocol fields', async () => {
@@ -144,7 +216,7 @@ async function exported(page) {
   });
   await scenario('Native Stop waiting cancels exactly once and ignores a late success callback',async()=>{
     const h=await pageFixture([{...basics()[0],delay:true}],{native:true});try{
-      await h.page.fill('#email',USER);await h.page.fill('#password',PASSWORD);await h.page.fill('#pin',PIN);await h.page.click('#loginBtn');
+      await h.page.locator('#accountSettings').evaluate(el=>{el.open=true;});await h.page.fill('#email',USER);await h.page.fill('#password',PASSWORD);await h.page.fill('#pin',PIN);await h.page.click('#loginBtn');
       await h.page.waitForFunction(()=>window.__testRequests.length===1);await h.page.click('#stopBtn');await idle(h.page);
       await h.page.evaluate(()=>window.__testNativeCallbacks[window.__testRequests[0].id]());await idle(h.page);
       assert.equal((await h.requests()).length,1);assert.equal(await h.page.evaluate(()=>window.__testCancels.length),1);assert.equal(await h.page.locator('#sessionStatus').innerText(),'Signed out');assert.equal(await h.page.inputValue('#password'),'');assert.deepEqual(h.errors,[]);
@@ -255,7 +327,7 @@ async function exported(page) {
   });
   await scenario('Rapid double submit is gated while login is in flight', async () => {
     const fixture = { ...basics()[0], delay: true }, h = await pageFixture([fixture, basics()[1], basics()[2]]); try {
-      await h.page.fill('#email', USER); await h.page.fill('#password', PASSWORD); await h.page.fill('#pin', PIN); await h.page.evaluate(() => { document.getElementById('loginForm').requestSubmit(); document.getElementById('loginForm').requestSubmit(); });
+      await h.page.locator('#accountSettings').evaluate(el=>{el.open=true;});await h.page.fill('#email', USER); await h.page.fill('#password', PASSWORD); await h.page.fill('#pin', PIN); await h.page.evaluate(() => { document.getElementById('loginForm').requestSubmit(); document.getElementById('loginForm').requestSubmit(); });
       await h.page.waitForFunction(() => document.getElementById('loginBtn').disabled); assert.equal(h.calls.length, 1); fixture.release(); await idle(h.page); assert.equal(h.calls.length, 3); assert.deepEqual(h.errors, []);
     } finally { fixture.release?.(); await h.close(); }
   });

@@ -58,8 +58,17 @@ jobs:
 
       - name: Native transport tests
         run: |
-          curl -fsSL --retry 3             https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar             -o "$RUNNER_TEMP/json-20240303.jar"
+          curl -fsSL --retry 3 --connect-timeout 10 --max-time 60 \
+            https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar \
+            -o "$RUNNER_TEMP/json-20240303.jar"
           JSON_JAR="$RUNNER_TEMP/json-20240303.jar" ./android/tests/transport/run-transport-tests.sh
+
+      - name: Encrypted saved-account host tests
+        env:
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+        run: |
+          sdkmanager "platforms;android-35"
+          JSON_JAR="$RUNNER_TEMP/json-20240303.jar" ./android/tests/account/run-account-tests.sh
 
       - name: JavaScript syntax checks
         run: |
@@ -74,7 +83,6 @@ jobs:
     env:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_HOME: /usr/local/lib/android/sdk
-      SF_SIGNING_DIR: ${{ runner.temp }}/santafe-ci-signing
 
     steps:
       - name: Check out repository
@@ -93,12 +101,19 @@ jobs:
           sdkmanager             "platform-tools"             "emulator"             "platforms;android-35"             "build-tools;35.0.0"             "system-images;android-35;google_apis;x86_64"
 
       - name: Build CI-only APK and runtime verifier
+        id: build
+        env:
+          SF_SIGNING_DIR: ${{ runner.temp }}/santafe-ci-signing
         shell: bash
         working-directory: SantaFe/android
         run: |
-          ./build.sh
+          mkdir -p "$RUNNER_TEMP/santafe-ci-results"
+          ./build.sh | tee "$RUNNER_TEMP/santafe-ci-results/build.txt"
+          ci_apk="$(sed -n 's/^Built //p' "$RUNNER_TEMP/santafe-ci-results/build.txt" | tail -n 1)"
+          test -f "$ci_apk"
+          printf 'apk=%s\n' "$ci_apk" >> "$GITHUB_OUTPUT"
           ./tests/device/build-test.sh
-          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose             dist/SantaFe-API-Lab-0.3.2.apk
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose "$ci_apk"
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose             tests/device/build/SantaFe-runtime-verification.apk
 
       - name: Enable emulator acceleration
@@ -119,7 +134,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/santafe-ci-results"
           nohup "$ANDROID_SDK_ROOT/emulator/emulator"             -avd santafe-ci             -no-window             -no-audio             -no-boot-anim             -no-snapshot             -gpu swiftshader_indirect             >"$RUNNER_TEMP/santafe-ci-results/emulator.log" 2>&1 &
 
-          adb wait-for-device
+          timeout 90 adb wait-for-device
           timeout 420 bash -c '
             until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = "1" ]; do
               sleep 5
@@ -135,33 +150,37 @@ jobs:
       - name: Install APKs
         shell: bash
         working-directory: SantaFe/android
+        env:
+          CI_APK: ${{ steps.build.outputs.apk }}
         run: |
-          adb install -r dist/SantaFe-API-Lab-0.3.2.apk
-          adb install -t -r tests/device/build/SantaFe-runtime-verification.apk
-          adb shell pm list packages | grep -F "com.jon.santafelab"
+          timeout 90 adb install -r "$CI_APK"
+          timeout 90 adb install -t -r tests/device/build/SantaFe-runtime-verification.apk
+          timeout 30 adb shell pm list packages | grep -F "com.jon.santafelab"
 
       - name: Run credential-free Android instrumentation
         shell: bash
         run: |
           set -o pipefail
-          adb shell am instrument -w             com.jon.santafelab.runtime/.RuntimeVerification             | tee "$RUNNER_TEMP/santafe-ci-results/instrumentation.txt"
+          timeout 180 adb shell am instrument -w             com.jon.santafelab.runtime/.RuntimeVerification             | tee "$RUNNER_TEMP/santafe-ci-results/instrumentation.txt"
           grep -F "result=PASS" "$RUNNER_TEMP/santafe-ci-results/instrumentation.txt"
 
       - name: Capture clean launch screenshot
         if: always()
         shell: bash
         run: |
-          adb shell am force-stop com.jon.santafelab || true
-          adb shell monkey -p com.jon.santafelab -c android.intent.category.LAUNCHER 1 || true
+          mkdir -p "$RUNNER_TEMP/santafe-ci-results"
+          timeout 15 adb shell am force-stop com.jon.santafelab || true
+          timeout 15 adb shell monkey -p com.jon.santafelab -c android.intent.category.LAUNCHER 1 || true
           sleep 4
-          adb exec-out screencap -p > "$RUNNER_TEMP/santafe-ci-results/clean-launch.png" || true
+          timeout 15 adb exec-out screencap -p > "$RUNNER_TEMP/santafe-ci-results/clean-launch.png" || true
 
       - name: Capture emulator diagnostics
         if: always()
         shell: bash
         run: |
-          adb logcat -d > "$RUNNER_TEMP/santafe-ci-results/logcat.txt" || true
-          adb shell dumpsys package com.jon.santafelab             > "$RUNNER_TEMP/santafe-ci-results/package.txt" || true
+          mkdir -p "$RUNNER_TEMP/santafe-ci-results"
+          timeout 15 adb logcat -d > "$RUNNER_TEMP/santafe-ci-results/logcat.txt" || true
+          timeout 15 adb shell dumpsys package com.jon.santafelab             > "$RUNNER_TEMP/santafe-ci-results/package.txt" || true
 
       - name: Upload test evidence
         if: always()
