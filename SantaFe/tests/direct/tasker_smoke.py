@@ -27,11 +27,24 @@ def adb(*args, check=True, timeout=30):
 
 def screen():
     global SEQUENCE
-    SEQUENCE += 1
-    adb("shell", "uiautomator", "dump", "/sdcard/sfd-window.xml", timeout=40)
-    data = adb("exec-out", "cat", "/sdcard/sfd-window.xml")
-    (RESULTS / f"ui-{SEQUENCE:03d}.xml").write_bytes(data)
-    return E.fromstring(data)
+    # Window transitions can leave UiAutomator with no root or an empty file.
+    # Preserve each raw result and retry the observation, not the user action.
+    for attempt in range(4):
+        SEQUENCE += 1
+        adb("shell", "rm", "-f", "/sdcard/sfd-window.xml")
+        dump = adb("shell", "uiautomator", "dump", "/sdcard/sfd-window.xml", check=False, timeout=40)
+        data = adb("exec-out", "cat", "/sdcard/sfd-window.xml", check=False)
+        (RESULTS / f"ui-{SEQUENCE:03d}.xml").write_bytes(data)
+        (RESULTS / f"ui-{SEQUENCE:03d}-dump.txt").write_bytes(dump)
+        try:
+            root = E.fromstring(data)
+            if root.tag == "hierarchy" and nodes(root):
+                return root
+        except E.ParseError:
+            pass
+        if attempt < 3:
+            time.sleep(1)
+    raise RuntimeError("UiAutomator could not observe a window: " + dump.decode(errors="replace")[-500:] + " / " + data.decode(errors="replace")[-500:])
 
 def nodes(root):
     return list(root.iter("node"))
