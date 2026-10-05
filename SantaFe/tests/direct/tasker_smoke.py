@@ -66,7 +66,7 @@ def visible(root):
 def startup():
     adb("shell", "am", "start", "-n", PACKAGE + "/.Tasker")
     time.sleep(2)
-    for _ in range(18):
+    for _ in range(30):
         root = screen()
         if any("Pixel Launcher isn't responding" in n.get("text", "") for n in nodes(root)):
             click(root, ["Close app"])
@@ -75,6 +75,9 @@ def startup():
             continue
         if matching(root, "Tasks") is not None or matching(root, "TASKS") is not None:
             return root
+        if any(n.get("text", "") == "Loading" or n.get("text", "").startswith("Checking ") for n in nodes(root)):
+            time.sleep(1)
+            continue
         if not click(root, ["Tasker", "Accept", "I Agree", "I accept", "Start Trial", "Continue", "Get Started", "Next", "OK", "Got it", "Allow", "Skip", "Cancel", "Later", "No"]):
             raise RuntimeError("Unhandled Tasker startup UI: " + str(visible(root)))
     raise RuntimeError("Tasker startup did not finish")
@@ -88,6 +91,8 @@ def import_project():
         if any(n.get("text", "").startswith("SFD ") for n in nodes(root)):
             return root
         if matching(root, "Tasks") is not None:
+            if matching(root, "Santa Fe Direct") is not None:
+                click(root, ["Santa Fe Direct"])
             click(root, ["Tasks"])
             root = screen()
             if any(n.get("text", "").startswith("SFD ") for n in nodes(root)):
@@ -97,6 +102,9 @@ def import_project():
     raise RuntimeError("Import did not expose tasks")
 
 def open_task(name):
+    # Each search starts at the top, rather than inheriting another task's scroll.
+    for _ in range(4):
+        adb("shell", "input", "swipe", "500", "450", "500", "1500", "150")
     root = screen()
     for _ in range(12):
         node = matching(root, name)
