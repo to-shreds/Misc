@@ -79,7 +79,7 @@ def visible(root):
 def startup():
     adb("shell", "am", "start", "-n", PACKAGE + "/.Tasker")
     time.sleep(2)
-    for _ in range(30):
+    for _ in range(40):
         root = screen()
         if any(n.get("package") == "com.android.chrome" for n in nodes(root)):
             # Tasker's vendor-help link opened Chrome. No browser setup or
@@ -107,7 +107,7 @@ def startup():
             continue
         if matching(root, "Tasks") is not None or matching(root, "TASKS") is not None:
             return root
-        if any(n.get("text", "") == "Loading" or n.get("text", "").startswith("Checking ") for n in nodes(root)):
+        if any(n.get("text", "").casefold().startswith(("loading", "checking ", "just a moment")) for n in nodes(root)):
             time.sleep(1)
             continue
         if matching(root, "Before We Get Started") is not None:
@@ -126,9 +126,11 @@ def startup():
                 adb("shell", "input", "swipe", str(x), str(top + (bottom - top) * 3 // 4), str(x), str(top + (bottom - top) // 4), "300")
                 time.sleep(0.5)
                 continue
-        if not click(root, ["Tasker", "Accept", "I Agree", "I accept", "I understand", "Agree", "Start Trial", "Proceed", "Continue", "Get Started", "Next", "OK", "Got it", "Allow", "Skip", "Cancel", "Later", "No"]):
-            raise RuntimeError("Unhandled Tasker startup UI: " + str(visible(root)))
-    raise RuntimeError("Tasker startup did not finish")
+        if not click(root, ["Tasker", "Accept", "I Agree", "I accept", "I understand", "Agree", "Start Trial", "Proceed", "Continue", "Get Started", "Next", "OK", "Got it", "Allow", "Skip", "Cancel", "Later", "STOP REMINDING", "No"]):
+            # Re-observe an intermediate frame instead of failing while Tasker
+            # switches its loading and onboarding activities. The loop is bound.
+            time.sleep(1)
+    raise RuntimeError("Tasker startup did not finish: " + str(visible(root)))
 
 def import_project():
     adb("push", str(ROOT / "tasker/Santa_Fe_Direct.prj.xml"), "/sdcard/Download/Santa_Fe_Direct.prj.xml")
@@ -207,6 +209,30 @@ def save_and_read():
     REPORT["imported_action_counts"] = counts
     return root, data
 
+def read_result_variables():
+    # Inspect actual saved global variable records, never a phrase in the
+    # embedded Java source. Source text alone cannot prove a task executed.
+    listing = adb("shell", "find", "/data/data/" + PACKAGE + "/files", "/data/data/" + PACKAGE + "/shared_prefs", "-maxdepth", "3", "-type", "f").decode()
+    found = {}
+    for path in listing.splitlines():
+        if not path.endswith(".xml"):
+            continue
+        try:
+            root = E.fromstring(adb("exec-out", "cat", path, check=False))
+        except E.ParseError:
+            continue
+        for record in root.iter("Variable"):
+            fields = {child.tag.casefold(): child.text or "" for child in record}
+            name = fields.get("name", fields.get("nme", "")).lstrip("%")
+            if name in ["SFDState", "SFDResult"]:
+                found[name] = fields.get("val", fields.get("value", ""))
+        for record in root.iter("string"):
+            name = record.get("name", "").lstrip("%")
+            if name in ["SFDState", "SFDResult"]:
+                found[name] = record.text or ""
+    REPORT["observed_result_variables"] = found
+    return found
+
 def run():
     adb("root", check=False)
     adb("wait-for-device", timeout=60)
@@ -222,7 +248,8 @@ def run():
     time.sleep(2)
     back_to_tasks()
     root, data = save_and_read()
-    check(b"Santa Fe Direct 1.0.0 loaded." in data and b"executable action(s)" in data, "Actual Tasker executes offline Core verification successfully")
+    result = read_result_variables()
+    check(result.get("SFDState") == "READY" and result.get("SFDResult", "").startswith("Santa Fe Direct 1.0.0 loaded. Core has 1 executable action(s)."), "Actual Tasker executes offline Core verification successfully")
     startup()
     root = open_task("SFD Setup")
     check(any("Perform Task" in n.get("text", "") for n in nodes(root)), "Tasker editor displays the executable setup wrapper")
