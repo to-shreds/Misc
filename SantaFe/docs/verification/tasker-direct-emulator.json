@@ -5,11 +5,12 @@
   "vehicle_commands_run": false,
   "passed": false,
   "checks": [],
-  "project_sha256": "23932bb163f25393c8b802d6848762e113417dcf1a0308386b7851d3b98b84b0",
-  "error": "Unhandled Tasker startup UI: [\"Pixel Launcher isn't responding\", 'Close app', 'Wait']",
+  "project_sha256": "a16e88d5f5583cea58f3687249adfe557e2de8f46a3765efe4b62aa1e0ac9e11",
+  "error": "Unhandled Tasker startup UI: ['Loading', 'Checking Draw Over Other Apps...']",
   "last_ui": [
-    "Pixel Launcher isn't responding",
-    "Close app",
-    "Wait"
+    "Before We Get Started",
+    "",
+    "OK",
+    ""
   ]
 }
