@@ -5,19 +5,11 @@
   "vehicle_commands_run": false,
   "passed": false,
   "checks": [],
-  "project_sha256": "a191f9d84db2159b8db1f650b8aba253e2f863c79dca44fb794602115ece27fb",
-  "error": "Unhandled Tasker startup UI: ['Make Your Choice', '', 'Tasky', 'Tasky', 'A beginner-friendly experience!', \"Allows you to easily import pre-made routines and customize them to your liking. You won't be able to do everything, but many automations will be available to you with minimal effort!\", '', 'Tasker', 'Tasker', 'The full experience!', 'Unlock the full power of Tasker and automate absolutely everything on your phone! This is the classic Tasker that has been used for more than a decade. In Tasker, your imagination is the limit!']",
+  "project_sha256": "23932bb163f25393c8b802d6848762e113417dcf1a0308386b7851d3b98b84b0",
+  "error": "Unhandled Tasker startup UI: [\"Pixel Launcher isn't responding\", 'Close app', 'Wait']",
   "last_ui": [
-    "Make Your Choice",
-    "",
-    "Tasky",
-    "Tasky",
-    "A beginner-friendly experience!",
-    "Allows you to easily import pre-made routines and customize them to your liking. You won't be able to do everything, but many automations will be available to you with minimal effort!",
-    "",
-    "Tasker",
-    "Tasker",
-    "The full experience!",
-    "Unlock the full power of Tasker and automate absolutely everything on your phone! This is the classic Tasker that has been used for more than a decade. In Tasker, your imagination is the limit!"
+    "Pixel Launcher isn't responding",
+    "Close app",
+    "Wait"
   ]
 }
