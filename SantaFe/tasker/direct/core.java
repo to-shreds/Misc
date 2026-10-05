@@ -31,8 +31,9 @@ String sfPollOnce() {
     String status = data.optString("status");
     if (status.equals("SUCCESS")) { sfClearMarker(); return "SUCCESS"; }
     if (status.equals("ERROR")) { sfClearMarker(); return "FAILED"; }
-    // Never poll sooner than Hyundai asks. A long interval ends this bounded wait.
-    int interval = Math.max(5, data.optInt("nextPollingInterval", 10));
+    // The upstream client uses a fixed polling delay. The tester establishes
+    // response states, but not the unit of nextPollingInterval. Do not guess it.
+    int interval = 10;
     pending.put("interval", interval); pending.put("nextAllowedAt", sfNow() + interval * 1000L);
     return status.equals("PENDING") ? "PENDING" : "UNKNOWN";
 }

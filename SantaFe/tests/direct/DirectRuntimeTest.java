@@ -147,6 +147,7 @@ public class DirectRuntimeTest {
         for(Map.Entry<String,String> entry:expected.entrySet()) check(entry.getValue().equals(r.header(entry.getKey())),"common header "+entry.getKey());
         check(r.header("client_id").equals("m66129Bb-em93-SPAHYN-bZ91-am4540zp19920") && r.header("clientSecret").equals("v558o935-6nne-423i-baa8"),"existing public client identifiers");
         check(r.header("Cookie")==null && r.header("Authorization")==null,"no cookie or substituted authorization scheme");
+        check(!r.header("offset").endsWith(".0"),"whole-hour offset matches the working JavaScript representation");
     }
     static void vehicleHeaders(Request r,String vin,String regid) {
         check(r.header("registrationId").equals(regid) && r.header("vin").equals(vin) && r.header("gen").equals("3"),"vehicle header parity");
@@ -162,7 +163,7 @@ public class DirectRuntimeTest {
         test("initial login and cached status",()->{Fixture f=f();f.connect();check(f.session().get("token").equals("fixture-token") && !f.tasker.variables.containsValue("fixture-token"),"token only Java object");});
         test("live session reused and explicit refresh",()->{Fixture f=f();f.connect();int n=f.seen.size();f.status(true);f.run("refresh");check(f.seen.size()==n+1,"no extra credential request");});
         test("expired session authenticates before read",()->{Fixture f=f();f.connect();f.now+=2000000;f.login();f.enroll();f.status(false);f.run("status");check(f.state().equals("READ"),"expiry repaired");});
-        test("lock completes after bounded pending poll",()->{Fixture f=f();f.connect();f.status(false);f.command("lock",200,"","fixture-tid");f.poll("PENDING");f.poll("SUCCESS");f.run("lock");check(f.state().equals("SUCCESS")&&!f.marker().exists(),"lock completion clears guard");check(f.delays.equals(List.of(10000L,7000L)),"honors poll interval");});
+        test("lock completes after bounded pending poll",()->{Fixture f=f();f.connect();f.status(false);f.command("lock",200,"","fixture-tid");f.poll("PENDING");f.poll("SUCCESS");f.run("lock");check(f.state().equals("SUCCESS")&&!f.marker().exists(),"lock completion clears guard");check(f.delays.equals(List.of(10000L,10000L)),"bounded fixed polling interval without guessing API units");});
         test("unlock completion and no replay",()->{Fixture f=f();f.connect();f.status(false);f.command("unlock",200,"","fixture-tid");f.poll("SUCCESS");f.run("unlock");check(f.state().equals("SUCCESS"),"unlock completes");});
         test("remote start body and saved settings",()->{Fixture f=f();f.connect();f.tasker.setVariable("SFDTemperature","68");f.tasker.setVariable("SFDDuration","7");f.tasker.setVariable("SFDDefrost","1");f.status(false);Expected c=f.command("start",200,"","fixture-tid");java.util.function.Consumer<Request> original=c.inspect;c.inspect=r->{original.accept(r);JSONObject b=body(r);check(b.getJSONObject("airTemp").getInt("value")==68&&b.getInt("igniOnDuration")==7&&b.getBoolean("defrost"),"saved climate settings");};f.poll("SUCCESS");f.run("start");check(f.state().equals("SUCCESS"),"start completes");});
         test("remote stop has empty request body",()->{Fixture f=f();f.connect();f.status(false);f.command("stop",200,"","fixture-tid");f.poll("SUCCESS");f.run("stop");check(f.state().equals("SUCCESS"),"stop completes");});

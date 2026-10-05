@@ -57,9 +57,11 @@ JSONObject sfRequest(String method, String path, JSONObject body, boolean auth, 
     try { until = Long.parseLong(sfValue("SFDWaitUntil")); } catch (Exception ignored) {}
     if (sfNow() < until) sfFail("Hyundai rate limited requests. Wait five minutes before trying again.");
     Request.Builder builder = new Request.Builder().url("https://api.telematics.hyundaiusa.com" + path);
+    int offsetMillis = TimeZone.getDefault().getOffset(sfNow());
+    String offset = offsetMillis % 3600000 == 0 ? String.valueOf(offsetMillis / 3600000) : String.valueOf(offsetMillis / 3600000.0);
     builder.header("Content-Type", "application/json;charset=UTF-8")
         .header("Accept", "application/json, text/plain, */*").header("from", "SPA").header("to", "ISS")
-        .header("language", "0").header("offset", String.valueOf(TimeZone.getDefault().getOffset(sfNow()) / 3600000.0))
+        .header("language", "0").header("offset", offset)
         .header("refresh", "false").header("encryptFlag", "false").header("brandIndicator", "H")
         .header("client_id", "m66129Bb-em93-SPAHYN-bZ91-am4540zp19920")
         .header("clientSecret", "v558o935-6nne-423i-baa8")

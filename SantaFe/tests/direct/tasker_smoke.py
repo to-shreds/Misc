@@ -68,6 +68,11 @@ def startup():
     time.sleep(2)
     for _ in range(18):
         root = screen()
+        if any("Pixel Launcher isn't responding" in n.get("text", "") for n in nodes(root)):
+            click(root, ["Close app"])
+            adb("shell", "am", "start", "-n", PACKAGE + "/.Tasker")
+            time.sleep(2)
+            continue
         if matching(root, "Tasks") is not None or matching(root, "TASKS") is not None:
             return root
         if not click(root, ["Tasker", "Accept", "I Agree", "I accept", "Start Trial", "Continue", "Get Started", "Next", "OK", "Got it", "Allow", "Skip", "Cancel", "Later", "No"]):
