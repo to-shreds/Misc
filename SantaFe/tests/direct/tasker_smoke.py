@@ -68,6 +68,13 @@ def startup():
     time.sleep(2)
     for _ in range(30):
         root = screen()
+        if any(n.get("package") == "com.android.chrome" for n in nodes(root)):
+            # Tasker's vendor-help link opened Chrome. No browser setup or
+            # account is needed for this test; return to Tasker's onboarding.
+            adb("shell", "input", "keyevent", "4")
+            adb("shell", "am", "start", "-n", PACKAGE + "/.Tasker")
+            time.sleep(1)
+            continue
         if any("Pixel Launcher isn't responding" in n.get("text", "") for n in nodes(root)):
             click(root, ["Close app"])
             adb("shell", "am", "start", "-n", PACKAGE + "/.Tasker")
