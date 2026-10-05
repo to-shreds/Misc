@@ -88,6 +88,18 @@ def startup():
             adb("shell", "am", "start", "-n", PACKAGE + "/.Tasker")
             time.sleep(1)
             continue
+        if matching(root, "Placeholder - Please Disable") is not None and any(n.get("package") == "com.android.settings" for n in nodes(root)):
+            # Tasker's checklist opens this particular notification channel and
+            # explicitly asks for it to be disabled on a fresh Android install.
+            switch = next((n for n in nodes(root) if n.get("resource-id") == "android:id/switch_widget" and n.get("checkable") == "true"), None)
+            if switch is None:
+                raise RuntimeError("No observed placeholder notification switch")
+            if switch.get("checked") == "true":
+                tap(switch)
+            adb("shell", "input", "keyevent", "4")
+            adb("shell", "am", "start", "-n", PACKAGE + "/.Tasker")
+            time.sleep(1)
+            continue
         if any("Pixel Launcher isn't responding" in n.get("text", "") for n in nodes(root)):
             click(root, ["Close app"])
             adb("shell", "am", "start", "-n", PACKAGE + "/.Tasker")
