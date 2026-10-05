@@ -195,11 +195,28 @@ def open_task(name):
     for _ in range(4):
         adb("shell", "input", "swipe", "500", "450", "500", "1500", "150")
     root = screen()
-    for _ in range(12):
+    for _ in range(20):
         node = matching(root, name)
         if node is not None:
+            bounds = [int(v) for v in re.findall(r"\d+", node.get("bounds", ""))]
+            if len(bounds) == 4 and (bounds[1] + bounds[3]) // 2 > 1800:
+                # A visible label can overlap the bottom project bar. Move it
+                # into the middle of the task list before tapping it.
+                adb("shell", "input", "swipe", "500", "1600", "500", "1000", "300")
+                time.sleep(0.5)
+                root = screen()
+                continue
             tap(node)
-            return screen()
+            root = screen()
+            if matching(root, "Task Edit") is not None or any(
+                word in n.get("text", "") for n in nodes(root)
+                for word in ["Java Code", "Perform Task", "Destroy Scene"]
+            ):
+                return root
+            # Re-observe a task-list transition; never try Run on the list.
+            time.sleep(0.5)
+            root = screen()
+            continue
         adb("shell", "input", "swipe", "500", "1500", "500", "450", "300")
         time.sleep(0.5)
         root = screen()
