@@ -152,12 +152,21 @@ def import_project():
         if any(n.get("text", "").startswith("SFD ") for n in nodes(root)):
             return root
         if matching(root, "Tasks") is not None:
+            if matching(root, "Apply") is not None:
+                click(root, ["Apply"])
+                root = screen()
             if matching(root, "Santa Fe Direct") is not None:
                 click(root, ["Santa Fe Direct"])
+                root = screen()
             click(root, ["Tasks"])
+            time.sleep(0.8)
             root = screen()
             if any(n.get("text", "").startswith("SFD ") for n in nodes(root)):
                 return root
+            # Import/apply can replace the pager after a tab tap. Re-observe and
+            # select Tasks again within the bound instead of treating a main
+            # screen transition as an XML failure.
+            continue
         if click(root, ["Santa_Fe_Direct.prj.xml", "Santa_Fe_Direct", "Download", "Downloads", "projects"]):
             continue
         if not click(root, ["Allow", "Allow all", "Yes", "Import", "OK", "Continue", "Done", "No"]):
@@ -248,6 +257,7 @@ def read_result_variables():
 
 def capture_native_configuration():
     listing = adb("shell", "find", "/data/data/" + PACKAGE + "/files", "-maxdepth", "3", "-type", "f", check=False).decode()
+    (RESULTS / "native-files.txt").write_text(listing)
     for index, path in enumerate(listing.splitlines()):
         if not path.endswith(".xml"):
             continue
@@ -260,7 +270,7 @@ def capture_native_configuration():
             (RESULTS / f"native-config-{index}.xml").write_bytes(data)
 
 def run():
-    adb("root", check=False)
+    REPORT["adb_root"] = adb("root", check=False).decode().strip()
     adb("wait-for-device", timeout=60)
     for operation in ["SYSTEM_ALERT_WINDOW", "WRITE_SETTINGS", "MANAGE_EXTERNAL_STORAGE"]:
         adb("shell", "appops", "set", PACKAGE, operation, "allow", check=False)
