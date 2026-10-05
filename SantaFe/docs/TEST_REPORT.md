@@ -1,4 +1,24 @@
-# Current benchmark: API Lab 0.3.2 confirmed vehicle reads
+# Current benchmark: API Lab 0.3.3 saved accounts
+
+The latest private 0.3.2 phone export confirms lock submission followed by SUCCESS polling. Unlock submissions returned HTTP 200; the recorded unlock poll was PENDING. Jon reports that both controls worked physically. Later cached timestamps advanced. Only safe derived evidence and placeholder recipes are published; the raw account response is private.
+
+Account settings can now remember email/password/PIN encrypted natively with Android Keystore AES-256-GCM in private no-backup storage. Access tokens remain memory-only. Startup restores account availability without logging in; Connect reuses saved details. Explicit Save/Update ends the previous session. Disconnect retains the saved account; Forget clears current credentials and preserves any unresolved-command warning, including on a storage-removal failure. Saved details never enter WebStorage or log exports. The WebView/session now survive ordinary app switching and export; activity/process destruction clears the live session.
+
+Verification:
+
+- 64 client regressions and 25 actual Chromium scenarios pass, with zero unexpected requests. They cover saved credentials, opt-out, reconnect, update, forget, generic failure handling, redaction and unresolved-command gates. All account/API responses in these suites are fixtures.
+- 83 host encryption/store checks pass using genuine JCE AES/GCM, including fresh IVs, authenticated corruption rejection, validation, failure points and deletion.
+- 137 native policy and 61 native transport checks pass. The signed Android release and separate instrumentation package compile; APK alignment, v2/v3 signatures, version 6/0.3.3, retained signing certificate and Internet-only permission verify. All three bundled assets match source. No signing material or fixture code is included.
+- Mobile saved-account and unsaved reconnect screens were checked without clipping or horizontal overflow. The final Chromium check caught a collapsed required-field reconnect defect; the two-line fix was followed by successful final suites and APK rebuilding.
+- The cloud workflow's invalid expression, missing SDK initialization and non-executable script assumptions were fixed. Actionlint 1.7.12 and all 17 Bash blocks pass syntax checks. The isolated Android 15/API 35 emulator ran 56 instrumentation checks successfully, including genuine Keystore encryption, recreation/restoration, corruption rejection and deletion.
+
+APK: android/dist/SantaFe-API-Lab-0.3.3.apk, 62,296 bytes. SHA-256: fa176ff122be5948fb4ece2c49d0bd08032386f05985ed36fbddf7bfb62f3c4a. All three prior APKs remain byte-for-byte unchanged.
+
+Cloud run: https://github.com/to-shreds/Misc/actions/runs/37262643353 on 7d41c9078fef89ac84e64687150d6058fe61ff5e. Both jobs passed, including 92 Python/Tasker, 64 client, 137 policy, 61 transport and 83 encrypted-store checks. The emulator used a CI-only signing identity; the private release key and user credentials were absent. Machine-readable proof: verification/android-cloud-verification-v0.3.3.json.
+
+The 0.3.3 phone update, climate/light/horn controls and Tasker import/runtime remain acceptance checks. Account-holder physical reports and fixture results are recorded separately.
+
+# Earlier benchmark: API Lab 0.3.2 confirmed vehicle reads
 
 The latest supplied 0.3.1 native phone export confirms HTTP 200 login, literal-@ enrollment with one active vehicle, cached status and refresh:true status. The encoded-@ enrollment failed C500 in the same session. Both status responses contained the identical earlier vehicle sample and timestamp, so fresh physical data remains unconfirmed. No remote control request ran. Only derived evidence is published; the private response and its identifiers are not republished.
 

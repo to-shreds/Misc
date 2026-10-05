@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-05T03:38:27.914496Z",
+  "generated_at": "2026-10-05T03:59:35.250967Z",
   "evidence": "account-log-review.json",
-  "canonical_implementation": "SantaFe/diagnostic.js 0.3.2",
+  "canonical_implementation": "SantaFe/diagnostic.js 0.3.3",
   "source_commit": "82801884bdf619c5f2a35ff6bbae1693d2e1a3e8",
-  "scope": "Confirmed in the user-supplied 0.3.1 native phone session. Placeholder identities only; no account request submitted by the agent.",
-  "base_url": "https://owners.hyundaiusa.com",
+  "scope": "Confirmed in user-supplied 0.3.1/0.3.2 native phone sessions and physical lock/unlock report. Placeholder identities only; no real account request submitted by the agent.",
+  "base_url": "https://api.telematics.hyundaiusa.com",
   "common_headers": {
     "Content-Type": "application/json;charset=UTF-8",
     "Accept": "application/json, text/plain, */*",
@@ -17,8 +17,8 @@
     "brandIndicator": "H",
     "client_id": "<existing public client identifier from diagnostic.js>",
     "clientSecret": "<existing public client value from diagnostic.js>",
-    "Origin": "https://owners.hyundaiusa.com",
-    "Referer": "https://owners.hyundaiusa.com/login"
+    "Origin": "https://api.telematics.hyundaiusa.com",
+    "Referer": "https://api.telematics.hyundaiusa.com/login"
   },
   "authenticated_headers": {
     "username": "<entered username>",
@@ -63,7 +63,7 @@
       "header_overrides": {
         "refresh": "false"
       },
-      "confirmed": "HTTP 200 with vehicleStatus; dateTime determines freshness"
+      "confirmed": "HTTP 200 with vehicleStatus; later cached timestamps advanced. dateTime still determines freshness."
     },
     {
       "label": "Requested fresh vehicle status",
@@ -77,21 +77,63 @@
       },
       "confirmed": "HTTP 200 response, identical to cached body and dateTime",
       "fresh_physical_observation_confirmed": false
+    },
+    {
+      "label": "Unlock",
+      "method": "POST",
+      "path": "/ac/v2/rcs/rdo/on",
+      "body": {
+        "userName": "<entered username>",
+        "vin": "<selected enrollment vin>"
+      },
+      "authenticated_headers": true,
+      "vehicle_headers": true,
+      "additional_headers": {
+        "APPCLOUD-VIN": "<selected enrollment vin>"
+      },
+      "confirmed": "HTTP 200 with empty body and tmstid; user reports physical success. Sole recorded poll was PENDING, not terminal SUCCESS."
+    },
+    {
+      "label": "Lock",
+      "method": "POST",
+      "path": "/ac/v2/rcs/rdo/off",
+      "body": {
+        "userName": "<entered username>",
+        "vin": "<selected enrollment vin>"
+      },
+      "authenticated_headers": true,
+      "vehicle_headers": true,
+      "additional_headers": {
+        "APPCLOUD-VIN": "<selected enrollment vin>"
+      },
+      "confirmed": "HTTP 200 with empty body and tmstid; subsequent poll SUCCESS and user reports physical success."
+    },
+    {
+      "label": "Lock/unlock transaction result",
+      "method": "GET",
+      "path": "/ac/v2/rmt/getRunningStatus",
+      "body": null,
+      "authenticated_headers": true,
+      "vehicle_headers": true,
+      "additional_headers": {
+        "tid": "<command response tmstid>",
+        "login_id": "<entered username>",
+        "service_type": "REMOTE_POLL"
+      },
+      "confirmed": "HTTP 200 with nextPollingInterval, tid and status. Unlock poll PENDING; lock poll SUCCESS. Empty command bodies do not imply completion."
     }
   ],
   "unconfirmed_remote_features": [
-    "lock",
-    "unlock",
     "climate_start",
     "climate_stop",
     "lights",
-    "horn_lights",
-    "transaction polling and physical completion"
+    "horn_lights"
   ],
   "tasker_constraints": [
-    "Keep credentials and token in volatile Java objects, never ordinary persistent Tasker variables",
-    "Preserve original bridge project; separate direct read-only candidate",
-    "Phone import must show actual actions and runtime reads must be tested",
-    "Remote controls and automatic profiles remain disabled until individually confirmed"
-  ]
+    "Keep token and session secrets in volatile Java objects; any remembered credentials must use native encrypted storage, never ordinary persistent Tasker variables",
+    "Preserve original bridge project; confirm actual imported actions and runtime on the phone",
+    "Lock and unlock have user-reported physical success; other controls and automatic profiles remain disabled until individually confirmed",
+    "Never resend a command with unknown outcome; preserve its transaction and physical acknowledgement gate"
+  ],
+  "recipe_correction": "Earlier derived documentation incorrectly named owners.hyundaiusa.com. The confirmed runtime and supplied requests consistently use api.telematics.hyundaiusa.com; runtime endpoints were not changed."
 }

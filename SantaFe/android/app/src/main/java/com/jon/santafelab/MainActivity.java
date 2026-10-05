@@ -47,6 +47,7 @@ public final class MainActivity extends Activity {
     private FrameLayout root;
     private WebView page;
     private NativeTransport transport;
+    private AccountStore accountStore;
     private volatile boolean trustedPage;
     private boolean loaded;
     private byte[] pendingExport;
@@ -75,15 +76,20 @@ public final class MainActivity extends Activity {
             return insets.consumeSystemWindowInsets();
         });
         setContentView(root);
+        accountStore = new AccountStore(getApplicationContext());
     }
 
     @Override public void onStart() {
         super.onStart();
         if (page == null) createPage();
+        page.resumeTimers();
+        page.onResume();
     }
 
     @Override public void onStop() {
-        destroyPage(); // Leaving the app, including the file picker, ends the login session.
+        // Preserve the live account/session when switching apps or saving a test log.
+        // Tokens remain memory-only and disappear when this Activity is destroyed.
+        if (page != null) { page.onPause(); page.pauseTimers(); }
         super.onStop();
     }
 
@@ -227,6 +233,15 @@ public final class MainActivity extends Activity {
         Bridge(WebView view, NativeTransport connection) { this.view = view; this.connection = connection; }
         private boolean trusted() { return trustedPage && page == view; }
         @JavascriptInterface public String getVersion() { return trusted() ? "1" : ""; }
+        @JavascriptInterface public String loadAccount() {
+            return trusted() ? accountStore.loadAccount() : "{\"saved\":false}";
+        }
+        @JavascriptInterface public boolean saveAccount(String json) {
+            return trusted() && accountStore.saveAccount(json);
+        }
+        @JavascriptInterface public boolean forgetAccount() {
+            return trusted() && accountStore.forgetAccount();
+        }
         @JavascriptInterface public void request(String envelope) { if (trusted()) connection.request(envelope); }
         @JavascriptInterface public void cancel(String id) { if (trusted()) connection.cancel(id); }
         @JavascriptInterface public boolean exportLog(String json) {

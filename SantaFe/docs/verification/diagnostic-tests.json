@@ -1,41 +1,101 @@
 {
-  "generated_at": "2026-10-05T03:31:28.601Z",
+  "generated_at": "2026-10-05T04:07:50.886Z",
   "method": "Node VM UI fixture execution of shipped scripts; all HTTP responses mocked; no Hyundai account or vehicle used",
   "results": [
     {
       "test": "Helper-required setup blocks credentials and every programmatic login without direct fallback",
       "passed": true,
-      "elapsed_ms": 27
+      "elapsed_ms": 19
     },
     {
       "test": "Only a valid same-window helper hello enables credentials and Automatic uses the helper",
       "passed": true,
-      "elapsed_ms": 6
+      "elapsed_ms": 8
     },
     {
       "test": "Bundled Android page enables login immediately and exclusively uses native Hyundai transport",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 4
     },
     {
       "test": "Native interface cannot be used on a public origin or an unexpected bundled path",
       "passed": true,
-      "elapsed_ms": 5
+      "elapsed_ms": 9
     },
     {
       "test": "Absent or incomplete native interface keeps bundled credentials locked even in Direct mode",
       "passed": true,
+      "elapsed_ms": 6
+    },
+    {
+      "test": "Saved-account controls require the trusted native page and all three storage methods",
+      "passed": true,
+      "elapsed_ms": 5
+    },
+    {
+      "test": "Trusted native startup restores only the saved username, keeps settings collapsed and never sends a request",
+      "passed": true,
+      "elapsed_ms": 2
+    },
+    {
+      "test": "Manual Connect loads saved native credentials and Disconnect permits reconnect without typing them again",
+      "passed": true,
+      "elapsed_ms": 9
+    },
+    {
+      "test": "Explicit native account Save and Update never log in, then Forget clears forms and saved credentials",
+      "passed": true,
+      "elapsed_ms": 2
+    },
+    {
+      "test": "Remember unchecked leaves a native login transient and does not persist supplied credentials",
+      "passed": true,
       "elapsed_ms": 4
+    },
+    {
+      "test": "Successful native login saves the account once and later startup restores no tokens or session",
+      "passed": true,
+      "elapsed_ms": 7
+    },
+    {
+      "test": "Updating saved credentials ends the previous session without sending a request and requires a manual reconnect",
+      "passed": true,
+      "elapsed_ms": 5
+    },
+    {
+      "test": "Saved credentials are never silently combined with a different entered email address",
+      "passed": true,
+      "elapsed_ms": 2
+    },
+    {
+      "test": "Native load and save failures produce generic messages without credential leakage or automatic retry",
+      "passed": true,
+      "elapsed_ms": 7
+    },
+    {
+      "test": "Native save is withheld for failed login, and Forget failure does not claim deletion or expose bridge exceptions",
+      "passed": true,
+      "elapsed_ms": 4
+    },
+    {
+      "test": "Native saved-account actions cannot bypass busy or unresolved-command guards",
+      "passed": true,
+      "elapsed_ms": 8
+    },
+    {
+      "test": "Forgetting an account preserves an unresolved command guard and never transmits or retries a command",
+      "passed": true,
+      "elapsed_ms": 2
     },
     {
       "test": "Native exports pass only sanitized data and distinguish choosing a file from saving it",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 19
     },
     {
       "test": "Native export rejection does not claim a file was written",
       "passed": true,
-      "elapsed_ms": 1
+      "elapsed_ms": 2
     },
     {
       "test": "Native stop cancels once, ignores late responses and never retries login",
@@ -50,7 +110,7 @@
     {
       "test": "Pagehide retains redaction values until an aborted request logs opaque echoed secrets",
       "passed": true,
-      "elapsed_ms": 4
+      "elapsed_ms": 3
     },
     {
       "test": "Native timeout cancels the request and does not fall back or retry",
@@ -60,107 +120,107 @@
     {
       "test": "Native callbacks ignore unknown identifiers and reject malformed or failed responses",
       "passed": true,
-      "elapsed_ms": 6
+      "elapsed_ms": 9
     },
     {
       "test": "Native transaction headers reach polling and command acceptance remains distinct from completion",
       "passed": true,
-      "elapsed_ms": 7
+      "elapsed_ms": 8
     },
     {
       "test": "Native command guard and sanitized start record are persisted before transmission",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 5
     },
     {
       "test": "Native restart preserves unknown-command gate while allowing reads and explicit physical acknowledgement",
       "passed": true,
-      "elapsed_ms": 9
+      "elapsed_ms": 16
     },
     {
       "test": "Definitive native SUCCESS or ERROR clears guard, while pending and unknown polling preserve it",
       "passed": true,
-      "elapsed_ms": 16
+      "elapsed_ms": 21
     },
     {
       "test": "Cancelled confirmation, invalid climate, and unavailable storage never save or send a command",
       "passed": true,
-      "elapsed_ms": 7
+      "elapsed_ms": 11
     },
     {
       "test": "Malformed persisted guard remains conservative and acknowledgement cannot bypass a failed storage clear",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 4
     },
     {
       "test": "Login, enrollment and cached status run in order and clear credentials",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 8
     },
     {
       "test": "Refresh requests distinguish an unchanged vehicle timestamp from a new returned timestamp without claiming a physical observation",
       "passed": true,
-      "elapsed_ms": 9
+      "elapsed_ms": 11
     },
     {
       "test": "Logged login success followed by enrollment C500 preserves session and enables only a manual lookup test",
       "passed": true,
-      "elapsed_ms": 2
+      "elapsed_ms": 5
     },
     {
       "test": "HTTP 502 with IDM_401_1 identifies incorrect credentials and never enables the post-login lookup",
       "passed": true,
-      "elapsed_ms": 2
+      "elapsed_ms": 3
     },
     {
       "test": "Manual encoded-at alternate lookup reuses token and PIN once and remembers only a confirmed enrollment format",
       "passed": true,
-      "elapsed_ms": 5
+      "elapsed_ms": 7
     },
     {
       "test": "A confirmed alternate that later fails can be deliberately compared back to the default form",
       "passed": true,
-      "elapsed_ms": 8
+      "elapsed_ms": 9
     },
     {
       "test": "Failed or malformed alternate enrollment never retries or promotes the unconfirmed email format",
       "passed": true,
-      "elapsed_ms": 9
+      "elapsed_ms": 15
     },
     {
       "test": "Alternate lookup error text and its encoded-at URL are sanitized before display, storage and export",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 5
     },
     {
       "test": "Busy manual lookup disables competing actions and duplicate clicks produce only one GET",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 5
     },
     {
       "test": "An expired session prevents the alternate lookup from sending a request and disables its button",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 4
     },
     {
       "test": "Stopping or leaving a delayed alternate lookup rejects its late success without adopting the format or exposing identity",
       "passed": true,
-      "elapsed_ms": 9
+      "elapsed_ms": 17
     },
     {
       "test": "Cached-status failure cannot offer an unrelated alternate enrollment lookup",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 5
     },
     {
       "test": "A later enrollment failure invalidates stale read status and withholds new commands",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 9
     },
     {
       "test": "An enrollment failure cannot enable an alternate lookup while a command awaits its outcome",
       "passed": true,
-      "elapsed_ms": 4
+      "elapsed_ms": 3
     },
     {
       "test": "Saved and copied logs redact credentials, identifiers, coordinates and echoed secrets",
@@ -175,7 +235,7 @@
     {
       "test": "Previously saved enrollment identifier fields are sanitized again when the updated tester loads them",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 2
     },
     {
       "test": "Non-JSON authentication errors retain status without raw response text",
@@ -185,7 +245,7 @@
     {
       "test": "Connection check after login sends no account identity, access token or service PIN",
       "passed": true,
-      "elapsed_ms": 4
+      "elapsed_ms": 3
     },
     {
       "test": "Empty HTTP 200 login does not invent an authenticated session or vehicle data",
@@ -195,7 +255,7 @@
     {
       "test": "Malformed enrollment and status response shapes cannot enable vehicle commands",
       "passed": true,
-      "elapsed_ms": 5
+      "elapsed_ms": 4
     },
     {
       "test": "HTTP 429 stops the read sequence and never retries",
@@ -220,7 +280,7 @@
     {
       "test": "Accepted command without transaction ID stays unresolved and cannot be retried",
       "passed": true,
-      "elapsed_ms": 4
+      "elapsed_ms": 5
     },
     {
       "test": "Command is observed first and confirmed only after SUCCESS transaction result",
@@ -235,12 +295,12 @@
     {
       "test": "Rereading enrollment after a command preserves polling for the same vehicle identifiers",
       "passed": true,
-      "elapsed_ms": 5
+      "elapsed_ms": 8
     },
     {
       "test": "Climate validation blocks unsafe or unknown engine settings before transmission",
       "passed": true,
-      "elapsed_ms": 9
+      "elapsed_ms": 11
     },
     {
       "test": "Browser helper rejects non-Hyundai, unknown endpoints, invalid methods and injectable headers",

@@ -1,0 +1,34 @@
+{
+  "run_id": 37262643353,
+  "commit": "7d41c9078fef89ac84e64687150d6058fe61ff5e",
+  "runtime_job": 111612906102,
+  "regression_job": 111612906342,
+  "android_api": 35,
+  "android_version": "15",
+  "instrumentation_checks": 56,
+  "artifact_id": 11324613110,
+  "artifact_sha256": "4f9afc480c1ecba50a425a564eb14aa5576c68dc9bdbcf5fadac7b193788ff65",
+  "verified_at": "2026-10-05T04:18:58.533565Z",
+  "run_url": "https://github.com/to-shreds/Misc/actions/runs/37262643353",
+  "result": "PASS",
+  "scope": "Release-source APK built and installed with an ephemeral CI-only signing key on an isolated Android 15 emulator. No user credentials, private release key or real vehicle used.",
+  "regression_counts": {
+    "python_tasker": 92,
+    "diagnostic_client": 64,
+    "request_policy": 137,
+    "native_transport": 61,
+    "encrypted_account_store": 83
+  },
+  "local_browser": {
+    "passed": 25,
+    "unexpected_requests": 0
+  },
+  "instrumentation_scope": [
+    "Bundled page/native bridge and restrictions",
+    "Background/return retains WebView and form state",
+    "Actual Android Keystore encryption and nonexportable key",
+    "Account restoration after Activity recreation without auto login",
+    "Ciphertext corruption rejection and account/key deletion"
+  ],
+  "screenshot_limit": "Android FLAG_SECURE produces a black app screenshot. Visual layout checks use separate actual Chromium fixture screenshots; the emulator screenshot is not visual app verification."
+}

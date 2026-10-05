@@ -2,6 +2,7 @@ package com.jon.santafelab.runtime;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -10,11 +11,16 @@ import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import org.json.JSONObject;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.KeyStore;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-/** Credential-free, no-network checks against the unmodified signed release app. */
+/** Synthetic-account, no-network checks against the unmodified signed release app.
+ * Run only on a disposable test device with no existing saved account. */
 public final class RuntimeVerification extends Instrumentation {
     private int checks;
     private Activity activity;
@@ -36,6 +42,10 @@ public final class RuntimeVerification extends Instrumentation {
             require(initial.optBoolean("downloadHidden"), "APK download hidden in app");
             require("Direct Hyundai connection".equals(initial.optString("transport")), "native connection indicator");
             require("Signed out".equals(initial.optString("session")), "fresh session signed out");
+
+            JSONObject originalAccount = new JSONObject(evaluate(page, "SantaFeNative.loadAccount()"));
+            require(!originalAccount.optBoolean("saved"), "disposable test device has no existing saved account");
+            require(!originalAccount.has("error"), "empty saved-account store readable");
 
             final WebView installed = page;
             runOnMainSync(() -> {
@@ -67,11 +77,64 @@ public final class RuntimeVerification extends Instrumentation {
             });
             page = waitForPage();
             JSONObject reopened = inspect(page);
-            require(page != first, "new WebView after leaving app");
-            require(!reopened.optBoolean("hasPassword"), "password cleared after leaving app");
-            require(!reopened.optBoolean("hasEmail"), "email cleared after leaving app");
-            require(!reopened.optBoolean("hasPin"), "PIN cleared after leaving app");
-            require("Signed out".equals(reopened.optString("session")), "session cleared after leaving app");
+            require(page == first, "same WebView after ordinary background and return");
+            require(reopened.optBoolean("hasPassword"), "password form preserved after ordinary background");
+            require(reopened.optBoolean("hasEmail"), "email form preserved after ordinary background");
+            require(reopened.optBoolean("hasPin"), "PIN form preserved after ordinary background");
+            require("Signed out".equals(reopened.optString("session")), "ordinary background did not submit login");
+
+            String fixture = "{\"username\":\"fixture@example.invalid\",\"password\":\"DONT_SEND_FIXTURE_PASSWORD\",\"pin\":\"1234\"}";
+            require("true".equals(evaluate(page, "SantaFeNative.saveAccount(" + JSONObject.quote(fixture) + ")")), "native account save accepted synthetic credentials");
+            JSONObject savedAccount = new JSONObject(evaluate(page, "SantaFeNative.loadAccount()"));
+            require(savedAccount.optBoolean("saved"), "saved account readable");
+            require("fixture@example.invalid".equals(savedAccount.optString("username")), "saved synthetic username matches");
+            require("DONT_SEND_FIXTURE_PASSWORD".equals(savedAccount.optString("password")), "saved synthetic password matches");
+            require("1234".equals(savedAccount.optString("pin")), "saved synthetic PIN matches");
+            Context target = getTargetContext();
+            File stored = new File(target.getNoBackupFilesDir(), "saved-account-v1.bin");
+            require(stored.isFile(), "encrypted record stored in no-backup directory");
+            byte[] encrypted = Files.readAllBytes(stored.toPath());
+            String raw = new String(encrypted, StandardCharsets.ISO_8859_1);
+            require(!raw.contains("fixture@example.invalid"), "encrypted file does not contain plaintext username");
+            require(!raw.contains("DONT_SEND_FIXTURE_PASSWORD"), "encrypted file does not contain plaintext password");
+            require(!raw.contains("1234"), "encrypted file does not contain plaintext PIN");
+            KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+            keyStore.load(null);
+            require(keyStore.containsAlias("com.jon.santafelab.saved-account.v1"), "Android Keystore encryption key exists");
+            require(keyStore.getKey("com.jon.santafelab.saved-account.v1", null).getEncoded() == null, "Android Keystore key cannot be exported");
+
+            Activity oldActivity = activity;
+            ActivityMonitor replacement = addMonitor("com.jon.santafelab.MainActivity", null, false);
+            runOnMainSync(() -> oldActivity.recreate());
+            Activity recreated = waitForMonitorWithTimeout(replacement, 15000);
+            removeMonitor(replacement);
+            require(recreated != null && recreated != oldActivity, "Activity recreated");
+            activity = recreated;
+            page = waitForPage();
+            JSONObject restored = inspect(page);
+            require(page != first, "Activity recreation creates a new WebView");
+            require(restored.optBoolean("hasEmail"), "saved username restored after recreation");
+            require(!restored.optBoolean("hasPassword"), "saved password remains hidden after recreation");
+            require(!restored.optBoolean("hasPin"), "saved PIN remains hidden after recreation");
+            require("Signed out".equals(restored.optString("session")), "restoring account did not log in automatically");
+            require(!restored.optBoolean("accountOpen"), "saved account settings collapsed");
+            require(restored.optBoolean("rememberChecked"), "saved account selected for reuse");
+            String exported = evaluate(page, "JSON.stringify({storage: Object.fromEntries(Object.entries(localStorage)),body:document.body.textContent})");
+            require(!exported.contains("DONT_SEND_FIXTURE_PASSWORD"), "saved password absent from page text and web storage");
+            require(!exported.contains("1234"), "saved PIN absent from page text and web storage");
+
+            Files.write(stored.toPath(), new byte[] {1, 2, 3, 4, 5});
+            JSONObject corrupt = new JSONObject(evaluate(page, "SantaFeNative.loadAccount()"));
+            require(!corrupt.optBoolean("saved"), "corrupted encrypted record never returns credentials");
+            require("Could not read the saved account. Save it again in Settings.".equals(corrupt.optString("error")), "corrupted saved account returns generic message");
+            require("true".equals(evaluate(page, "SantaFeNative.forgetAccount()")), "forget removes corrupted saved account");
+            require(!stored.exists(), "forgotten encrypted record removed");
+            require(!new File(stored.getPath() + ".bak").exists(), "forgotten backup record removed");
+            require(!new File(stored.getPath() + ".new").exists(), "forgotten temporary record removed");
+            keyStore.load(null);
+            require(!keyStore.containsAlias("com.jon.santafelab.saved-account.v1"), "forgotten Keystore key removed");
+            JSONObject forgotten = new JSONObject(evaluate(page, "SantaFeNative.loadAccount()"));
+            require(!forgotten.optBoolean("saved") && !forgotten.has("error"), "forgotten account is empty and readable");
 
             result.putString("result", "PASS");
             result.putInt("checks", checks);
@@ -118,7 +181,7 @@ public final class RuntimeVerification extends Instrumentation {
     }
 
     private JSONObject inspect(WebView page) throws Exception {
-        return new JSONObject(evaluate(page, "JSON.stringify({href:location.href,ready:document.readyState,bridgeVersion:typeof SantaFeNative!=='undefined'?SantaFeNative.getVersion():'',callback:!!window.SantaFeAndroid,loginDisabled:document.getElementById('loginBtn')?.disabled,emailDisabled:document.getElementById('email')?.disabled,setupHidden:document.getElementById('connectionSetup')?.hidden,downloadHidden:document.getElementById('appDownload')?.hidden,transport:document.getElementById('transportStatus')?.textContent,session:document.getElementById('sessionStatus')?.textContent,hasPassword:!!document.getElementById('password')?.value,hasEmail:!!document.getElementById('email')?.value,hasPin:!!document.getElementById('pin')?.value})"));
+        return new JSONObject(evaluate(page, "JSON.stringify({href:location.href,ready:document.readyState,bridgeVersion:typeof SantaFeNative!=='undefined'?SantaFeNative.getVersion():'',callback:!!window.SantaFeAndroid,loginDisabled:document.getElementById('loginBtn')?.disabled,emailDisabled:document.getElementById('email')?.disabled,setupHidden:document.getElementById('connectionSetup')?.hidden,downloadHidden:document.getElementById('appDownload')?.hidden,transport:document.getElementById('transportStatus')?.textContent,session:document.getElementById('sessionStatus')?.textContent,hasPassword:!!document.getElementById('password')?.value,hasEmail:!!document.getElementById('email')?.value,hasPin:!!document.getElementById('pin')?.value,accountOpen:document.getElementById('accountSettings')?.open,rememberChecked:document.getElementById('rememberAccount')?.checked})"));
     }
 
     private JSONObject waitForObject(WebView page, String expression) throws Exception {

@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-10-05T03:38:27.914496Z",
-  "version": "0.3.2",
+  "generated_at": "2026-10-05T04:18:58.533565Z",
+  "version": "0.3.3",
   "application_id": "com.jon.santafelab",
-  "version_code": 5,
+  "version_code": 6,
   "min_sdk": 26,
   "target_sdk": 35,
   "apk": {
-    "path": "SantaFe/android/dist/SantaFe-API-Lab-0.3.2.apk",
-    "size_bytes": 54104,
-    "sha256": "a2fa3efdf2977fc915f16f90d284acf9871935d20c98b1830fc17e0ae43995b4",
+    "path": "SantaFe/android/dist/SantaFe-API-Lab-0.3.3.apk",
+    "size_bytes": 62296,
+    "sha256": "fa176ff122be5948fb4ece2c49d0bd08032386f05985ed36fbddf7bfb62f3c4a",
     "signature_v2_verified": true,
     "signature_v3_verified": true,
     "zip_alignment_verified": true,
@@ -20,15 +20,15 @@
   },
   "bundled_assets": {
     "index.html": {
-      "sha256": "f8c1eb66936f5cefecd8e08f4faef7568ae84cc29fe5c37c8a6240ee1d8dca60",
+      "sha256": "57ac09d7bfd622bfff5f16e9945fd46228369aacf80cf10070228e87a18a13d5",
       "packaged_bytes_match": true
     },
     "diagnostic.js": {
-      "sha256": "4cc4517a5172e14651e22f030edcd1449c8b1506c0a460f9eccda1170af97e1b",
+      "sha256": "699d855e550c367cef126d5969d8076f5ecff0963a8ddec09ed16e09cdba0e62",
       "packaged_bytes_match": true
     },
     "diagnostic.css": {
-      "sha256": "211bc833e047046abcad065823a18d4f38f94077f56afdafef107bf9a826f66d",
+      "sha256": "d330adcb1d238920110afe02ef6d4d9be57ffa59b55f53f5270fe9a5b87bef99",
       "packaged_bytes_match": true
     }
   },
@@ -36,21 +36,19 @@
     "request_policy": {
       "passed": 137,
       "scope": "Standalone JVM synthetic inputs; no network",
-      "rerun_this_change": false,
-      "preserved_from_version": "0.3.1"
+      "rerun_this_change": true
     },
     "native_transport": {
       "passed": 61,
       "scope": "Fixture HttpsURLConnection factory and genuine org.json JVM runtime; no network",
-      "rerun_this_change": false,
-      "preserved_from_version": "0.3.1"
+      "rerun_this_change": true
     },
     "diagnostic_client": {
-      "passed": 52,
+      "passed": 64,
       "scope": "Node VM UI fixture execution of shipped scripts; all HTTP responses mocked; no Hyundai account or vehicle used"
     },
     "chromium_ui": {
-      "passed": 20,
+      "passed": 25,
       "scope": "HTTP UI execution; Hyundai routes, GM transport and Android bridge use fixtures. Native UI uses HTTPS bundled origin with connect-src none. No actual Android WebView, real account login, API availability validation, or physical vehicle command",
       "unexpected_network_requests": 0,
       "browser": "Existing Chromium headless shell. Standard Chrome failed at process-singleton socket creation in this environment; the full suite passed with the headless shell."
@@ -62,15 +60,37 @@
     "runtime_instrumentation_compilation": {
       "passed": true,
       "scope": "Separate test APK signed with preserved private identity; absent from release APK",
-      "rerun_this_change": false,
-      "preserved_from_version": "0.3.1"
+      "rerun_this_change": true
+    },
+    "encrypted_account_store": {
+      "passed": 83,
+      "scope": "Genuine JCE AES/GCM record encryption and injected disk/key failures. Android wiring is separately exercised by runtime instrumentation."
+    },
+    "workflow_validation": {
+      "passed": true,
+      "actionlint_version": "1.7.12",
+      "bash_blocks_checked": 17
+    },
+    "runtime_instrumentation_execution": {
+      "passed": 56,
+      "scope": "Release-source APK built and installed with an ephemeral CI-only signing key on an isolated Android 15 emulator. No user credentials, private release key or real vehicle used."
+    },
+    "python_tasker": {
+      "passed": 92,
+      "scope": "Full preserved suite ran in cloud regression job; source unchanged"
     }
   },
   "android_runtime": {
-    "verified": false,
-    "reason": "Android 30 software emulator did not complete boot within the final 180-second bound; host lacks KVM. Earlier attempts encountered stale AVD locks. No Android launch, native handshake, lifecycle or document-picker checks executed.",
+    "verified": true,
+    "android_api": 35,
+    "android_version": "15",
+    "checks": 56,
+    "workflow_run_id": 37262643353,
+    "source_commit": "7d41c9078fef89ac84e64687150d6058fe61ff5e",
+    "scope": "Release-source APK built and installed with an ephemeral CI-only signing key on an isolated Android 15 emulator. No user credentials, private release key or real vehicle used.",
     "instrumentation_source": "SantaFe/android/tests/device/",
-    "user_supplied_log": "0.3.1 export confirms native callbacks, login, enrollment, cached status, refresh response and JSON export. New 0.3.2 execution and independent lifecycle/document-picker instrumentation remain pending."
+    "user_supplied_log": "0.3.2 native export confirms phone callbacks, account reads and lock polling SUCCESS. User reports lock and unlock worked. The new 0.3.3 release has not yet been installed by the user.",
+    "limits": "CI executed the same release sources with its own signing identity, not the byte-identical public APK. Genuine user-account authentication and vehicle commands are excluded from automated tests."
   },
   "real_hyundai_login_verified": false,
   "real_vehicle_calls_verified": false,
@@ -78,21 +98,30 @@
   "independent_security_audit": false,
   "preserved_python_tasker_benchmark": {
     "passed": 92,
-    "rerun_this_change": false,
-    "scope": "Python bridge and Tasker generator/XML unchanged"
+    "rerun_this_change": true,
+    "scope": "Unchanged Python/Tasker code; previous benchmark 92, also passed in initial cloud regression job."
   },
   "review_fixes": [
-    "Use confirmed literal-@ enrollment as default; preserve other encoding",
-    "Retain only manually invoked same-session alternate comparison with verified-schema adoption",
-    "Warn when refresh returns the same vehicle timestamp",
-    "Redact newly observed device/account identifiers and opaque echoes",
-    "Re-sanitize and rewrite previously saved logs at startup"
+    "Encrypted native account settings and explicit Forget; tokens remain memory-only",
+    "Connect reuses saved credentials without startup network requests or command retries",
+    "Retain WebView/session across ordinary background and export; destruction clears session",
+    "Block saved-account changes while command unresolved and preserve warning on Forget",
+    "Fix unsaved reconnect to reveal required fields",
+    "Correct derived API documentation origin to confirmed runtime; endpoints unchanged",
+    "Repair cloud workflow context, SDK initialization and shell execution"
   ],
-  "release_scope": "Signed diagnostic 0.3.2 update based on confirmed account reads. New version phone execution, fresh physical data, remote controls and Tasker import/runtime remain pending.",
+  "release_scope": "Published saved-account diagnostic update. Local fixtures and real Android 15 emulator checks pass. Jon has confirmed lock/unlock on 0.3.2; remaining controls, new-version phone use and Tasker runtime remain acceptance checks.",
   "real_hyundai_login_verified_from_supplied_log": true,
-  "account_evidence_scope": "Latest supplied 0.3.1 session returned HTTP 200 for login, literal-@ enrollment, cached status and refresh:true. Encoded-@ enrollment failed C500. Status bodies and vehicle timestamps were identical. No independent account request or remote control test was submitted.",
+  "account_evidence_scope": "Latest supplied 0.3.2 sessions confirm login, literal-@ enrollment and cached status. Lock POST HTTP 200 then poll SUCCESS. Unlock POST HTTP 200, recorded poll PENDING; user independently reports physical success for both. No agent-submitted account or car command.",
   "account_log_review": "SantaFe/docs/verification/account-log-review.json",
   "real_vehicle_calls_verified_from_supplied_log": true,
   "fresh_physical_status_confirmed": false,
-  "confirmed_api_recipes": "SantaFe/docs/verification/confirmed-api-recipes.json"
+  "confirmed_api_recipes": "SantaFe/docs/verification/confirmed-api-recipes.json",
+  "physical_vehicle_operations_verified_from_user_report": {
+    "lock": true,
+    "unlock": true
+  },
+  "lock_transaction_success_verified_from_supplied_log": true,
+  "unlock_transaction_success_verified_from_supplied_log": false,
+  "cloud_verification": "SantaFe/docs/verification/android-cloud-verification-v0.3.3.json"
 }

@@ -81,3 +81,15 @@ RFC 3986 permits @ in a path segment and does not generally guarantee equivalenc
 Jon's latest 0.3.1 export confirms the encoded form failed with C500, while the same-session literal-@ form returned one active vehicle. Cached status and refresh:true both returned HTTP 200. The status bodies and timestamp were identical, so a new vehicle observation is not established. No command ran. This is direct evidence for this account and session, not a general Hyundai API contract.
 
 0.3.2 uses the successful form by default and retains a manual comparison after failure. Safe derived summaries and header-name-only recipes are in verification/account-log-review.json and verification/confirmed-api-recipes.json. Private account, vehicle and device identifiers from the supplied response are not republished.
+
+## Lock/unlock and remembered accounts, October 5, 2026
+
+Jon's 0.3.2 export records successful lock/unlock submissions using the existing telematics API host, empty HTTP 200 bodies and tmstid headers. Lock polling reached SUCCESS; the sole recorded unlock poll was PENDING. Jon separately reports both controls worked physically. The derived recipes preserve that distinction. Later cached responses contain newer vehicle timestamps; the earlier explicit refresh still returned an unchanged sample. Other controls remain unconfirmed.
+
+The derived recipe file previously named owners.hyundaiusa.com in its base/Origin/Referer fields. That documentation error is corrected to the actual runtime and observed request origin, https://api.telematics.hyundaiusa.com. No working runtime endpoint was changed.
+
+Jon explicitly requested remembered account settings. Android platform guidance controls the implementation: https://developer.android.com/privacy-and-security/keystore , https://developer.android.com/privacy-and-security/cryptography , https://developer.android.com/reference/android/util/AtomicFile and https://developer.android.com/reference/android/content/Context#getNoBackupFilesDir() . Email/password/PIN are encrypted natively; tokens remain memory-only. Remembering is available only in the installed app, with Forget and backup exclusion.
+
+GitHub workflow context availability: https://docs.github.com/en/actions/reference/workflows-and-actions/contexts . The prior job-level runner.temp expression was invalid; runner is supported in step env. SDK initialization now follows the primary android-actions/setup-android v3 source: https://github.com/android-actions/setup-android/tree/v3 . Shell scripts are explicitly invoked with bash because the existing transport runner is stored without executable permission.
+
+Cloud Android environment configuration follows https://developer.android.com/tools/variables and https://developer.android.com/tools/avdmanager . Explicit Android user/emulator/AVD directories and AVD path now agree; their actual discovery and API 35 boot succeeded in run 37262643353.

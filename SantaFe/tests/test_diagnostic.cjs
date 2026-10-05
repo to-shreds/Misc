@@ -36,15 +36,21 @@ function makeWindow() {
   };
   return window;
 }
-function harness(responses = [], { mode = 'direct', native = false, origin = native ? 'https://santafe.local' : ORIGIN, pathname = '/index.html', nativeOverrides = {}, initialStorage = null, storageDisabled = false } = {}) {
+function harness(responses = [], { mode = 'direct', native = false, origin = native ? 'https://santafe.local' : ORIGIN, pathname = '/index.html', nativeOverrides = {}, account = undefined, initialStorage = null, storageDisabled = false } = {}) {
   const elements = new Map();
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   for (const m of html.matchAll(/<([a-z]+)\b([^>]*\bid="([^"]+)"[^>]*)>/gi)) {
-    const e = new Element(m[1]); e.disabled = /\bdisabled(?:\s|>)/.test(m[2] + '>');
+    const e = new Element(m[1]); e.disabled = /\bdisabled(?:\s|>)/.test(m[2] + '>'); e.checked = /\bchecked(?:\s|>)/.test(m[2] + '>');
     e.value = m[2].match(/\bvalue="([^"]*)"/)?.[1] || ''; elements.set(m[3], e);
   }
   elements.get('transportMode').value = mode; elements.get('commandSelect').value = 'lock';
   const window = makeWindow(), requests = [], storage = initialStorage || new Map(), timers = new Map(), nativeExports = [], nativeCancels = [];
+  const accountState = account === undefined ? null : account, accountCalls = { loads: 0, saved: [], forgotten: 0 };
+  const accountBridge = accountState ? {
+    loadAccount() { accountCalls.loads++; return JSON.stringify(accountState.value ? { saved: true, ...accountState.value } : { saved: false }); },
+    saveAccount(json) { const saved = JSON.parse(json); accountCalls.saved.push(saved); accountState.value = { ...saved }; return true; },
+    forgetAccount() { accountCalls.forgotten++; accountState.value = null; return true; }
+  } : {};
   if(native)window.SantaFeNative={
     request(json) {
       const envelope=JSON.parse(json);requests.push({...envelope.request,id:envelope.id});
@@ -54,7 +60,7 @@ function harness(responses = [], { mode = 'direct', native = false, origin = nat
     },
     cancel(id){nativeCancels.push(id);},
     exportLog(json){nativeExports.push(json);return true;},
-    ...nativeOverrides
+    ...accountBridge, ...nativeOverrides
   };
   const context = { window, document: { getElementById: id => elements.get(id), createElement: tag => new Element(tag) },
     location: { origin, pathname }, crypto: { randomUUID }, AbortController, URL, Blob, performance, Date,
@@ -72,7 +78,7 @@ function harness(responses = [], { mode = 'direct', native = false, origin = nat
   };
   vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'diagnostic.js'), 'utf8'), context, { filename: 'diagnostic.js' });
   const get = id => { const e = elements.get(id); assert.ok(e, `Missing UI id ${id}`); return e; };
-  return { get, window, requests, responses, context, storage, nativeExports, nativeCancels,
+  return { get, window, requests, responses, context, storage, nativeExports, nativeCancels, accountState, accountCalls,
     async action(id, type = 'click') { get(id).emit(type); await idle(); },
     async idle() { await idle(); },
     report() { return JSON.parse(storage.get('santafe-diagnostics-v1') || '[]'); },
@@ -151,7 +157,7 @@ check('Bundled Android page enables login immediately and exclusively uses nativ
   await login(h);assert.equal(h.requests.length,3);assert.equal(h.get('sessionStatus').textContent,'Signed in for this app');
   assert.equal(h.get('password').value,'');assert.equal(h.get('pin').value,'');
   assert.ok(h.report().filter(r=>r.transport).every(r=>r.transport==='native Android'));
-  assert.match(h.get('privacyNote').textContent,/leave the app/);
+  assert.match(h.get('privacyNote').textContent,/Hyundai|saved/i);
 });
 
 check('Native interface cannot be used on a public origin or an unexpected bundled path', async t => {
@@ -169,12 +175,143 @@ check('Absent or incomplete native interface keeps bundled credentials locked ev
   }
 });
 
+check('Saved-account controls require the trusted native page and all three storage methods', async t => {
+  for (const options of [
+    { native: true, origin: ORIGIN, mode: 'direct', account: { value: creds } },
+    { native: true, pathname: '/untrusted.html', mode: 'direct', account: { value: creds } },
+    { native: true, account: { value: creds }, nativeOverrides: { saveAccount: undefined } },
+    { native: true, account: { value: creds }, nativeOverrides: { forgetAccount: undefined } }
+  ]) {
+    const h = harness([], options); t.after(() => h.close());
+    assert.equal(h.get('savedAccountControls').hidden, true);
+    assert.equal(h.accountCalls.loads, 0, 'Untrusted or incomplete bridge must never read saved credentials');
+    h.get('email').value = creds.username; h.get('password').value = creds.password; h.get('pin').value = creds.pin;
+    await h.action('saveAccountBtn'); await h.action('forgetAccountBtn');
+    assert.equal(h.accountCalls.saved.length, 0); assert.equal(h.accountCalls.forgotten, 0); assert.equal(h.requests.length, 0);
+  }
+});
+
+check('Trusted native startup restores only the saved username, keeps settings collapsed and never sends a request', async t => {
+  const h = harness([], { native: true, account: { value: { ...creds } } }); t.after(() => h.close());
+  assert.equal(h.accountCalls.loads, 1); assert.equal(h.requests.length, 0);
+  assert.equal(h.get('savedAccountControls').hidden, false); assert.equal(h.get('accountSettings').open, false);
+  assert.equal(h.get('email').value, creds.username); assert.equal(h.get('password').value, ''); assert.equal(h.get('pin').value, '');
+  assert.equal(h.get('password').required, false); assert.equal(h.get('rememberAccount').checked, true);
+  assert.equal(h.get('sessionStatus').textContent, 'Signed out');
+  const raw = JSON.stringify([...h.storage.entries()]) + JSON.stringify(await h.exported());
+  for (const value of Object.values(creds)) assert.equal(raw.includes(value), false, 'Saved account leaked through logs or web storage');
+});
+
+check('Manual Connect loads saved native credentials and Disconnect permits reconnect without typing them again', async t => {
+  const saved = { value: { ...creds } }, h = harness([...loginFixtures(), ...loginFixtures()], { native: true, account: saved }); t.after(() => h.close());
+  await h.action('loginForm', 'submit'); assert.equal(h.requests.length, 3);
+  assert.deepEqual(JSON.parse(h.requests[0].body), { username: creds.username, password: creds.password });
+  assert.equal(h.requests[1].headers.blueLinkServicePin, creds.pin); assert.equal(h.get('sessionStatus').textContent, 'Signed in for this app');
+  await h.action('disconnectBtn'); assert.equal(h.requests.length, 3); assert.deepEqual(saved.value, creds);
+  assert.equal(h.get('email').value, creds.username); assert.equal(h.get('password').value, ''); assert.equal(h.get('pin').value, '');
+  await h.action('loginForm', 'submit'); assert.equal(h.requests.length, 6);
+  assert.deepEqual(JSON.parse(h.requests[3].body), { username: creds.username, password: creds.password });
+  assert.equal(h.requests[4].headers.blueLinkServicePin, creds.pin);
+  const raw = JSON.stringify([...h.storage.entries()]) + JSON.stringify(await h.exported());
+  for (const value of Object.values(creds)) assert.equal(raw.includes(value), false);
+});
+
+check('Explicit native account Save and Update never log in, then Forget clears forms and saved credentials', async t => {
+  const saved = { value: null }, h = harness([], { native: true, account: saved }); t.after(() => h.close());
+  h.get('email').value = creds.username; h.get('password').value = creds.password; h.get('pin').value = creds.pin;
+  await h.action('saveAccountBtn'); assert.equal(h.accountCalls.saved.length, 1); assert.deepEqual(saved.value, creds); assert.equal(h.requests.length, 0);
+  assert.equal(h.get('password').value, ''); assert.equal(h.get('pin').value, '');
+  const changed = { ...creds, password: 'UPDATED-fixture-secret' };
+  h.get('password').value = changed.password;
+  await h.action('saveAccountBtn'); assert.equal(h.accountCalls.saved.length, 2); assert.deepEqual(saved.value, changed); assert.equal(h.requests.length, 0);
+  await h.action('forgetAccountBtn'); assert.equal(h.accountCalls.forgotten, 1); assert.equal(saved.value, null); assert.equal(h.requests.length, 0);
+  for (const id of ['email','password','pin']) assert.equal(h.get(id).value, '');
+  assert.equal(h.get('sessionStatus').textContent, 'Signed out');
+  const raw = JSON.stringify([...h.storage.entries()]) + JSON.stringify(await h.exported());
+  for (const value of [...Object.values(creds), changed.password]) assert.equal(raw.includes(value), false);
+});
+
+check('Remember unchecked leaves a native login transient and does not persist supplied credentials', async t => {
+  const saved = { value: null }, h = harness(loginFixtures(), { native: true, account: saved }); t.after(() => h.close());
+  h.get('rememberAccount').checked = false; await login(h);
+  assert.equal(h.requests.length, 3); assert.equal(saved.value, null); assert.equal(h.accountCalls.saved.length, 0);
+  await h.action('disconnectBtn'); assert.equal(h.get('email').value, ''); assert.equal(h.requests.length, 3);
+});
+
+check('Successful native login saves the account once and later startup restores no tokens or session', async t => {
+  const saved = { value: null }, first = harness(loginFixtures(), { native: true, account: saved }); t.after(() => first.close());
+  await login(first); assert.equal(first.accountCalls.saved.length, 1); assert.deepEqual(saved.value, creds);
+  assert.deepEqual(Object.keys(saved.value).sort(), ['password','pin','username']);
+  const next = harness([], { native: true, account: saved, initialStorage: first.storage }); t.after(() => next.close());
+  assert.equal(next.requests.length, 0); assert.equal(next.get('sessionStatus').textContent, 'Signed out'); assert.equal(next.get('email').value, creds.username);
+  assert.equal(next.get('commandBtn').disabled, true); assert.equal(next.get('pollBtn').disabled, true);
+});
+
+check('Updating saved credentials ends the previous session without sending a request and requires a manual reconnect', async t => {
+  const saved = { value: { ...creds } }, h = harness(loginFixtures(), { native: true, account: saved }); t.after(() => h.close());
+  await h.action('loginForm', 'submit'); assert.equal(h.requests.length, 3); assert.equal(h.get('commandBtn').disabled, false);
+  h.get('password').value = 'new-account-fixture-password'; await h.action('saveAccountBtn');
+  assert.equal(h.requests.length, 3); assert.equal(h.get('sessionStatus').textContent, 'Signed out'); assert.equal(h.get('commandBtn').disabled, true);
+  assert.equal(saved.value.password, 'new-account-fixture-password'); assert.equal(h.get('password').value, '');
+});
+
+check('Saved credentials are never silently combined with a different entered email address', async t => {
+  const saved = { value: { ...creds } }, h = harness([], { native: true, account: saved }); t.after(() => h.close());
+  h.get('email').value = 'different-account@example.com'; await h.action('loginForm', 'submit');
+  assert.equal(h.requests.length, 0); assert.equal(h.accountCalls.saved.length, 0);
+  assert.equal(h.get('sessionStatus').textContent, 'Signed out'); assert.deepEqual(saved.value, creds);
+});
+
+check('Native load and save failures produce generic messages without credential leakage or automatic retry', async t => {
+  const load = harness([], { native: true, account: { value: null }, nativeOverrides: { loadAccount() { return JSON.stringify({ saved: false, error: 'private failure ' + creds.password }); } } }); t.after(() => load.close());
+  assert.equal(load.requests.length, 0); assert.equal(load.get('email').value, '');
+  assert.equal(load.get('notice').textContent.includes(creds.password), false); assert.match(load.get('notice').textContent, /saved account|Settings/i);
+  await load.action('loginForm', 'submit'); assert.equal(load.requests.length, 0);
+  const save = harness(loginFixtures(), { native: true, account: { value: null }, nativeOverrides: { saveAccount() { throw new Error('private save failure ' + creds.password); } } }); t.after(() => save.close());
+  await login(save); assert.equal(save.requests.length, 3); assert.equal(save.get('sessionStatus').textContent, 'Signed in for this app');
+  const raw = save.get('notice').textContent + JSON.stringify(await save.exported());
+  assert.equal(raw.includes(creds.password), false); assert.match(raw, /sav(?:e|ed|ing)/i);
+  assert.equal(save.accountState.value, null); assert.equal(save.get('password').value, ''); assert.equal(save.get('pin').value, '');
+});
+
+check('Native save is withheld for failed login, and Forget failure does not claim deletion or expose bridge exceptions', async t => {
+  const failed = harness([wrongPassword], { native: true, account: { value: null } }); t.after(() => failed.close());
+  await login(failed); assert.equal(failed.requests.length, 1); assert.equal(failed.accountCalls.saved.length, 0); assert.equal(failed.accountState.value, null);
+  const saved = { value: { ...creds } }, h = harness([], { native: true, account: saved, nativeOverrides: { forgetAccount() { throw new Error(creds.password); } } }); t.after(() => h.close());
+  await h.action('forgetAccountBtn'); assert.deepEqual(saved.value, creds); assert.equal(h.requests.length, 0);
+  assert.match(h.get('notice').textContent, /could not confirm removing/i); assert.equal(h.get('notice').textContent.includes(creds.password), false);
+  for (const id of ['email','password','pin']) assert.equal(h.get(id).value, '');
+  assert.equal(h.get('sessionStatus').textContent, 'Signed out'); assert.equal(h.get('accountState').textContent, 'Check saved account'); assert.equal(h.get('forgetAccountBtn').disabled, false);
+});
+
+check('Native saved-account actions cannot bypass busy or unresolved-command guards', async t => {
+  let release;
+  const saved = { value: { ...creds } }, h = harness([(envelope,window) => { release = () => window.SantaFeAndroid.onResponse(envelope.id, { status: 200, text: JSON.stringify(loginFixtures()[0].data), headers: {} }, null); }, ...loginFixtures().slice(1), { text: '' }], { native: true, account: saved }); t.after(() => h.close());
+  h.get('loginForm').emit('submit'); assert.equal(h.requests.length, 1);
+  assert.equal(h.get('saveAccountBtn').disabled, true); assert.equal(h.get('forgetAccountBtn').disabled, true);
+  h.get('saveAccountBtn').emit('click'); h.get('forgetAccountBtn').emit('click'); assert.equal(h.accountCalls.saved.length, 0); assert.equal(h.accountCalls.forgotten, 0);
+  release(); await h.idle(); assert.equal(h.requests.length, 3);
+  h.get('confirmCommand').checked = true; await h.action('commandBtn'); assert.equal(h.requests.length, 4);
+  const saves = h.accountCalls.saved.length; await h.action('saveAccountBtn');
+  assert.equal(h.accountCalls.saved.length, saves); assert.equal(h.requests.length, 4); assert.equal(h.get('commandBtn').disabled, true);
+  await h.action('forgetAccountBtn'); assert.equal(h.accountState.value, null); assert.equal(h.requests.length, 4);
+  assert.equal(h.get('unknownCommandPanel').hidden, false); assert.equal(h.storage.has('santafe-pending-command-v1'), true);
+});
+
+check('Forgetting an account preserves an unresolved command guard and never transmits or retries a command', async t => {
+  const storage = new Map([['santafe-pending-command-v1', JSON.stringify({ action: 'unlock', at: '2026-10-05T04:00:00Z' })]]);
+  const h = harness([], { native: true, account: { value: { ...creds } }, initialStorage: storage }); t.after(() => h.close());
+  assert.equal(h.get('unknownCommandPanel').hidden, false); await h.action('forgetAccountBtn');
+  assert.equal(h.requests.length, 0); assert.equal(h.accountState.value, null); assert.equal(h.get('unknownCommandPanel').hidden, false);
+  assert.equal(h.storage.has('santafe-pending-command-v1'), true); assert.equal(h.get('commandBtn').disabled, true);
+});
+
 check('Native exports pass only sanitized data and distinguish choosing a file from saving it', async t => {
   const fixtures=loginFixtures();fixtures[2].data.vehicleStatus.message=Object.values(creds).join(' ')+' '+vehicle.vin;
   const h=harness(fixtures,{native:true});t.after(()=>h.close());await login(h);
   const report=await h.exported(),raw=JSON.stringify(report);
   for(const value of [...Object.values(creds),vehicle.vin,vehicle.regid,'private-access-987654','private-refresh-456789','42.04684','-71.11242'])assert.equal(raw.includes(value),false,`Native export leaked ${value}`);
-  assert.equal(report.version,'0.3.2');assert.match(h.get('notice').textContent,/Choose where to save/);
+  assert.equal(report.version,'0.3.3');assert.match(h.get('notice').textContent,/Choose where to save/);
   h.window.SantaFeAndroid.onExportResult(true,null);assert.equal(h.get('notice').textContent,'Sanitized log saved.');
   h.window.SantaFeAndroid.onExportResult(false,'Log export cancelled.');assert.match(h.get('notice').textContent,/cancelled/);
   await h.action('copyLogBtn');assert.equal(h.context.copied,undefined,'Native app must not copy secrets through a separate clipboard path');
