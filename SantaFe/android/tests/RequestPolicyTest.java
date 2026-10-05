@@ -25,6 +25,9 @@ public final class RequestPolicyTest {
         accepted("GET", "/ac/v2/enrollment/details/test.user%2Btag%40example.invalid", null);
         accepted("GET", "/ac/v2/enrollment/details/test%40example.invalid", null);
         accepted("GET", "/ac/v2/enrollment/details/m%C3%BCller%40example.invalid", null);
+        accepted("GET", "/ac/v2/enrollment/details/test.user%2Btag@example.invalid", null);
+        accepted("GET", "/ac/v2/enrollment/details/test@example.invalid", null);
+        accepted("GET", "/ac/v2/enrollment/details/m%C3%BCller@example.invalid", null);
         accepted("GET", "/ac/v2/rcs/rvs/vehicleStatus", null);
         accepted("GET", "/ac/v2/rmt/getRunningStatus", null);
         for (String endpoint : new String[]{"rcs/rdo/off", "rcs/rdo/on", "rcs/rhl/light", "rcs/rhl/hnl",
@@ -78,17 +81,27 @@ public final class RequestPolicyTest {
         rejected("POST", BASE + "/ac/v2/rcs/rvs/vehicleStatus", empty(), "{}");
         rejected("GET", BASE + "/ac/v2/rcs/rdo/on", empty(), null);
         rejected("POST", BASE + "/ac/v2/enrollment/details/test%40example.invalid", empty(), "{}");
+        rejected("POST", BASE + "/ac/v2/enrollment/details/test@example.invalid", empty(), "{}");
     }
 
     private static void rejectedEnrollmentIdentifiers() {
         String prefix = BASE + "/ac/v2/enrollment/details/";
-        for (String identifier : new String[]{"", ".", "..", "test@example.invalid", "%74est%40example.invalid",
+        for (String identifier : new String[]{"", ".", "..", "%74est%40example.invalid",
                 "test%40example.invalid/extra", "test%40example.invalid%2Fextra", "test%40example.invalid%2fextra",
                 "test%40example.invalid%5Cextra", "test%40example.invalid%252Fextra",
                 "%2e%2e%2ftest%40example.invalid", "test%40example.invalid%00", "test%40example.invalid%0A",
                 "test%20user%40example.invalid", "test%C2%A0user%40example.invalid", "test%40", "%40example.invalid",
                 "test%40example%40invalid", "test%40example.invalid%", "test%40example.invalid%Q0",
                 "test%40example.invalid%C0%AF", "test%40example.invalid%ED%A0%80", "test%40example.invalid%C3"}) {
+            rejected("GET", prefix + identifier, empty(), null);
+        }
+        for (String identifier : new String[]{"test+tag@example.invalid", "test+tag%40example.invalid",
+                "test%2btag@example.invalid", "%74est@example.invalid", "test%2Euser@example.invalid",
+                "test@@example.invalid", "test%40@example.invalid", "test@%40example.invalid",
+                "test%2540example.invalid", "test@example.invalid/extra", "test@example.invalid%2Fextra",
+                "test@example.invalid%5Cextra", "test@example.invalid%252Fextra", "test@example.invalid%00",
+                "test@example.invalid%0A", "test%20user@example.invalid", "test%C2%A0user@example.invalid",
+                "test@example.invalid?extra", "test@example.invalid#extra", "test@example.invalid%Q0"}) {
             rejected("GET", prefix + identifier, empty(), null);
         }
     }

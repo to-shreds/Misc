@@ -137,7 +137,8 @@ public final class RequestPolicy {
                 if (high < 0 || low < 0) reject("Invalid enrollment identifier.");
                 bytes.write((high << 4) | low);
             } else {
-                if (!unescapedComponent(c)) reject("Invalid enrollment identifier.");
+                // A manual comparison may leave only the email's @ separator literal.
+                if (!unescapedComponent(c) && c != '@') reject("Invalid enrollment identifier.");
                 bytes.write(c);
             }
         }
@@ -161,7 +162,10 @@ public final class RequestPolicy {
                 reject("Invalid enrollment identifier.");
             }
         }
-        if (!encoded.equals(encodeComponent(email))) reject("Noncanonical enrollment identifier.");
+        String canonical = encodeComponent(email);
+        if (!encoded.equals(canonical) && !encoded.equals(canonical.replace("%40", "@"))) {
+            reject("Noncanonical enrollment identifier.");
+        }
     }
 
     private static String encodeComponent(String input) {

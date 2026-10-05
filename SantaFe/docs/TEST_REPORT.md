@@ -1,4 +1,23 @@
-# Current benchmark: API Lab 0.3.0 Android tester
+# Current benchmark: API Lab 0.3.1 enrollment diagnostics
+
+The inspected phone log establishes three successful token responses and three failed enrollment reads (HTTP 502/API 502, C500, getEnrollmentDetailsByUser, NO DATA FOUND TO PERFORM THIS OPERATION). Wrong-password tests returned the separate IDM_401_1 error, also using HTTP 502. No cached status or vehicle command ran. Jon reports that the official MyHyundai app shows his Santa Fe. Only the derived summary is published in verification/account-log-review.json.
+
+The update displays the failed request stage, subcode and sanitized service submessage. A separate **Test vehicle lookup** button becomes available after enrollment failure. It makes one same-session read-only comparison, replacing only the email path's %40 with literal @. All other encoding and authenticated headers stay unchanged. Expected enrollment schema is required before the alternate form is used for this session; cached status follows only when a vehicle is selected. This is a source-backed diagnostic hypothesis, not a verified remedy.
+
+Verification:
+
+- 137 native policy checks and 61 transport fixture checks pass, including exact two-form path validation, unchanged headers, no extra requests and retained backend errors.
+- 47 client regressions pass, covering the observed C500 and IDM_401_1 responses, manual comparison, failure/malformed schema, confirmed-only format choice, expiration, duplicate actions, cancellation, late callbacks, structural privacy scrubbing and stale command gating.
+- 19 actual Chromium headless-shell scenarios pass with zero unexpected network requests. Mobile enrollment error screenshot is readable at 412px with no overflow. The normal Chrome executable could not create its process-singleton socket; the existing headless shell completed the same full suite successfully.
+- Android 35 release compilation/packaging, ZIP alignment, v2/v3 signatures and version 4/0.3.1 metadata verify. All three bundled asset bytes match current source. The signing certificate remains identical to 0.3.0. No private key or test fixture is packaged. The separate instrumentation APK compiles, but has not been executed on Android.
+
+APK: android/dist/SantaFe-API-Lab-0.3.1.apk, 54,104 bytes, SHA-256: 83ba8c3d40d41ad2d920d7aacf31312ceceee830e6064004cb71f4c000e83cba. The original 0.3.0 APK is preserved byte-for-byte. Machine-readable verification: verification/android-verification.json. Screenshot: verification/diagnostic-enrollment-502.png.
+
+0.3.0 phone launch, native callbacks and log export are supported by the supplied export. 0.3.1 phone behavior and a successful alternate lookup remain pending. Successful VIN-specific reads, physical vehicle commands and actual Tasker import are unverified. The preserved Python/Tasker implementation remains unchanged with its earlier 92-test benchmark.
+
+To run current browser checks in this environment, set SANTAFE_CHROMIUM=/tmp/santafe-headless/chrome-headless-shell-linux64/chrome-headless-shell. The reproduction commands in the earlier benchmark still apply.
+
+# Earlier benchmark: API Lab 0.3.0 Android tester
 
 The HTML tester is now bundled inside a signed Android APK. The native component connects directly to Hyundai through an exact host/endpoint/header allowlist. No browser extension, public proxy, hosted credential service, or runtime library download is needed. Only Internet permission is requested. The older bridge, simulator, Tasker XML and browser helper are preserved.
 

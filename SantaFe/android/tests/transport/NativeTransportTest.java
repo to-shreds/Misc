@@ -33,6 +33,7 @@ public final class NativeTransportTest {
 
     public static void main(String[] args) throws Exception {
         successAndConnectionSettings();
+        enrollmentComparisonPreservesOnlyUrlDifference();
         postStreamingAndUtf8Body();
         errorAndRedirectResponses();
         rejectInvalidRequestsBeforeOpen();
@@ -64,6 +65,47 @@ public final class NativeTransportTest {
             check("close".equals(connection.getRequestProperty("Connection")), "no keepalive header");
             check(!connection.getDoOutput() && connection.outputCalls == 0, "GET has no output body");
             check(factory.opens.get() == 1 && STATUS.equals(factory.lastUrl), "single validated destination open");
+        }
+    }
+
+    private static void enrollmentComparisonPreservesOnlyUrlDifference() throws Exception {
+        String prefix = URL_ROOT + "/ac/v2/enrollment/details/";
+        String encodedUrl = prefix + "fixture%2Btag%40example.invalid";
+        String literalUrl = prefix + "fixture%2Btag@example.invalid";
+        String body = "{\"errorSubCode\":\"C500\",\"functionName\":\"getEnrollmentDetailsByUser\"}";
+        Fixture encoded = new Fixture(502, body);
+        Fixture literal = new Fixture(502, body);
+        Factory factory = new Factory(encoded, literal);
+        Replies replies = new Replies();
+        JSONObject headers = new JSONObject().put("username", "fixture+tag@example.invalid")
+                .put("accessToken", "synthetic-token").put("blueLinkServicePin", "0000")
+                .put("Content-Type", "application/json;charset=UTF-8").put("Accept", "application/json")
+                .put("Origin", URL_ROOT).put("Referer", URL_ROOT + "/login");
+        try (NativeTransport transport = new NativeTransport(replies, factory, 2000)) {
+            transport.request(envelope("encoded", "GET", encodedUrl, headers, null));
+            Reply first = replies.take();
+            check(first.error == null && first.response.getInt("status") == 502
+                    && body.equals(first.response.getString("text")), "encoded enrollment response retained");
+            check(encodedUrl.equals(factory.lastUrl) && factory.opens.get() == 1, "encoded enrollment exact URL");
+            check(replies.queue.poll(100, TimeUnit.MILLISECONDS) == null && factory.opens.get() == 1,
+                    "failed enrollment does not open comparison or retry automatically");
+
+            transport.request(envelope("literal", "GET", literalUrl, headers, null));
+            Reply second = replies.take();
+            check(second.error == null && second.response.getInt("status") == 502
+                    && body.equals(second.response.getString("text")), "literal-at enrollment response retained");
+            check(literalUrl.equals(factory.lastUrl) && factory.opens.get() == 2, "literal-at enrollment exact URL");
+            check("fixture+tag@example.invalid".equals(encoded.getRequestProperty("username"))
+                    && "synthetic-token".equals(encoded.getRequestProperty("accessToken"))
+                    && "0000".equals(encoded.getRequestProperty("blueLinkServicePin")),
+                    "enrollment authenticated headers forwarded unchanged");
+            check(encoded.getRequestProperties().equals(literal.getRequestProperties()),
+                    "comparison headers identical across email URL forms");
+            check(!encoded.getDoOutput() && !literal.getDoOutput()
+                    && encoded.outputCalls == 0 && literal.outputCalls == 0,
+                    "both enrollment comparisons remain body-free GET requests");
+            check(replies.queue.poll(100, TimeUnit.MILLISECONDS) == null && factory.opens.get() == 2,
+                    "only the two manually submitted enrollment requests were opened");
         }
     }
 

@@ -7,12 +7,12 @@
   const LOG_KEY = 'santafe-diagnostics-v1';
   const COMMAND_KEY = 'santafe-pending-command-v1';
   const commandActions = new Set(['lock','unlock','climate_start','climate_stop','lights','horn_lights']);
-  const VERSION = '0.3.0';
+  const VERSION = '0.3.1';
   const SOURCE = '82801884bdf619c5f2a35ff6bbae1693d2e1a3e8';
   const $ = id => document.getElementById(id);
   const sensitive = /password|secret|token|authorization|cookie|pin|vin|regid|registration.?id|username|user.?name|user.?id|login.?id|email|e.?mail|address|phone|mobile|contact|customer|subscriber|owner|first.?name|last.?name|full.?name|nick.?name|birth|latitude|longitude|coord|location|gps|tms.?tid|transaction.?id|^tid$|^xid$|^name$|image|photo|postal|zip.?code|^city$|^state$|street|license|licence|account.?id|person/i;
   const privateValues = new Set();
-  let session = null, vehicles = [], selected = null, enrollment = null, lastStatus = null;
+  let session = null, vehicles = [], selected = null, enrollment = null, lastStatus = null, enrollmentFailed = false;
   let busy = false, stopped = false, controller = null, helperAvailable = false, pageLeaving = false;
   let transaction = null, logs = [], evidence = [], currentTransport = '', statusRead = false, restoredCommand = null;
   const pending = new Map();
@@ -68,7 +68,7 @@
   }
   function setBusy(value) {
     busy=value;
-    for(const id of ['loginBtn','runReadTestsBtn','selectVehicleBtn','cachedBtn','refreshBtn','capabilitiesBtn','commandBtn','pollBtn','connectionTestBtn','disconnectBtn','transportMode','resolveUnknownBtn']) $(id).disabled=value;
+    for(const id of ['loginBtn','runReadTestsBtn','referenceEnrollmentBtn','selectVehicleBtn','cachedBtn','refreshBtn','capabilitiesBtn','commandBtn','pollBtn','connectionTestBtn','disconnectBtn','transportMode','resolveUnknownBtn']) $(id).disabled=value;
     $('stopBtn').disabled=!value; updateSession();
   }
   function updateSession() {
@@ -80,6 +80,7 @@
     if(!busy) {
       $('vehicleSelect').disabled=!session || vehicles.length===0;
       for(const id of ['runReadTestsBtn','selectVehicleBtn']) $(id).disabled=!session;
+      $('referenceEnrollmentBtn').disabled=!session || Date.now()>=session.expires || !enrollmentFailed || Boolean(session.enrollmentLiteralAt) || Boolean(transaction && !transaction.done);
       for(const id of ['cachedBtn','refreshBtn','capabilitiesBtn']) $(id).disabled=!selected;
       $('commandBtn').disabled=!selected || !statusRead || Boolean(restoredCommand) || Boolean(transaction && !transaction.done);
       $('pollBtn').disabled=!transaction?.id || transaction.done;
@@ -176,6 +177,7 @@
   async function request(label,method,url,body=null,extra={},vehicle=false,auth=true,allowError=false) {
     if(stopped)throw new Error('Stopped.');if(auth)needSession();
     const spec={url,method,headers:{...headers(vehicle,auth),...extra},body:body===null?null:JSON.stringify(body)};
+    const lookupMetadata=url.startsWith(API+'enrollment/details/')?{enrollment_path_format:url.includes('%40')?'encoded-at':'literal-at'}:{};
     const started=performance.now(),at=new Date().toISOString();let logged=false;
     try {
       const r=await send(spec,controller.signal);
@@ -184,25 +186,34 @@
       if(r.text && r.text.trim()) {try{data=JSON.parse(r.text);}catch{data={non_json:true,message:'Non-JSON response body omitted. HTTP status and response headers retained.'};}}
       collect(data);
       const success=r.status>=200&&r.status<300&& !(data && (data.errorCode!==undefined || data.error));
-      log({at,label,method,url,transport:currentTransport,elapsed_ms:Math.round(performance.now()-started),request:{headers:spec.headers,body},status:r.status,outcome:success?'HTTP response received':'API rejected or unexpected response',response_headers:responseHeaders,response:data===null?'[EMPTY BODY]':data});logged=true;
+      log({at,label,method,url,...lookupMetadata,transport:currentTransport,elapsed_ms:Math.round(performance.now()-started),request:{headers:spec.headers,body},status:r.status,outcome:success?'HTTP response received':'API rejected or unexpected response',response_headers:responseHeaders,response:data===null?'[EMPTY BODY]':data});logged=true;
       if(r.status===429)throw new Error('Hyundai rate limited this request. Stop testing and try later; no retries were sent.');
-      if(!success&&!allowError)throw new Error(`Hyundai returned HTTP ${r.status}${data?.errorMessage ? ': '+scrubString(data.errorMessage) : data?.errorCode !== undefined ? ', API error '+scrubString(data.errorCode) : ''}. ${r.status===401||r.status===403?'Use MyHyundai to check your account or authentication requirements.':''}`);
+      if(!success&&!allowError) {
+        const codes=[data?.errorCode,data?.errorSubCode].filter(v=>typeof v==='string'||typeof v==='number').map(v=>scrubString(v));
+        const message=[data?.errorSubMessage,data?.errorMessage].find(v=>typeof v==='string'&&v.trim());
+        const failure=new Error(`${label}: Hyundai returned HTTP ${r.status}${codes.length?' (API '+codes.join(', ')+')':''}.${message?' '+scrubString(message):''}${r.status===401||r.status===403?' Use MyHyundai to check your account or authentication requirements.':''}`);
+        failure.requestLabel=label;throw failure;
+      }
       if(success)evidence.push({test:label,at,http_status:r.status,method,path:redact(url.replace(BASE,'')),scope:'Observed API response, not proof of physical vehicle state'});
       return {data,headers:responseHeaders,status:r.status};
     } catch(e) {
-      if(!logged)log({at,label,method,url,transport:currentTransport,elapsed_ms:Math.round(performance.now()-started),request:{headers:spec.headers,body},outcome:'Connection failed or stopped',error:scrubString(e.message)});
+      if(!logged)log({at,label,method,url,...lookupMetadata,transport:currentTransport,elapsed_ms:Math.round(performance.now()-started),request:{headers:spec.headers,body},outcome:'Connection failed or stopped',error:scrubString(e.message)});
       throw e;
     }
   }
   async function task(fn) {
     if(busy)return;stopped=false;controller=new AbortController();setBusy(true);
-    try {await fn();}catch(e){notice(e.message,'error');result('Test stopped',e.message,'error');}
+    try {await fn();}catch(e){notice(e.message,'error');result(e.requestLabel?e.requestLabel+' failed':'Test stopped',e.message,'error');}
     finally{controller=null;setBusy(false);if(pageLeaving){privateValues.clear();pageLeaving=false;}}
   }
-  async function getEnrollment() {
-    const r=await request('Vehicle enrollment','GET',API+'enrollment/details/'+encodeURIComponent(session.username));
-    if(!Array.isArray(r.data?.enrolledVehicleDetails))throw new Error('The enrollment response did not contain the expected vehicle list. The response is logged; no features were assumed.');
-    enrollment=r.data;vehicles=r.data.enrolledVehicleDetails.map(v=>v.vehicleDetails).filter(v=>v&&v.regid&&v.vin);
+  function enrollmentUrl(literalAt=false) {
+    const email=encodeURIComponent(session.username);
+    // A manual comparison changes only @. Other delimiters stay encoded.
+    return API+'enrollment/details/'+(literalAt?email.replace(/%40/g,'@'):email);
+  }
+  function applyEnrollment(data) {
+    if(!Array.isArray(data?.enrolledVehicleDetails))throw new Error('The enrollment response did not contain the expected vehicle list. The response is logged; no features were assumed.');
+    enrollment=data;vehicles=data.enrolledVehicleDetails.map(v=>v?.vehicleDetails).filter(v=>v&&v.regid&&v.vin);
     const previous=selected?.regid;
     $('vehicleSelect').replaceChildren(node('option','Select a vehicle'));
     $('vehicleSelect').firstChild.value='';
@@ -212,6 +223,27 @@
     else if(vehicles.length===1&&vehicles[0].enrollmentStatus!=='CANCELLED'){selected=vehicles[0];$('vehicleSelect').value='0';}
     result('Vehicle enrollment',`${vehicles.length} vehicle record(s) returned. ${selected?'Vehicle selected.':'Choose the Santa Fe before running vehicle tests.'}`);
     updateSession();return selected;
+  }
+  async function getEnrollment() {
+    enrollmentFailed=false;
+    try {
+      const r=await request('Vehicle enrollment','GET',enrollmentUrl(Boolean(session?.enrollmentLiteralAt)));
+      return applyEnrollment(r.data);
+    } catch(e) {
+      enrollmentFailed=true;statusRead=false;
+      if(session && Date.now()<session.expires && !session.enrollmentLiteralAt && !stopped) e.message+=' The login step succeeded. Tap Test vehicle lookup to compare the email format, or export the log.';
+      throw e;
+    }
+  }
+  async function testReferenceEnrollment() {
+    needSession();
+    if(!enrollmentFailed || session.enrollmentLiteralAt || (transaction&&!transaction.done))throw new Error('This lookup test is available after a vehicle-list failure, while no command is awaiting an outcome.');
+    statusRead=false;
+    const r=await request('Vehicle enrollment (literal @ test)','GET',enrollmentUrl(true));
+    applyEnrollment(r.data);
+    session.enrollmentLiteralAt=true;enrollmentFailed=false;
+    if(selected){await cached();capabilities();}
+    notice('The alternate vehicle lookup returned a vehicle list. This session will use that format. '+(selected?'Read tests finished; check the vehicle timestamp and export the log.':'Choose your vehicle and export the log.'),'success');
   }
   function showStatus(data) {
     const s=data?.vehicleStatus;if(!s||typeof s!=='object')throw new Error('Hyundai returned no vehicleStatus object. This test is not confirmed.');
@@ -234,7 +266,7 @@
   async function login() {
     if(nativePage?!nativeAvailable:$('transportMode').value!=='direct' && !helperAvailable){$('password').value='';$('pin').value='';throw new Error(nativePage?'The app connection is unavailable. No login request was sent.':'Open the Android app before signing in. Manual browser testing requires a configured helper. No login request was sent.');}
     if(transaction&&!transaction.done)throw new Error('A command is awaiting confirmation of its outcome. Check its result before starting another session.');
-    session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;statusRead=false;evidence=[];
+    session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;statusRead=false;enrollmentFailed=false;evidence=[];
     const username=$('email').value.trim(),password=$('password').value,pin=$('pin').value.trim();
     if(!username||!password||!/^\d{4}$/.test(pin))throw new Error('Enter your MyHyundai email, password, and four-digit Bluelink service PIN.');
     remember(username);remember(password);remember(pin);
@@ -299,7 +331,7 @@
   function disconnect() {
     if(transaction&&!transaction.done&&!window.confirm('A command outcome is unresolved. Signing out cannot cancel it. Have you checked the vehicle and want to end this session?'))return;
     if(transaction&&!transaction.done){clearCommandMarker();log({at:new Date().toISOString(),label:'Unresolved command acknowledged',outcome:'User confirmed checking the vehicle before signing out',interpretation:'The API outcome remains unknown. This is a local acknowledgement, not command completion.'});}
-    session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;statusRead=false;transaction=null;
+    session=null;selected=null;vehicles=[];enrollment=null;lastStatus=null;statusRead=false;enrollmentFailed=false;transaction=null;
     for(const id of ['email','password','pin'])$(id).value='';$('vehicleSelect').replaceChildren(node('option','Sign in first'));$('vehicleSummary').replaceChildren();
     privateValues.clear();notice(nativeAvailable?'Signed out locally. Account values were removed from this app session; sanitized logs remain.':'Signed out locally. Account values were removed from this tab; sanitized logs remain.');updateSession();
   }
@@ -308,6 +340,7 @@
   function clearCommandMarker() {try{localStorage.removeItem(COMMAND_KEY);return localStorage.getItem(COMMAND_KEY)===null;}catch{return false;}}
   $('loginForm').addEventListener('submit',e=>{e.preventDefault();task(login);});
   $('runReadTestsBtn').addEventListener('click',()=>task(readTests));
+  $('referenceEnrollmentBtn').addEventListener('click',()=>task(testReferenceEnrollment));
   $('selectVehicleBtn').addEventListener('click',()=>task(async()=>{if(transaction&&!transaction.done)throw new Error('Check the current command outcome before switching vehicles.');const v=vehicles[Number($('vehicleSelect').value)];if($('vehicleSelect').value===''||!v)throw new Error('Choose a vehicle.');selected=v;statusRead=false;lastStatus=null;await cached();capabilities();}));
   $('cachedBtn').addEventListener('click',()=>task(()=>cached()));
   $('refreshBtn').addEventListener('click',()=>{if(window.confirm('Request a fresh status from Hyundai? This can wake the vehicle and use a remote request.'))task(()=>cached(true));});

@@ -65,3 +65,13 @@ The reviewed default-branch source and selected PyPI release are distinct refere
 Official Termux:Boot instructions: https://github.com/termux/termux-boot/blob/master/README.md
 
 Boot is optional and distinct from Termux:Tasker. This release includes manual foreground startup, not a boot installation or permanent wake lock.
+
+## Enrollment comparison after the phone log
+
+The inspected 0.3.0 export records HTTP 200 token responses followed by HTTP 502 C500 from getEnrollmentDetailsByUser with NO DATA FOUND TO PERFORM THIS OPERATION. Jon confirms the official MyHyundai app shows the car. Derived evidence is in verification/account-log-review.json; the private attachment is not published.
+
+The pinned HyundaiBlueLinkApiUSA.py line 388 concatenates the entered username into /ac/v2/enrollment/details/, preserving @. Our existing request uses encodeURIComponent, producing %40. The separate primary BlueLinky implementation also preserves @ in getVehicles(): https://github.com/Hacksore/bluelinky/blob/master/src/controllers/american.controller.ts
+
+RFC 3986 permits @ in a path segment and does not generally guarantee equivalence when reserved characters are percent-encoded: https://www.rfc-editor.org/rfc/rfc3986.html#section-2.2 and https://www.rfc-editor.org/rfc/rfc3986.html#section-3.3
+
+0.3.1 therefore offers a manually triggered comparison that changes only %40 to @ using the same token and unchanged headers. Other delimiters stay encoded. No source or current log proves that this resolves the enrollment failure. A successful expected enrollment response is required before choosing the alternate form for that session. Both compared requests and their nonprivate path-format labels are logged.

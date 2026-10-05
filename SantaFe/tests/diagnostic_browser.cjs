@@ -21,6 +21,9 @@ const server = http.createServer((req, res) => {
   const file = path.join(ROOT, path.basename(pathname)); res.writeHead(200, { 'content-type': mime[path.extname(file)] }); res.end(fs.readFileSync(file));
 });
 const basics = (two = false) => [{ data: { access_token: 'fixture-access-secret', refresh_token: 'fixture-refresh-secret', expires_in: 1800 } }, { data: { enrolledVehicleDetails: [V1, ...(two ? [V2] : [])].map(vehicleDetails => ({ vehicleDetails })) } }, { data: { vehicleStatus: { dateTime: '2026-10-04T19:00:00-04:00', doorLock: true, engine: false, fuelLevel: 42, location: { latitude: 42.04684, longitude: -71.11242 } } } }];
+const enrollmentFailure = { status: 502, data: { errorCode: 502, errorMessage: 'Service error', errorSubCode: 'C500', errorSubMessage: 'NO DATA FOUND TO PERFORM THIS OPERATION', functionName: 'getEnrollmentDetailsByUser' } };
+const wrongPassword = { status: 502, data: { errorCode: 502, errorMessage: 'Incorrect username or password', errorSubCode: 'IDM_401_1', errorSubMessage: 'Username or password is incorrect' } };
+const literalEnrollmentUrl = () => API + '/ac/v2/enrollment/details/' + encodeURIComponent(USER).replace(/%40/g, '@');
 async function scenario(name, fn) { const start = performance.now(); try { await fn(); results.push({ test: name, passed: true, elapsed_ms: Math.round(performance.now() - start) }); } catch (e) { results.push({ test: name, passed: false, error: e.message }); process.stderr.write(`${name}: ${e.message}\n`); } }
 let browser, url;
 async function pageFixture(fixtures, opts = {}) {
@@ -110,7 +113,7 @@ async function exported(page) {
       await h.page.click('#downloadLogBtn');assert.match(await h.page.locator('#notice').innerText(),/Choose where to save/);
       const report=await h.page.evaluate(()=>window.__testExports.at(-1)),raw=JSON.stringify(report);
       for(const value of [USER,encodeURIComponent(USER),PASSWORD,PIN,V1.vin,V1.regid,'fixture-access-secret','fixture-refresh-secret','42.04684','-71.11242'])assert.equal(raw.includes(value),false,`Native export leaked ${value}`);
-      assert.equal(report.version,'0.3.0');assert.ok(report.requests.filter(r=>r.transport).every(r=>r.transport==='native Android'));
+      assert.equal(report.version,'0.3.1');assert.ok(report.requests.filter(r=>r.transport).every(r=>r.transport==='native Android'));
       await h.page.evaluate(()=>window.SantaFeAndroid.onExportResult(true,null));assert.equal(await h.page.locator('#notice').innerText(),'Sanitized log saved.');
       const layout=await h.page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));assert.ok(layout.scroll<=layout.client+1);
       await h.page.screenshot({path:path.join(OUT,'diagnostic-android-fixture.png'),fullPage:true});
@@ -124,6 +127,61 @@ async function exported(page) {
       await h.page.evaluate(()=>window.__testNativeCallbacks[window.__testRequests[0].id]());await idle(h.page);
       assert.equal((await h.requests()).length,1);assert.equal(await h.page.evaluate(()=>window.__testCancels.length),1);assert.equal(await h.page.locator('#sessionStatus').innerText(),'Signed out');assert.equal(await h.page.inputValue('#password'),'');assert.deepEqual(h.errors,[]);
     }finally{await h.close();}
+  });
+  await scenario('Mobile native login succeeds before enrollment C500 and a deliberate lookup reuses the token once', async () => {
+    const fixture = basics(), h = await pageFixture([fixture[0], enrollmentFailure, { ...fixture[1], delay: true }, fixture[2], fixture[1], fixture[2]], { native: true, mobile: true }); try {
+      assert.equal(await h.page.isEnabled('#referenceEnrollmentBtn'), false); await login(h.page);
+      assert.equal((await h.requests()).length, 2); assert.equal(await h.page.locator('#sessionStatus').innerText(), 'Signed in for this app');
+      assert.equal(await h.page.isEnabled('#referenceEnrollmentBtn'), true); assert.equal(await h.page.isEnabled('#commandBtn'), false);
+      for (const fragment of [/Vehicle enrollment/i, /HTTP 502/, /C500/, /NO DATA FOUND TO PERFORM THIS OPERATION/i]) assert.match(await h.page.locator('#notice').innerText(), fragment);
+      await h.page.screenshot({ path: path.join(OUT, 'diagnostic-enrollment-502.png'), fullPage: true });
+      await h.page.click('#referenceEnrollmentBtn'); await h.page.waitForFunction(() => window.__testRequests.length === 3);
+      for (const id of ['referenceEnrollmentBtn', 'runReadTestsBtn', 'loginBtn', 'disconnectBtn', 'commandBtn']) assert.equal(await h.page.isEnabled('#' + id), false);
+      await h.page.evaluate(() => { document.getElementById('referenceEnrollmentBtn').dispatchEvent(new Event('click')); document.getElementById('runReadTestsBtn').dispatchEvent(new Event('click')); });
+      assert.equal((await h.requests()).length, 3, 'Programmatic competing clicks cannot bypass the busy guard');
+      await h.page.evaluate(() => window.__testNativeCallbacks[window.__testRequests[2].id]()); await idle(h.page);
+      let requests = await h.requests(); assert.equal(requests.length, 4); assert.equal(requests[2].url, literalEnrollmentUrl()); assert.equal(requests[2].method, 'GET');
+      assert.equal(requests[2].url.includes('%2B'), true);
+      for (const key of ['username', 'accessToken', 'blueLinkServicePin']) assert.equal(requests[2].headers[key], requests[1].headers[key]);
+      assert.equal(requests[3].headers.refresh, 'false'); assert.equal(await h.page.isEnabled('#commandBtn'), true); assert.equal(await h.page.isEnabled('#referenceEnrollmentBtn'), false);
+      await h.page.click('#runReadTestsBtn'); await idle(h.page); requests = await h.requests(); assert.equal(requests.length, 6); assert.equal(requests[4].url, literalEnrollmentUrl());
+      assert.equal(requests.filter(r => r.method === 'POST').length, 1); assert.equal(h.calls.length, 0);
+      await h.page.click('#downloadLogBtn'); const report = await h.page.evaluate(() => window.__testExports.at(-1)), raw = JSON.stringify(report);
+      assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['encoded-at', 'literal-at', 'literal-at']);
+      for (const value of [USER, encodeURIComponent(USER), encodeURIComponent(USER).replace(/%40/g, '@'), PASSWORD, PIN, V1.vin, V1.regid, 'fixture-access-secret', 'fixture-refresh-secret']) assert.equal(raw.includes(value), false, `Lookup export leaked ${value}`);
+      assert.equal(report.requests.some(r => r.label === 'Reported capability fields'), true); assert.match(raw, /enrollment\/details\/\[REDACTED\]/);
+      const layout = await h.page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth })); assert.ok(layout.scroll <= layout.client + 1);
+      assert.deepEqual(h.errors, []);
+    } finally { await h.close(); }
+  });
+  await scenario('Native wrong-password 502 preserves IDM_401_1 and the original message without a lookup or retry', async () => {
+    const h = await pageFixture([wrongPassword], { native: true }); try {
+      await login(h.page); assert.equal((await h.requests()).length, 1); assert.equal(await h.page.locator('#sessionStatus').innerText(), 'Signed out');
+      for (const fragment of [/Login/i, /HTTP 502/, /IDM_401_1/, /Username or password is incorrect/]) assert.match(await h.page.locator('#notice').innerText(), fragment);
+      for (const id of ['referenceEnrollmentBtn', 'runReadTestsBtn', 'commandBtn']) assert.equal(await h.page.isEnabled('#' + id), false);
+      await h.page.evaluate(() => document.getElementById('referenceEnrollmentBtn').dispatchEvent(new Event('click'))); await idle(h.page); assert.equal((await h.requests()).length, 1);
+      assert.deepEqual(h.errors, []);
+    } finally { await h.close(); }
+  });
+  await scenario('Native failed or malformed alternate lookup keeps commands disabled and ordinary reads use the original format', async () => {
+    for (const failure of [enrollmentFailure, { data: { vehicles: [V1] } }]) {
+      const fixture = basics(), h = await pageFixture([fixture[0], enrollmentFailure, failure, fixture[1], fixture[2]], { native: true }); try {
+        await login(h.page); await h.page.click('#referenceEnrollmentBtn'); await idle(h.page);
+        assert.equal((await h.requests()).length, 3); assert.equal((await h.requests())[2].url, literalEnrollmentUrl());
+        assert.equal(await h.page.locator('#sessionStatus').innerText(), 'Signed in for this app'); assert.equal(await h.page.isEnabled('#commandBtn'), false); assert.equal(await h.page.isEnabled('#referenceEnrollmentBtn'), true);
+        await h.page.click('#runReadTestsBtn'); await idle(h.page); const requests = await h.requests(); assert.equal(requests.length, 5);
+        assert.equal(requests[3].url, API + '/ac/v2/enrollment/details/' + encodeURIComponent(USER)); assert.equal(requests.filter(r => r.method === 'POST').length, 1);
+        await h.page.click('#downloadLogBtn'); const report = await h.page.evaluate(() => window.__testExports.at(-1)); assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['encoded-at', 'literal-at', 'encoded-at']);
+        assert.deepEqual(h.errors, []);
+      } finally { await h.close(); }
+    }
+  });
+  await scenario('Native cached-status 502 displays its own request label and cannot enable enrollment fallback', async () => {
+    const fixture = basics(), h = await pageFixture([fixture[0], fixture[1], enrollmentFailure], { native: true }); try {
+      await login(h.page); assert.equal((await h.requests()).length, 3); assert.equal(await h.page.locator('#sessionStatus').innerText(), 'Signed in for this app');
+      assert.match(await h.page.locator('#notice').innerText(), /Cached vehicle status/i); assert.match(await h.page.locator('#notice').innerText(), /C500/);
+      assert.equal(await h.page.isEnabled('#referenceEnrollmentBtn'), false); assert.equal(await h.page.isEnabled('#commandBtn'), false); assert.deepEqual(h.errors, []);
+    } finally { await h.close(); }
   });
   await scenario('Malformed native response and native TLS error do not authenticate, fall back or retry',async()=>{
     for(const fixture of [{rawResponse:{status:'200',text:'{}',headers:{}}},{error:'Hyundai TLS request failed.'}]){

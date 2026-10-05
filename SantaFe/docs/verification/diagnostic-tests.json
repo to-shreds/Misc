@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-10-05T01:50:42.957Z",
+  "generated_at": "2026-10-05T03:11:14.002Z",
   "method": "Node VM UI fixture execution of shipped scripts; all HTTP responses mocked; no Hyundai account or vehicle used",
   "results": [
     {
       "test": "Helper-required setup blocks credentials and every programmatic login without direct fallback",
       "passed": true,
-      "elapsed_ms": 11
+      "elapsed_ms": 12
     },
     {
       "test": "Only a valid same-window helper hello enables credentials and Automatic uses the helper",
@@ -15,12 +15,12 @@
     {
       "test": "Bundled Android page enables login immediately and exclusively uses native Hyundai transport",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 4
     },
     {
       "test": "Native interface cannot be used on a public origin or an unexpected bundled path",
       "passed": true,
-      "elapsed_ms": 6
+      "elapsed_ms": 5
     },
     {
       "test": "Absent or incomplete native interface keeps bundled credentials locked even in Direct mode",
@@ -30,7 +30,7 @@
     {
       "test": "Native exports pass only sanitized data and distinguish choosing a file from saving it",
       "passed": true,
-      "elapsed_ms": 4
+      "elapsed_ms": 5
     },
     {
       "test": "Native export rejection does not claim a file was written",
@@ -45,27 +45,27 @@
     {
       "test": "Native pagehide during enrollment redacts encoded email after secret memory is cleared",
       "passed": true,
-      "elapsed_ms": 5
+      "elapsed_ms": 3
     },
     {
       "test": "Pagehide retains redaction values until an aborted request logs opaque echoed secrets",
       "passed": true,
-      "elapsed_ms": 2
+      "elapsed_ms": 3
     },
     {
       "test": "Native timeout cancels the request and does not fall back or retry",
       "passed": true,
-      "elapsed_ms": 2
+      "elapsed_ms": 4
     },
     {
       "test": "Native callbacks ignore unknown identifiers and reject malformed or failed responses",
       "passed": true,
-      "elapsed_ms": 12
+      "elapsed_ms": 10
     },
     {
       "test": "Native transaction headers reach polling and command acceptance remains distinct from completion",
       "passed": true,
-      "elapsed_ms": 7
+      "elapsed_ms": 6
     },
     {
       "test": "Native command guard and sanitized start record are persisted before transmission",
@@ -80,7 +80,7 @@
     {
       "test": "Definitive native SUCCESS or ERROR clears guard, while pending and unknown polling preserve it",
       "passed": true,
-      "elapsed_ms": 20
+      "elapsed_ms": 16
     },
     {
       "test": "Cancelled confirmation, invalid climate, and unavailable storage never save or send a command",
@@ -98,9 +98,59 @@
       "elapsed_ms": 3
     },
     {
+      "test": "Logged login success followed by enrollment C500 preserves session and enables only a manual lookup test",
+      "passed": true,
+      "elapsed_ms": 2
+    },
+    {
+      "test": "HTTP 502 with IDM_401_1 identifies incorrect credentials and never enables the post-login lookup",
+      "passed": true,
+      "elapsed_ms": 2
+    },
+    {
+      "test": "Manual literal-at lookup reuses token and PIN once and remembers only a confirmed enrollment format",
+      "passed": true,
+      "elapsed_ms": 6
+    },
+    {
+      "test": "Failed or malformed alternate enrollment never retries or promotes the unconfirmed email format",
+      "passed": true,
+      "elapsed_ms": 8
+    },
+    {
+      "test": "Alternate lookup error text and its literal-at URL are sanitized before display, storage and export",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "Busy manual lookup disables competing actions and duplicate clicks produce only one GET",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "An expired session prevents the alternate lookup from sending a request and disables its button",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
+      "test": "Stopping or leaving a delayed alternate lookup rejects its late success without adopting the format or exposing identity",
+      "passed": true,
+      "elapsed_ms": 8
+    },
+    {
+      "test": "Cached-status failure cannot offer an unrelated alternate enrollment lookup",
+      "passed": true,
+      "elapsed_ms": 2
+    },
+    {
+      "test": "A later enrollment failure invalidates stale read status and withholds new commands",
+      "passed": true,
+      "elapsed_ms": 3
+    },
+    {
       "test": "Saved and copied logs redact credentials, identifiers, coordinates and echoed secrets",
       "passed": true,
-      "elapsed_ms": 5
+      "elapsed_ms": 4
     },
     {
       "test": "Non-JSON authentication errors retain status without raw response text",
@@ -115,12 +165,12 @@
     {
       "test": "Empty HTTP 200 login does not invent an authenticated session or vehicle data",
       "passed": true,
-      "elapsed_ms": 3
+      "elapsed_ms": 2
     },
     {
       "test": "Malformed enrollment and status response shapes cannot enable vehicle commands",
       "passed": true,
-      "elapsed_ms": 4
+      "elapsed_ms": 6
     },
     {
       "test": "HTTP 429 stops the read sequence and never retries",
@@ -135,7 +185,7 @@
     {
       "test": "Duplicate login submissions while busy produce only one request",
       "passed": true,
-      "elapsed_ms": 2
+      "elapsed_ms": 3
     },
     {
       "test": "Stop waiting aborts the request and never retries or preserves password",
@@ -150,17 +200,17 @@
     {
       "test": "Command is observed first and confirmed only after SUCCESS transaction result",
       "passed": true,
-      "elapsed_ms": 8
+      "elapsed_ms": 5
     },
     {
       "test": "Lights and horn/lights poll with their specific service type",
       "passed": true,
-      "elapsed_ms": 6
+      "elapsed_ms": 8
     },
     {
       "test": "Rereading enrollment after a command preserves polling for the same vehicle identifiers",
       "passed": true,
-      "elapsed_ms": 5
+      "elapsed_ms": 4
     },
     {
       "test": "Climate validation blocks unsafe or unknown engine settings before transmission",

@@ -94,6 +94,9 @@ function loginFixtures(extra = {}) {
     { data: { enrolledVehicleDetails: [{ vehicleDetails: { ...vehicle, ...extra } }] } },
     { data: { vehicleStatus: { dateTime: '2026-10-04T19:01:00-04:00', doorLock: true, engine: false, airCtrlOn: false, fuelLevel: 44, dte: { value: 210, unit: 1 }, location: { latitude: 42.04684, longitude: -71.11242 } } } } ];
 }
+const enrollmentFailure = { status: 502, data: { errorCode: 502, errorMessage: 'Service error', errorSubCode: 'C500', errorSubMessage: 'NO DATA FOUND TO PERFORM THIS OPERATION', functionName: 'getEnrollmentDetailsByUser' } };
+const wrongPassword = { status: 502, data: { errorCode: 502, errorMessage: 'Incorrect username or password', errorSubCode: 'IDM_401_1', errorSubMessage: 'Username or password is incorrect' } };
+const literalEnrollmentUrl = username => API + 'enrollment/details/' + encodeURIComponent(username).replace(/%40/g, '@');
 async function login(h) {
   h.get('email').value = creds.username; h.get('password').value = creds.password; h.get('pin').value = creds.pin;
   await h.action('loginForm', 'submit');
@@ -170,7 +173,7 @@ check('Native exports pass only sanitized data and distinguish choosing a file f
   const h=harness(fixtures,{native:true});t.after(()=>h.close());await login(h);
   const report=await h.exported(),raw=JSON.stringify(report);
   for(const value of [...Object.values(creds),vehicle.vin,vehicle.regid,'private-access-987654','private-refresh-456789','42.04684','-71.11242'])assert.equal(raw.includes(value),false,`Native export leaked ${value}`);
-  assert.equal(report.version,'0.3.0');assert.match(h.get('notice').textContent,/Choose where to save/);
+  assert.equal(report.version,'0.3.1');assert.match(h.get('notice').textContent,/Choose where to save/);
   h.window.SantaFeAndroid.onExportResult(true,null);assert.equal(h.get('notice').textContent,'Sanitized log saved.');
   h.window.SantaFeAndroid.onExportResult(false,'Log export cancelled.');assert.match(h.get('notice').textContent,/cancelled/);
   await h.action('copyLogBtn');assert.equal(h.context.copied,undefined,'Native app must not copy secrets through a separate clipboard path');
@@ -276,6 +279,126 @@ check('Login, enrollment and cached status run in order and clear credentials', 
   assert.equal(h.get('vehicleSelect').disabled, false, 'A signed-in user must be able to select an enrolled vehicle');
   assert.equal(h.get('commandBtn').disabled, false); assert.match(h.get('vehicleSummary').textContent, /cached|timestamp/i);
   assert.equal(h.requests.filter(r => r.method === 'POST').length, 1, 'Login must never trigger remote commands');
+});
+
+check('Logged login success followed by enrollment C500 preserves session and enables only a manual lookup test', async t => {
+  const h = harness([loginFixtures()[0], enrollmentFailure], { native: true }); t.after(() => h.close());
+  assert.equal(h.get('referenceEnrollmentBtn').disabled, true);
+  await login(h);
+  assert.equal(h.requests.length, 2, 'An enrollment failure must not trigger a fallback, second login or cached status');
+  assert.equal(h.get('sessionStatus').textContent, 'Signed in for this app');
+  assert.equal(h.get('runReadTestsBtn').disabled, false); assert.equal(h.get('referenceEnrollmentBtn').disabled, false);
+  for (const id of ['commandBtn', 'cachedBtn', 'refreshBtn']) assert.equal(h.get(id).disabled, true);
+  assert.equal(h.get('password').value, ''); assert.equal(h.get('pin').value, '');
+  for (const fragment of [/Vehicle enrollment/i, /HTTP 502/, /C500/, /NO DATA FOUND TO PERFORM THIS OPERATION/i]) assert.match(h.get('notice').textContent, fragment);
+  const report = await h.exported();
+  assert.equal(report.evidence.some(e => e.test === 'Login' && e.http_status === 200), true);
+  assert.equal(report.requests.find(r => r.label === 'Vehicle enrollment').response.errorSubCode, 'C500');
+  assert.equal(report.requests.filter(r => r.method === 'POST').length, 1);
+});
+
+check('HTTP 502 with IDM_401_1 identifies incorrect credentials and never enables the post-login lookup', async t => {
+  const h = harness([wrongPassword], { native: true }); t.after(() => h.close()); await login(h);
+  assert.equal(h.requests.length, 1); assert.equal(h.get('sessionStatus').textContent, 'Signed out');
+  for (const id of ['runReadTestsBtn', 'referenceEnrollmentBtn', 'commandBtn']) assert.equal(h.get(id).disabled, true);
+  for (const fragment of [/Login/i, /HTTP 502/, /IDM_401_1/, /Username or password is incorrect/]) assert.match(h.get('notice').textContent, fragment);
+  await h.action('referenceEnrollmentBtn'); assert.equal(h.requests.length, 1, 'A programmatic lookup click must not bypass the missing-session guard');
+});
+
+check('Manual literal-at lookup reuses token and PIN once and remembers only a confirmed enrollment format', async t => {
+  const fixtures = loginFixtures();
+  const h = harness([fixtures[0], enrollmentFailure, fixtures[1], fixtures[2], fixtures[1], fixtures[2]], { native: true }); t.after(() => h.close());
+  await login(h); await h.action('referenceEnrollmentBtn');
+  assert.equal(h.requests.length, 4, 'The click sends one enrollment GET and then cached status for the returned vehicle');
+  assert.equal(h.requests[2].method, 'GET'); assert.equal(h.requests[2].url, literalEnrollmentUrl(creds.username));
+  assert.equal(h.requests[2].url.includes('%2B'), true, 'Only the at-sign changes; plus signs remain escaped');
+  for (const key of ['username', 'accessToken', 'blueLinkServicePin']) assert.equal(h.requests[2].headers[key], h.requests[1].headers[key], `${key} changed during the comparison`);
+  assert.equal(h.requests[3].url, API + 'rcs/rvs/vehicleStatus'); assert.equal(h.requests[3].headers.refresh, 'false');
+  assert.equal(h.get('commandBtn').disabled, false); assert.equal(h.get('referenceEnrollmentBtn').disabled, true);
+  await h.action('runReadTestsBtn');
+  assert.equal(h.requests.length, 6); assert.equal(h.requests[4].url, literalEnrollmentUrl(creds.username));
+  assert.equal(h.requests.filter(r => r.method === 'POST').length, 1, 'Lookup tests must never repeat login or send a vehicle command');
+  const report = await h.exported(), raw = JSON.stringify(h.report()) + JSON.stringify(report);
+  assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['encoded-at', 'literal-at', 'literal-at']);
+  for (const value of [...Object.values(creds), encodeURIComponent(creds.username), encodeURIComponent(creds.username).replace(/%40/g, '@'), vehicle.vin, vehicle.regid, 'private-access-987654', 'private-refresh-456789']) assert.equal(raw.includes(value), false, `Lookup export leaked ${value}`);
+  assert.match(raw, /enrollment\/details\/\[REDACTED\]/);
+  assert.equal(h.report().some(r => r.label === 'Reported capability fields'), true);
+});
+
+check('Failed or malformed alternate enrollment never retries or promotes the unconfirmed email format', async t => {
+  for (const failed of [enrollmentFailure, { data: { vehicles: [vehicle] } }]) {
+    const fixtures = loginFixtures(), h = harness([fixtures[0], enrollmentFailure, failed, fixtures[1], fixtures[2]], { native: true }); t.after(() => h.close());
+    await login(h); await h.action('referenceEnrollmentBtn');
+    assert.equal(h.requests.length, 3); assert.equal(h.requests[2].url, literalEnrollmentUrl(creds.username));
+    assert.equal(h.get('sessionStatus').textContent, 'Signed in for this app'); assert.equal(h.get('commandBtn').disabled, true);
+    assert.equal(h.get('referenceEnrollmentBtn').disabled, false, 'Only a deliberate click may test again after failure');
+    await h.action('runReadTestsBtn');
+    assert.equal(h.requests.length, 5); assert.equal(h.requests[3].url, API + 'enrollment/details/' + encodeURIComponent(creds.username));
+    assert.equal(h.requests.filter(r => r.method === 'POST').length, 1);
+    const report = await h.exported(); assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['encoded-at', 'literal-at', 'encoded-at']);
+  }
+});
+
+check('Alternate lookup error text and its literal-at URL are sanitized before display, storage and export', async t => {
+  const echoed = { ...enrollmentFailure, data: { ...enrollmentFailure.data, errorSubMessage: 'NO DATA FOUND TO PERFORM THIS OPERATION ' + literalEnrollmentUrl(creds.username) + ' ' + Object.values(creds).join(' ') + ' private-access-987654' } };
+  const h = harness([loginFixtures()[0], enrollmentFailure, echoed], { native: true }); t.after(() => h.close()); await login(h); await h.action('referenceEnrollmentBtn');
+  const raw = h.get('notice').textContent + JSON.stringify(h.report()) + JSON.stringify(await h.exported());
+  for (const value of [...Object.values(creds), encodeURIComponent(creds.username), encodeURIComponent(creds.username).replace(/%40/g, '@'), 'private-access-987654']) assert.equal(raw.includes(value), false, `Alternate error exposed ${value}`);
+  assert.match(raw, /NO DATA FOUND TO PERFORM THIS OPERATION/); assert.match(raw, /C500/); assert.match(raw, /enrollment\/details\/\[REDACTED\]/);
+  assert.equal(h.requests.length, 3);
+});
+
+check('Busy manual lookup disables competing actions and duplicate clicks produce only one GET', async t => {
+  let held; const fixtures = loginFixtures(), h = harness([fixtures[0], enrollmentFailure, envelope => { held = envelope; }, fixtures[2]], { native: true }); t.after(() => h.close());
+  await login(h); h.get('referenceEnrollmentBtn').emit('click'); h.get('referenceEnrollmentBtn').emit('click'); h.get('runReadTestsBtn').emit('click');
+  assert.ok(held); assert.equal(h.requests.length, 3);
+  for (const id of ['referenceEnrollmentBtn', 'runReadTestsBtn', 'loginBtn', 'disconnectBtn', 'commandBtn']) assert.equal(h.get(id).disabled, true);
+  h.window.SantaFeAndroid.onResponse(held.id, { status: 200, text: JSON.stringify(fixtures[1].data), headers: {} }, null); await h.idle();
+  assert.equal(h.requests.length, 4); assert.equal(h.requests.filter(r => r.method === 'POST').length, 1);
+});
+
+check('An expired session prevents the alternate lookup from sending a request and disables its button', async t => {
+  const h = harness([loginFixtures()[0], enrollmentFailure], { native: true }); t.after(() => h.close()); await login(h);
+  assert.equal(h.get('referenceEnrollmentBtn').disabled, false);
+  const future = Date.now() + 1801000; h.context.Date = class extends Date { static now() { return future; } };
+  await h.action('referenceEnrollmentBtn');
+  assert.equal(h.requests.length, 2); assert.equal(h.get('referenceEnrollmentBtn').disabled, true); assert.equal(h.get('commandBtn').disabled, true);
+  assert.match(h.get('notice').textContent, /login has expired/i); assert.equal(h.requests.filter(r => r.method === 'POST').length, 1);
+});
+
+check('Stopping or leaving a delayed alternate lookup rejects its late success without adopting the format or exposing identity', async t => {
+  for (const action of ['stop', 'pagehide']) {
+    let held; const fixtures = loginFixtures(), h = harness([fixtures[0], enrollmentFailure, envelope => { held = envelope; }], { native: true }); t.after(() => h.close());
+    await login(h); h.get('referenceEnrollmentBtn').emit('click'); assert.ok(held); assert.equal(h.requests.length, 3);
+    if (action === 'stop') h.get('stopBtn').click(); else h.window.emit('pagehide'); await h.idle();
+    assert.deepEqual(h.nativeCancels, [held.id]); assert.equal(h.get('commandBtn').disabled, true);
+    h.window.SantaFeAndroid.onResponse(held.id, { status: 200, text: JSON.stringify(fixtures[1].data), headers: {} }, null); await h.idle();
+    assert.equal(h.requests.length, 3, 'The cancelled lookup must not trigger a cached-status request');
+    const report = await h.exported(), raw = JSON.stringify(h.report()) + JSON.stringify(report);
+    for (const value of [...Object.values(creds), encodeURIComponent(creds.username), encodeURIComponent(creds.username).replace(/%40/g, '@'), vehicle.vin, vehicle.regid, 'private-access-987654']) assert.equal(raw.includes(value), false, `${action} leaked ${value}`);
+    assert.deepEqual(report.requests.filter(r => /Vehicle enrollment/.test(r.label)).map(r => r.enrollment_path_format), ['encoded-at', 'literal-at']);
+    if (action === 'pagehide') {
+      assert.equal(h.get('sessionStatus').textContent, 'Signed out'); assert.equal(h.get('referenceEnrollmentBtn').disabled, true); assert.equal(h.get('email').value, '');
+      h.responses.push(...loginFixtures()); await login(h); assert.equal(h.requests[4].url, API + 'enrollment/details/' + encodeURIComponent(creds.username)); assert.equal(h.requests.length, 6);
+    } else {
+      assert.equal(h.get('sessionStatus').textContent, 'Signed in for this app'); h.responses.push(fixtures[1], fixtures[2]); await h.action('runReadTestsBtn');
+      assert.equal(h.requests[3].url, API + 'enrollment/details/' + encodeURIComponent(creds.username)); assert.equal(h.requests.length, 5); assert.equal(h.requests.filter(r => r.method === 'POST').length, 1);
+    }
+  }
+});
+
+check('Cached-status failure cannot offer an unrelated alternate enrollment lookup', async t => {
+  const fixtures = loginFixtures(), h = harness([fixtures[0], fixtures[1], enrollmentFailure], { native: true }); t.after(() => h.close()); await login(h);
+  assert.equal(h.requests.length, 3); assert.equal(h.get('sessionStatus').textContent, 'Signed in for this app');
+  assert.equal(h.get('referenceEnrollmentBtn').disabled, true); assert.equal(h.get('commandBtn').disabled, true);
+  assert.match(h.get('notice').textContent, /Cached vehicle status/i); assert.match(h.get('notice').textContent, /C500/);
+});
+
+check('A later enrollment failure invalidates stale read status and withholds new commands', async t => {
+  const h = harness([...loginFixtures(), enrollmentFailure], { native: true }); t.after(() => h.close()); await login(h); assert.equal(h.get('commandBtn').disabled, false);
+  await h.action('runReadTestsBtn'); assert.equal(h.requests.length, 4); assert.equal(h.get('sessionStatus').textContent, 'Signed in for this app');
+  assert.equal(h.get('commandBtn').disabled, true); assert.equal(h.get('referenceEnrollmentBtn').disabled, false);
+  h.get('confirmCommand').checked = true; await h.action('commandBtn'); assert.equal(h.requests.length, 4, 'A programmatic command cannot use stale success after enrollment failure');
 });
 
 check('Saved and copied logs redact credentials, identifiers, coordinates and echoed secrets', async t => {

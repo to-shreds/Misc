@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-10-05T01:57:46.701257Z",
-  "version": "0.3.0",
+  "generated_at": "2026-10-05T03:14:00.695004Z",
+  "version": "0.3.1",
   "application_id": "com.jon.santafelab",
-  "version_code": 3,
+  "version_code": 4,
   "min_sdk": 26,
   "target_sdk": 35,
   "apk": {
-    "path": "SantaFe/android/dist/SantaFe-API-Lab-0.3.0.apk",
+    "path": "SantaFe/android/dist/SantaFe-API-Lab-0.3.1.apk",
     "size_bytes": 54104,
-    "sha256": "cc83c31a078a792042b56355ee853bfd5f2c80f754c946d6b80f9b0b08cfcc70",
+    "sha256": "83ba8c3d40d41ad2d920d7aacf31312ceceee830e6064004cb71f4c000e83cba",
     "signature_v2_verified": true,
     "signature_v3_verified": true,
     "zip_alignment_verified": true,
@@ -20,11 +20,11 @@
   },
   "bundled_assets": {
     "index.html": {
-      "sha256": "5d537b933434c30e45286bd15e661c67b1558119d8a0e4a5856584886f0c7936",
+      "sha256": "d84145677156c500184d2fd7fad38221238f9a10ec0318d9be0bf93dfa9b6e77",
       "packaged_bytes_match": true
     },
     "diagnostic.js": {
-      "sha256": "348b146d4864a93d53a790f7a1c8394f01a6e1b624fb6bad1d21468a0e32b232",
+      "sha256": "52f8cd01cecb2cffa2b91932e3890d1c7f9073690eaec0ff723a1b060df4c516",
       "packaged_bytes_match": true
     },
     "diagnostic.css": {
@@ -34,21 +34,22 @@
   },
   "checks": {
     "request_policy": {
-      "passed": 114,
+      "passed": 137,
       "scope": "Standalone JVM synthetic inputs; no network"
     },
     "native_transport": {
-      "passed": 52,
+      "passed": 61,
       "scope": "Fixture HttpsURLConnection factory and genuine org.json JVM runtime; no network"
     },
     "diagnostic_client": {
-      "passed": 37,
+      "passed": 47,
       "scope": "Node VM UI fixture execution of shipped scripts; all HTTP responses mocked; no Hyundai account or vehicle used"
     },
     "chromium_ui": {
-      "passed": 15,
+      "passed": 19,
       "scope": "HTTP UI execution; Hyundai routes, GM transport and Android bridge use fixtures. Native UI uses HTTPS bundled origin with connect-src none. No actual Android WebView, real account login, API availability validation, or physical vehicle command",
-      "unexpected_network_requests": 0
+      "unexpected_network_requests": 0,
+      "browser": "Existing Chromium headless shell. Standard Chrome failed at process-singleton socket creation in this environment; the full suite passed with the headless shell."
     },
     "android_compilation": {
       "passed": true,
@@ -62,7 +63,8 @@
   "android_runtime": {
     "verified": false,
     "reason": "Android 30 software emulator did not complete boot within the final 180-second bound; host lacks KVM. Earlier attempts encountered stale AVD locks. No Android launch, native handshake, lifecycle or document-picker checks executed.",
-    "instrumentation_source": "SantaFe/android/tests/device/"
+    "instrumentation_source": "SantaFe/android/tests/device/",
+    "user_supplied_log": "0.3.0 log demonstrates native Android response callbacks and successful exported JSON;0.3.1 device execution is not yet verified."
   },
   "real_hyundai_login_verified": false,
   "real_vehicle_calls_verified": false,
@@ -74,10 +76,15 @@
     "scope": "Python bridge and Tasker generator/XML unchanged"
   },
   "review_fixes": [
-    "Durable sanitized unknown-command marker before transmission, with physical acknowledgement after restart",
-    "Structural enrollment-URL redaction independent of session memory",
-    "Retain redaction values until cancellation logging completes",
-    "Check active job before opening POST output; fixed generic errors include unknown outcome"
+    "Display the failed request label, API subcode and sanitized submessage",
+    "Manual same-session enrollment comparison changes only %40 to @; all other encoding and headers remain unchanged",
+    "Native policy accepts only the two canonical email-path forms and preserves all other restrictions",
+    "Choose the alternate format only after an expected vehicle-list array; never retry automatically",
+    "Invalidate stale status after enrollment failure and disable expired lookup availability",
+    "Export preserves nonprivate enrollment_path_format metadata while structurally redacting both URL forms"
   ],
-  "release_scope": "Signed installable tester for supervised account-holder validation; actual Android execution and Hyundai account/vehicle support remain unverified."
+  "release_scope": "Signed diagnostic update for account-holder testing. Actual0.3.1phone execution and alternate enrollment lookup success remain pending; no real vehicle feature or command is confirmed.",
+  "real_hyundai_login_verified_from_supplied_log": true,
+  "account_evidence_scope": "Three HTTP200 token responses inspected in Jon's supplied sanitized0.3.0log; no account request submitted independently by the agent. Three enrollment reads failed HTTP502C500. No cached status or command test ran.",
+  "account_log_review": "SantaFe/docs/verification/account-log-review.json"
 }
