@@ -1,0 +1,74 @@
+name: Santa Fe Tasker Upgrade CI
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "SantaFe/tests/direct/tasker_upgrade_smoke.py"
+      - ".github/workflows/santafe-tasker-upgrade-ci.yml"
+permissions:
+  contents: read
+concurrency:
+  group: santafe-tasker-upgrade-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  tasker-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Obtain official Tasker trial with pinned checksum
+        run: |
+          curl -fsSL --connect-timeout 15 --max-time 120 \
+            https://tasker.joaoapps.com/releases/playstore/Tasker.6.6.20.apk \
+            -o "$RUNNER_TEMP/tasker-trial.apk"
+          printf '%s  %s\n' a2e7623f0adec61e6726dfc7c5c0389e7a0193066d95c627155a03d7b35042ea "$RUNNER_TEMP/tasker-trial.apk" | sha256sum -c -
+      - name: Prepare Android emulator
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y tesseract-ocr
+          sdkmanager "emulator" "system-images;android-35;google_apis;x86_64"
+          if [ -e /dev/kvm ]; then sudo chmod 666 /dev/kvm; fi
+          mkdir -p "$RUNNER_TEMP/sfd-android/avd" "$RUNNER_TEMP/sfd-tasker-results"
+          printf 'ANDROID_USER_HOME=%s\n' "$RUNNER_TEMP/sfd-android" >> "$GITHUB_ENV"
+          printf 'ANDROID_EMULATOR_HOME=%s\n' "$RUNNER_TEMP/sfd-android" >> "$GITHUB_ENV"
+          printf 'ANDROID_AVD_HOME=%s\n' "$RUNNER_TEMP/sfd-android/avd" >> "$GITHUB_ENV"
+      - name: Boot Android 15
+        run: |
+          echo no | avdmanager create avd --force --name sfd-ci \
+            --package "system-images;android-35;google_apis;x86_64" --device pixel_6 \
+            --path "$ANDROID_AVD_HOME/sfd-ci.avd"
+          nohup "$ANDROID_SDK_ROOT/emulator/emulator" -avd sfd-ci -no-window -no-audio \
+            -no-boot-anim -no-snapshot -gpu swiftshader_indirect \
+            >"$RUNNER_TEMP/sfd-tasker-results/emulator.log" 2>&1 &
+          timeout 90 adb wait-for-device
+          timeout 420 bash -c 'until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = "1" ]; do sleep 5; done'
+          adb shell input keyevent 82
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+      - name: Install official trial
+        run: timeout 90 adb install -r "$RUNNER_TEMP/tasker-trial.apk"
+      - name: Fetch pinned old standalone release
+        run: |
+          curl -fsSL --connect-timeout 15 --max-time 120 https://raw.githubusercontent.com/to-shreds/Misc/bb0338e5502e5c3e227ab67af23634215e8d0d94/SantaFe/tasker/Santa_Fe_Direct.prj.xml -o "$RUNNER_TEMP/Santa_Fe_Direct-v1.0.0.prj.xml"
+          printf '%s  %s\n' 251ba44febe56d06acd9ad6dc4268078d081fd10a7cae3c0aced7d2deec91e0d "$RUNNER_TEMP/Santa_Fe_Direct-v1.0.0.prj.xml" | sha256sum -c -
+      - name: Upgrade existing standalone project in actual Tasker
+        run: python3 SantaFe/tests/direct/tasker_upgrade_smoke.py --old "$RUNNER_TEMP/Santa_Fe_Direct-v1.0.0.prj.xml" --results "$RUNNER_TEMP/sfd-tasker-results"
+      - name: Capture diagnostic evidence
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/sfd-tasker-results"
+          timeout 15 adb logcat -d > "$RUNNER_TEMP/sfd-tasker-results/logcat.txt" || true
+          timeout 15 adb exec-out screencap -p > "$RUNNER_TEMP/sfd-tasker-results/final-screen.png" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: santafe-tasker-upgrade
+          path: ${{ runner.temp }}/sfd-tasker-results/
+          retention-days: 14
