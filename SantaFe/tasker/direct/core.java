@@ -1,6 +1,7 @@
 // Santa Fe Direct 1.0.0 entry and command state. Credentials are Tasker settings.
 // Tokens and transaction details stay in a volatile global Java object.
 import java.nio.channels.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 void sfSaveMarker(String operation) {
     JSONObject marker = new JSONObject().put("action", operation).put("time", sfNow());
@@ -174,7 +175,14 @@ File sfMarkerFile = new File(context.getNoBackupFilesDir(), "santa-fe-direct-pen
 RandomAccessFile sfLockFile = null; FileLock sfLock = null;
 OkHttpClient sfClient = sfMakeClient();
 String sfOutput = "";
+ReentrantLock sfMutex = null; boolean sfMutexHeld = false;
 try {
+    synchronized ("santa.fe.direct.operation".intern()) {
+        sfMutex = (ReentrantLock)tasker.getGlobalJavaVariables().get("sfDirectLock");
+        if (sfMutex == null) { sfMutex = new ReentrantLock(); tasker.setJavaVariable("sfDirectLock", sfMutex); }
+    }
+    sfMutexHeld = sfMutex.tryLock();
+    if (!sfMutexHeld) sfFail("Another Santa Fe task is running. No new request was sent.");
     sfLockFile = new RandomAccessFile(new File(context.getNoBackupFilesDir(), "santa-fe-direct.lock"), "rw");
     try { sfLock = sfLockFile.getChannel().tryLock(); } catch (OverlappingFileLockException busy) {}
     if (sfLock == null) sfOutput = sfReport("BUSY", "Another Santa Fe task is running. No new request was sent.");
@@ -193,8 +201,12 @@ try {
     if (unresolved) message += " A previous command may have reached the car. Run SFD Check Command or check the vehicle before SFD Resolve Unknown.";
     sfOutput = sfReport(unresolved ? "UNKNOWN" : "FAILED", message);
 } finally {
-    if (sfLock != null) sfLock.release();
-    if (sfLockFile != null) sfLockFile.close();
+    try {
+        if (sfLock != null) sfLock.release();
+    } finally {
+        try { if (sfLockFile != null) sfLockFile.close(); }
+        finally { if (sfMutexHeld) sfMutex.unlock(); }
+    }
 }
 
 return sfOutput;

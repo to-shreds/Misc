@@ -70,7 +70,7 @@ def startup():
         root = screen()
         if matching(root, "Tasks") is not None or matching(root, "TASKS") is not None:
             return root
-        if not click(root, ["Accept", "I Agree", "I accept", "Start Trial", "Continue", "Get Started", "Next", "OK", "Got it", "Allow", "Skip", "Cancel", "Later", "No"]):
+        if not click(root, ["Tasker", "Accept", "I Agree", "I accept", "Start Trial", "Continue", "Get Started", "Next", "OK", "Got it", "Allow", "Skip", "Cancel", "Later", "No"]):
             raise RuntimeError("Unhandled Tasker startup UI: " + str(visible(root)))
     raise RuntimeError("Tasker startup did not finish")
 

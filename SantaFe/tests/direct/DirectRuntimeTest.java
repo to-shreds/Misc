@@ -157,7 +157,7 @@ public class DirectRuntimeTest {
     interface RunnableWithException { void run() throws Exception; }
     public static void main(String[] args) throws Exception {
         sources=Path.of(args[0]);
-        test("offline imported action self-check",()->{Fixture f=f();f.run("verify");check(f.state().equals("READY") && f.seen.isEmpty(),"verify is offline");});
+        test("offline imported action self-check",()->{Fixture f=f();check(f.run("verify").startsWith("Santa Fe Direct 1.0.0 loaded."),"BeanShell returns the reported result");check(f.state().equals("READY") && f.seen.isEmpty(),"verify is offline");});
         test("setup remembers account without network",()->{Fixture f=f();f.account=new JSONObject().put("email",EMAIL).put("password",PASSWORD).put("pin",PIN).put("vin","");f.run("setup");check(f.state().equals("SAVED") && f.tasker.getVariable("SFDPassword").equals(PASSWORD),"setup saved");});
         test("initial login and cached status",()->{Fixture f=f();f.connect();check(f.session().get("token").equals("fixture-token") && !f.tasker.variables.containsValue("fixture-token"),"token only Java object");});
         test("live session reused and explicit refresh",()->{Fixture f=f();f.connect();int n=f.seen.size();f.status(true);f.run("refresh");check(f.seen.size()==n+1,"no extra credential request");});
@@ -193,6 +193,16 @@ public class DirectRuntimeTest {
         test("oversized and malformed replies fail without leak or retry",()->{for(String payload:List.of("not-json fixture-token", "x".repeat(1048577))){Fixture f=f();f.credentials();f.expected.add(new Expected("POST","/v2/ac/oauth/token",200,payload));f.run("connect");check(f.state().equals("FAILED")&&f.seen.size()==1,"bad response stops");}});
         test("header injection prevented before network",()->{Fixture f=f();f.credentials();f.tasker.setVariable("SFDEmail","fixture@example.invalid\r\nEvil: 1");f.run("connect");check(f.state().equals("FAILED")&&f.seen.isEmpty(),"header injection blocked");});
         test("enrollment encoding matches confirmed literal-at recipe",()->{Fixture f=f();Object path=f.interpreter.eval("sfEnrollmentPath(\"a+b/c ?#@example.invalid\");");check(path.equals("/ac/v2/enrollment/details/a%2Bb%2Fc%20%3F%23@example.invalid"),"other delimiters remain encoded");});
-        System.out.println("PASS "+checks+" runtime assertions; 36 scenarios; zero real network requests or vehicle operations.");
+        test("overlapping tasks blocked before opening guard channel",()->{
+            Fixture f=f();java.util.concurrent.locks.ReentrantLock lock=new java.util.concurrent.locks.ReentrantLock();
+            f.tasker.objects.put("sfDirectLock",lock);
+            java.util.concurrent.CountDownLatch held=new java.util.concurrent.CountDownLatch(1), release=new java.util.concurrent.CountDownLatch(1);
+            Thread other=new Thread(()->{lock.lock();held.countDown();try{release.await();}catch(InterruptedException ignored){}finally{lock.unlock();}});
+            other.start();held.await();
+            try {f.run("verify");check(f.seen.isEmpty() && !new File(f.context.root,"santa-fe-direct.lock").exists(),"overlap has no network/file-channel side effects");}
+            finally {release.countDown();other.join();}
+            f.run("verify");check(f.state().equals("READY"),"lock remains reusable");
+        });
+        System.out.println("PASS "+checks+" runtime assertions; 37 scenarios; zero real network requests or vehicle operations.");
     }
 }
