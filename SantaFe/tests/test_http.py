@@ -38,7 +38,10 @@ def test_input_guards(srv):
     e,s=srv;token=e.pair(e.code())['token']
     for raw in [b'{bad',b'[]',b'{"x":NaN}',b'{"x":Infinity}']:
         assert req(s,'/api/event',raw,token)[0]==400
-    assert req(s,'/api/event',b'a'*(MAX_BODY+1),token)[0]==413
+    # The server rejects an oversized declared length before reading the body.
+    # Sending a megabyte races that early close and can hide the 413 behind a
+    # client BrokenPipeError. A small body still exercises the same wire guard.
+    assert req(s,'/api/event',b'{}',token,{'Content-Length':str(MAX_BODY+1)})[0]==413
     assert req(s,'/api/event',{},token,{'Content-Type':'text/plain'})[0]==415
     assert req(s,'/api/event',{},token,{'X-SF-Client':'bad'})[0]==403
 
