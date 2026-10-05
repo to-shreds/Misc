@@ -534,6 +534,13 @@ def run():
     (RESULTS / "scene-web.png").write_bytes(adb("exec-out", "screencap", "-p"))
     check(click(root, ["Settings"]), "HTML navigation opens phone settings")
     root = wait_for("Phone connection")
+    check(click(root, ["Hyundai account"]), "HTML account button opens the native editor")
+    form = wait_for("Santa Fe account")
+    fields = [n for n in nodes(form) if n.get("class") == "android.widget.EditText"]
+    check(len(fields) == 4 and fields[0].get("text") == "fixture@example.invalid" and sum(n.get("password") == "true" for n in fields) == 2, "HTML settings use the saved masked account form")
+    check(click(form, ["Cancel"]), "Account editor opened from HTML can be cancelled")
+    check(matching(screen(), "Santa Fe account") is None, "Account editor actually closes above the WebView")
+    root = wait_for("Phone connection")
     check(click(root, ["Test connection"]), "Actual HTML button dispatches an offline request to Tasker")
     root = scene_screen(); check(click(root, ["Controls"]), "HTML returns to Controls after the connection test")
     root = wait_for("PHONE REACHED")
