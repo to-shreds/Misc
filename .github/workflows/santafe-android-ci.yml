@@ -1,0 +1,173 @@
+name: Santa Fe Android CI
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "SantaFe/**"
+      - ".github/workflows/santafe-android-ci.yml"
+  pull_request:
+    paths:
+      - "SantaFe/**"
+      - ".github/workflows/santafe-android-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: santafe-android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression-tests:
+    name: Existing regression suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: SantaFe
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python test runner
+        run: python -m pip install --disable-pip-version-check pytest
+
+      - name: Python and Tasker regression tests
+        env:
+          PYTHONPATH: .
+        run: python -m pytest tests -q
+
+      - name: JavaScript fixture regression tests
+        run: node --test tests/test_diagnostic.cjs
+
+      - name: Native request-policy tests
+        run: ./android/tests/run-policy-tests.sh
+
+      - name: Native transport tests
+        run: |
+          curl -fsSL --retry 3             https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar             -o "$RUNNER_TEMP/json-20240303.jar"
+          JSON_JAR="$RUNNER_TEMP/json-20240303.jar" ./android/tests/transport/run-transport-tests.sh
+
+      - name: JavaScript syntax checks
+        run: |
+          node --check diagnostic.js
+          node --check santafe-network.user.js
+
+  android-emulator:
+    name: Real APK on Android emulator
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      SF_SIGNING_DIR: ${{ runner.temp }}/santafe-ci-signing
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager             "platform-tools"             "emulator"             "platforms;android-35"             "build-tools;35.0.0"             "system-images;android-35;google_apis;x86_64"
+
+      - name: Build CI-only APK and runtime verifier
+        shell: bash
+        working-directory: SantaFe/android
+        run: |
+          ./build.sh
+          ./tests/device/build-test.sh
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose             dist/SantaFe-API-Lab-0.3.2.apk
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose             tests/device/build/SantaFe-runtime-verification.apk
+
+      - name: Enable emulator acceleration
+        shell: bash
+        run: |
+          if [ -e /dev/kvm ]; then
+            sudo chmod 666 /dev/kvm
+          fi
+
+      - name: Create Android 15 emulator
+        shell: bash
+        run: |
+          echo "no" | avdmanager create avd             --force             --name santafe-ci             --package "system-images;android-35;google_apis;x86_64"             --device "pixel_6"
+
+      - name: Boot emulator
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/santafe-ci-results"
+          nohup "$ANDROID_SDK_ROOT/emulator/emulator"             -avd santafe-ci             -no-window             -no-audio             -no-boot-anim             -no-snapshot             -gpu swiftshader_indirect             >"$RUNNER_TEMP/santafe-ci-results/emulator.log" 2>&1 &
+
+          adb wait-for-device
+          timeout 420 bash -c '
+            until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = "1" ]; do
+              sleep 5
+            done
+          '
+          adb shell input keyevent 82 || true
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+          adb shell getprop ro.build.version.release
+          adb shell getprop ro.build.version.sdk
+
+      - name: Install APKs
+        shell: bash
+        working-directory: SantaFe/android
+        run: |
+          adb install -r dist/SantaFe-API-Lab-0.3.2.apk
+          adb install -t -r tests/device/build/SantaFe-runtime-verification.apk
+          adb shell pm list packages | grep -F "com.jon.santafelab"
+
+      - name: Run credential-free Android instrumentation
+        shell: bash
+        run: |
+          set -o pipefail
+          adb shell am instrument -w             com.jon.santafelab.runtime/.RuntimeVerification             | tee "$RUNNER_TEMP/santafe-ci-results/instrumentation.txt"
+          grep -F "result=PASS" "$RUNNER_TEMP/santafe-ci-results/instrumentation.txt"
+
+      - name: Capture clean launch screenshot
+        if: always()
+        shell: bash
+        run: |
+          adb shell am force-stop com.jon.santafelab || true
+          adb shell monkey -p com.jon.santafelab -c android.intent.category.LAUNCHER 1 || true
+          sleep 4
+          adb exec-out screencap -p > "$RUNNER_TEMP/santafe-ci-results/clean-launch.png" || true
+
+      - name: Capture emulator diagnostics
+        if: always()
+        shell: bash
+        run: |
+          adb logcat -d > "$RUNNER_TEMP/santafe-ci-results/logcat.txt" || true
+          adb shell dumpsys package com.jon.santafelab             > "$RUNNER_TEMP/santafe-ci-results/package.txt" || true
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: santafe-android-emulator-results
+          path: ${{ runner.temp }}/santafe-ci-results/
+          if-no-files-found: warn
+          retention-days: 14
