@@ -37,6 +37,12 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Set up Android SDK tools
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -54,21 +60,19 @@ jobs:
         run: node --test tests/test_diagnostic.cjs
 
       - name: Native request-policy tests
-        run: ./android/tests/run-policy-tests.sh
+        run: bash ./android/tests/run-policy-tests.sh
 
       - name: Native transport tests
         run: |
           curl -fsSL --retry 3 --connect-timeout 10 --max-time 60 \
             https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar \
             -o "$RUNNER_TEMP/json-20240303.jar"
-          JSON_JAR="$RUNNER_TEMP/json-20240303.jar" ./android/tests/transport/run-transport-tests.sh
+          JSON_JAR="$RUNNER_TEMP/json-20240303.jar" bash ./android/tests/transport/run-transport-tests.sh
 
       - name: Encrypted saved-account host tests
-        env:
-          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
           sdkmanager "platforms;android-35"
-          JSON_JAR="$RUNNER_TEMP/json-20240303.jar" ./android/tests/account/run-account-tests.sh
+          JSON_JAR="$RUNNER_TEMP/json-20240303.jar" bash ./android/tests/account/run-account-tests.sh
 
       - name: JavaScript syntax checks
         run: |
@@ -80,10 +84,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
-    env:
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-      ANDROID_HOME: /usr/local/lib/android/sdk
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -93,6 +93,12 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+
+      - name: Set up Android SDK tools
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
 
       - name: Install Android SDK components
         shell: bash
@@ -108,11 +114,11 @@ jobs:
         working-directory: SantaFe/android
         run: |
           mkdir -p "$RUNNER_TEMP/santafe-ci-results"
-          ./build.sh | tee "$RUNNER_TEMP/santafe-ci-results/build.txt"
+          bash ./build.sh | tee "$RUNNER_TEMP/santafe-ci-results/build.txt"
           ci_apk="$(sed -n 's/^Built //p' "$RUNNER_TEMP/santafe-ci-results/build.txt" | tail -n 1)"
           test -f "$ci_apk"
           printf 'apk=%s\n' "$ci_apk" >> "$GITHUB_OUTPUT"
-          ./tests/device/build-test.sh
+          bash ./tests/device/build-test.sh
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose "$ci_apk"
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose             tests/device/build/SantaFe-runtime-verification.apk
 

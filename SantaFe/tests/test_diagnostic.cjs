@@ -281,7 +281,7 @@ check('Native save is withheld for failed login, and Forget failure does not cla
   await h.action('forgetAccountBtn'); assert.deepEqual(saved.value, creds); assert.equal(h.requests.length, 0);
   assert.match(h.get('notice').textContent, /could not confirm removing/i); assert.equal(h.get('notice').textContent.includes(creds.password), false);
   for (const id of ['email','password','pin']) assert.equal(h.get(id).value, '');
-  assert.equal(h.get('sessionStatus').textContent, 'Signed out'); assert.equal(h.get('forgetAccountBtn').disabled, false);
+  assert.equal(h.get('sessionStatus').textContent, 'Signed out'); assert.equal(h.get('accountState').textContent, 'Check saved account'); assert.equal(h.get('forgetAccountBtn').disabled, false);
 });
 
 check('Native saved-account actions cannot bypass busy or unresolved-command guards', async t => {

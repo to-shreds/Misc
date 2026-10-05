@@ -406,12 +406,14 @@
     if(transaction&&!transaction.done){clearCommandMarker();log({at:new Date().toISOString(),label:'Unresolved command acknowledged',outcome:'User confirmed checking the vehicle before signing out',interpretation:'The API outcome remains unknown. This is a local acknowledgement, not command completion.'});}
     resetSession();
     if(accountSaved)try{const saved=readSavedAccount();if(saved)$('email').value=saved.username;else accountSaved=false;}catch{accountLoadProblem=true;}
+    if(!accountSaved)$('accountSettings').open=true;
     notice(accountSaved?'Signed out. Your saved account remains on this phone. Tap Connect to sign in again.':nativeAvailable?'Signed out locally. Account values were removed from this app session; sanitized logs remain.':'Signed out locally. Account values were removed from this tab; sanitized logs remain.');updateSession();
   }
   function exportData() {return {app:'Santa Fe API Lab',version:VERSION,exported_at:new Date().toISOString(),source_commit:SOURCE,privacy:'Credentials, tokens, vehicle identifiers, contact details and location values removed. Review any service error text before sharing.',evidence:redact(evidence),requests:redact(logs)};}
   function report() {return JSON.stringify(exportData(),null,2);}
   function clearCommandMarker() {try{localStorage.removeItem(COMMAND_KEY);return localStorage.getItem(COMMAND_KEY)===null;}catch{return false;}}
   $('loginForm').addEventListener('submit',e=>{e.preventDefault();task(login);});
+  $('loginBtn').addEventListener('click',()=>{if(!accountSaved)$('accountSettings').open=true;});
   $('runReadTestsBtn').addEventListener('click',()=>task(readTests));
   $('referenceEnrollmentBtn').addEventListener('click',()=>task(testAlternateEnrollment));
   $('selectVehicleBtn').addEventListener('click',()=>task(async()=>{if(transaction&&!transaction.done)throw new Error('Check the current command outcome before switching vehicles.');const v=vehicles[Number($('vehicleSelect').value)];if($('vehicleSelect').value===''||!v)throw new Error('Choose a vehicle.');selected=v;statusRead=false;lastStatus=null;await cached();capabilities();}));
