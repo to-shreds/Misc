@@ -8,7 +8,7 @@
 
 Use the phone's results to confirm each operation. **SENT** means Join accepted the push. The local phone interface displays the vehicle result; an ordinary browser has no return channel. There are separate regular, cold and hot presets. Starts require confirmation that the car is outdoors and safe to start.
 
-For GPS, give Tasker precise location permission and use **Location > Read car GPS** first. Actual car GPS and live Join delivery remain checks on your phone. Periodic comparison defaults off and can be enabled after a valid car lookup. It never operates the car. Amazfit remains separate.
+For GPS, give Tasker precise location permission and use **Location > Read car GPS** first. Live browser-to-phone Join delivery has been confirmed on this phone. Actual car GPS remains a separate check. Periodic comparison defaults off and can be enabled after a valid car lookup. It never operates the car. Amazfit remains separate.
 
 Add a Tasker home-screen shortcut to **SFD Open** for daily access. [Full setup, behavior and limits](tasker/direct/README.md).
 
