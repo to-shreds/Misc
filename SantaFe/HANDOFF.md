@@ -24,6 +24,15 @@ Periodic checks default off. After a valid car lookup, settings can enable 1 to 
 
 ## Verification and delivery
 
+### Browser fixed Join phone target, 2026-10-06
+
+After live troubleshooting showed that a direct Join API call to the current phone works while the website's accepted push did not arrive, Jon requested that the website stop accepting a configurable device ID. The external browser controller now hard-codes the current Join phone device ID in its browser-only join-browser.js layer and exposes only the API-key field. The optional Join-link and device-ID inputs remain in the shared HTML solely so the unchanged Tasker phone bundle can keep using the same source, but the browser-only layer hides them and ignores any substituted device ID. Existing saved browser settings are normalized to the fixed phone ID on load.
+
+The API key remains user-entered and may be remembered only in that browser's local storage under the existing setting. No personal Join API key was added to git. The browser still sends `text=hyundai=:=COMMAND|REQUEST_ID|ISSUED_MS|SAFE` to Join. The browser-only script URL was bumped to v=2 for cache invalidation, and build_tasker_direct.py strips that exact browser-only script tag so the installed Tasker 1.2.0 HTML/export remains logically unchanged.
+
+Targeted verification after publication to main: join-browser.js, control_browser.cjs and test_join_browser.cjs all parse as JavaScript; a browser-layer runtime harness confirmed that API-key-only setup hides the prior link/device inputs and replaces an injected alternate device ID with the fixed phone ID; a transport harness confirmed the outgoing sendPush URL uses the fixed phone ID and preserves the `hyundai=:=` command prefix. Full live browser-to-phone acceptance remains for Jon to confirm from the published page. No real Hyundai request was made by these checks.
+
+
 ### Browser Join diagnostics correction, 2026-10-06
 
 Jon reported the website's generic "Join rejected the push" message with no explanation in Settings. The browser-only join-browser.js extension now shows the sanitized Join error reason and opens Settings after a definitive rejection. Check saved Join settings makes one read-only request to the officially documented listDevices endpoint, distinguishing a rejected API key from a phone ID absent from that account. It sends no push, operates no car and never saves device-list responses. Keys, device IDs, URLs, emails, VIN-shaped identifiers and coordinate-shaped values are removed from provider errors before display or logging. A rejected push is not retried; ambiguous delivery retains the original guard.
