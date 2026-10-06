@@ -1,0 +1,64 @@
+{
+  "passed": true,
+  "scenarios": 14,
+  "real_join_requests": false,
+  "real_hyundai_requests": false,
+  "results": [
+    {
+      "test": "mobile compact layout and empty account have no network",
+      "passed": true
+    },
+    {
+      "test": "Join settings persist across reload while secret field stays blank",
+      "passed": true
+    },
+    {
+      "test": "full Join link imports privately without echoing it",
+      "passed": true
+    },
+    {
+      "test": "connection test sends one correct Join push and never claims vehicle success",
+      "passed": true
+    },
+    {
+      "test": "all six confirmed controls send exactly one allowlisted command",
+      "passed": true
+    },
+    {
+      "test": "start checkbox and cancelled controls send nothing",
+      "passed": true
+    },
+    {
+      "test": "rapid taps are blocked while one Join request is running",
+      "passed": true
+    },
+    {
+      "test": "unknown network or server delivery persists across reload without a retry",
+      "passed": true
+    },
+    {
+      "test": "Join API rejection and exported logs omit secret errors",
+      "passed": true
+    },
+    {
+      "test": "blocked storage prevents sending and malformed stored log is tolerated",
+      "passed": true
+    },
+    {
+      "test": "packaged HTML renders offline and reads only the two safe Tasker variables",
+      "passed": true
+    },
+    {
+      "test": "phone WebView routes command once and displays the correlated vehicle result",
+      "passed": true
+    },
+    {
+      "test": "phone settings buttons call only named native editors",
+      "passed": true
+    },
+    {
+      "test": "desktop layout and text-only log resist HTML injection",
+      "passed": true
+    }
+  ]
+}

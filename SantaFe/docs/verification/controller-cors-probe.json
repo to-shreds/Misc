@@ -1,0 +1,9 @@
+{
+  "probe": "Unauthenticated OPTIONS; no credentials, device ID, text or push",
+  "url": "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush",
+  "origin": "https://to-shreds.github.io",
+  "http": 200,
+  "allow_origin": "https://to-shreds.github.io",
+  "allow_methods": "DELETE,GET,HEAD,PATCH,POST,PUT",
+  "live_push_sent": false
+}

@@ -1,4 +1,27 @@
-# Current benchmark: Santa Fe Direct 1.1.0 native scenes and status display
+# Current benchmark: Santa Fe Direct 1.2.0
+
+The browser controller sends one Join push to Tasker; the phone performs the previously confirmed Hyundai USA API calls. SFD Open renders the same compact HTML locally with correlated results. Native fallback screens, the API Lab and prior APK/bridge files are preserved. Amazfit remains separate.
+
+The release XML is Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml: 229,938 bytes, SHA256 97b2e5322ee10e033c8aba6c25b51ac073e2ec0e5cade2731e67c6ebca493c21. It has 65 tasks, 137 executable actions, nine scenes and two opt-in profiles. All 41 original task IDs and account variables remain.
+
+## Verified release
+
+- Actual official Tasker 6.6.20 on Android 15/API 35 passed all 90 fresh-import checks in run 37413012569, tested source 7caa1e82179c65e2c31a0534ba81f4203442cefb. The imported XML has the release hash. It retained every task/action/scene/profile and unchanged embedded source; saved synthetic account settings survived process restart. Native navigation, regular/cold/hot editors and location settings opened and cancelled offline. The actual WebView opened its masked account editor, closed it, returned to controls, dispatched an offline ping and displayed its correlated PHONE REACHED result.
+- Replacement from the 41-task 1.1.0 project passed 14 actual Tasker checks in run 37386233350, source f6e2bcc97cbefe991950befa1d131340ce3d701f. That source generated the identical release XML. The test reproduced duplicate-name import rejection, removed only that old project with contents, imported 1.2.0 and verified saved synthetic account retention, secret masking, version, parser and WebView. Do not instruct an in-place import or a replace-if-offered flow.
+- All 101 Python regressions, 78 actual BeanShell/OkHttp scenarios with 7,625 assertions, eight Node protocol tests and 14 actual Chromium scenarios passed in run 37413012569. The browser tests intercept Join responses; BeanShell tests intercept Hyundai replies. They verify one submission, confirmation, replay/expiry guards, durable unknown outcomes, independent presets, GPS freshness/bounds, opt-in schedules, safe logs and local settings routing. All 23 changed implementation/test/workflow files were compared with their tested Git blob hashes and matched.
+- The preserved Android API Lab workflow passed both jobs in run 37413012579 on the same tested source. Its signed public APK and client assets are unchanged. The prior 64 client tests remain part of that preserved benchmark.
+
+Earlier native failures exposed a WebView that covered the account editor and test observations that missed button captions. SFD Web Settings now closes the scene, runs the native editor and reopens the bundled HTML. Complementary screenshot/OCR modes identify the actual rendered captions in the test; OCR is not a phone dependency. The successful run verifies the full editor round trip and offline receiver result.
+
+Reports: verification/tasker-direct-emulator.json, tasker-direct-upgrade-verification.json, tasker-direct-verification.json and controller-browser.json. Fresh-import artifact 11390082142 retains screenshots and raw observations; upgrade artifact 11379921400 retains the replacement evidence.
+
+## Device acceptance remaining
+
+Automation used synthetic settings, sent no live Join push, used no real Hyundai account and operated no car. Jon already confirmed standalone Tasker login/selection/lock/unlock and API Lab start/stop. Official Tasker 6.6.20 differs from his installed 6.7.6-beta. After installation, enable Join, save browser settings and test live reception; then check the desired preset physically. The upstream USA GPS endpoint needs its first real-car response, precise location permissions and an elapsed background interval. Periodic comparison stays off until a valid lookup and explicit opt-in, and never operates the car.
+
+Browser SENT means Join accepted the push. Actual vehicle results are shown on the phone, not returned to an ordinary external browser. Regular/cold/hot use the confirmed temperature/defrost recipe; seat and steering heat remain off. No extra diagnostic log is required to use the confirmed controls.
+
+# Previous benchmark: Santa Fe Direct 1.1.0 native scenes and status display
 
 Jon confirmed login, correct vehicle selection, lock and unlock physically from the standalone Tasker project. Its three status flags showed Unknown even with a returned timestamp. The already supplied tester log has Boolean fields, so no new export was requested. The older host interpreter rendered Boolean fixtures correctly; the exact phone runtime difference was not reproduced there. The updated reader directly calls JSONObject.getBoolean, with missing/null/malformed fields kept Unknown.
 

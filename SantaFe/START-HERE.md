@@ -1,6 +1,20 @@
-CURRENT START (2026-10-05): use **Santa_Fe_Direct_1_1_0_SCENES.prj.xml**. If Santa Fe Direct is already installed, back up Tasker and remove that old project with its contents first; direct XML import rejects a duplicate project name. Retain saved global account variables, import the named file, and run **SFD Verify Actions**, then **SFD Open**. The seven-page native scene GUI manages the confirmed controls, status, saved account, climate and command follow-up. Login, car selection, lock and unlock already work from Tasker on Jon's phone. Open Status and tap Read status to check the corrected labels. Account retention through replacement is still unverified; check Account after import and restore missing values once if needed. See [the Tasker instructions](tasker/direct/README.md).
+# Santa Fe Direct 1.2.0
 
-The [API Lab Android tester](https://to-shreds.github.io/Misc/SantaFe/android/dist/SantaFe-API-Lab-0.3.3.apk) remains available. Lock, unlock, remote start and stop are physically confirmed by Jon; horn and lights can wait. The old bridge project and its setup below are preserved as an earlier implementation.
+[Download Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml](https://to-shreds.github.io/Misc/SantaFe/tasker/Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml) and [open the controller](https://to-shreds.github.io/Misc/santafe/).
+
+1. Back up Tasker. Long-press only the old **Santa Fe Direct** project tab, choose **Delete**, then **With Contents**. Retain your saved global variables. Import the downloaded XML as a project. Tasker rejects an import while that project name already exists.
+2. Run **SFD Verify Actions**, confirm **1.2.0**, then run **SFD Open**. The verification task is offline. Under **Settings**, check **Hyundai account** and **Connect**. Existing account variables are reused. Blank password and PIN fields retain saved values; restore them only if missing. The phone has compact HTML controls and smaller native fallback screens.
+3. Under phone **Settings**, open **Join receiver**, enable it and save. In the website's **Settings**, paste your Join sendPush link or enter the key and phone ID once, then save. Tap **Test connection**. The browser should say **SENT** and the phone should say **PHONE REACHED**. This test operates no car.
+
+Use the phone's results to confirm each operation. **SENT** means Join accepted the push. The local phone interface displays the vehicle result; an ordinary browser has no return channel. There are separate regular, cold and hot presets. Starts require confirmation that the car is outdoors and safe to start.
+
+For GPS, give Tasker precise location permission and use **Location > Read car GPS** first. Actual car GPS and live Join delivery remain checks on your phone. Periodic comparison defaults off and can be enabled after a valid car lookup. It never operates the car. Amazfit remains separate.
+
+Add a Tasker home-screen shortcut to **SFD Open** for daily access. [Full setup, behavior and limits](tasker/direct/README.md).
+
+---
+
+The original bridge instructions below are retained for the older separate project.
 
 # Santa Fe Control Center 0.1.0
 

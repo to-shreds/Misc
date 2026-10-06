@@ -1,58 +1,199 @@
 {
-  "version": "Santa Fe Direct 1.1.0",
-  "checked_at": "2026-10-05T20:20:11.896602+00:00",
-  "project_sha256": "851c4cbac713570e194805692bb17bcfddac83e711c8dd098c9f95d161ecbb83",
-  "phone_report": {
-    "sfd_open_absent": true,
-    "scenes_absent": true,
-    "status_unknown": true,
-    "updated_phone_acceptance": false
-  },
-  "delivery": {
-    "filename": "Santa_Fe_Direct_1_1_0_SCENES.prj.xml",
-    "bytes": 119057,
+  "tasker_version": "6.6.20",
+  "android_api": 35,
+  "real_account_used": false,
+  "vehicle_commands_run": false,
+  "passed": true,
+  "checks": [
+    "Baseline actually has 41 old tasks and seven scenes",
+    "Old project saves synthetic account before update",
+    "Existing project can open Import Project",
+    "Only the existing Santa Fe Direct project is selected for removal",
+    "Existing project can open Import Project",
+    "Updating existing project imports all 65 tasks, 137 actions and nine scenes",
+    "Updated verification task actually reports 1.2.0",
+    "Updated native status reader executes after replacement",
+    "Existing account survives project replacement",
+    "Updated account form masks both secret fields",
+    "Blank secret fields retain existing synthetic account after replacement",
+    "Retained synthetic password and PIN validate after replacement",
+    "Updated SFD Open renders the bundled HTML interface",
+    "Updated WebView exposes the actual Tasker bridge"
+  ],
+  "project_sha256": "97b2e5322ee10e033c8aba6c25b51ac073e2ec0e5cade2731e67c6ebca493c21",
+  "import_windows": [
+    [
+      "com.android.permissioncontroller:id/grant_singleton",
+      "com.android.permissioncontroller:id/grant_dialog",
+      "Allow Tasker to access music and audio on this device?",
+      "Allow",
+      "Don\u2019t allow"
+    ],
+    [
+      "com.android.permissioncontroller:id/grant_singleton",
+      "com.android.permissioncontroller:id/grant_dialog",
+      "Allow Tasker to access photos and videos on this device?",
+      "Allow limited access",
+      "Allow all",
+      "Don\u2019t allow"
+    ],
+    [
+      "116k",
+      "Santa_Fe_Direct",
+      "Tasker/projects/",
+      "Primary Storage",
+      "Navigate up",
+      "Project File Select",
+      "Up",
+      "Cancel"
+    ],
+    [
+      "Warning",
+      "You should review any imported item that you have not created yourself.\n\nThese items are not created by Tasker's developer and could potentially perform malicious actions such as deleting files or spamming text messages.",
+      "OK"
+    ],
+    [
+      "",
+      "PROFILES",
+      "",
+      "TASKS",
+      "",
+      "SCENES",
+      "",
+      "VARS",
+      "Profiles link contexts (conditions) with the tasks that should run when the conditions are met.",
+      "",
+      "Default Project",
+      "",
+      "Santa Fe Direct",
+      "Add",
+      "Add",
+      "Tasker",
+      "Apply",
+      "Search Tasker",
+      "More options"
+    ],
+    [
+      "116k",
+      "Santa_Fe_Direct",
+      "224k",
+      "Santa_Fe_Direct_1_2_0_JOIN_HTML",
+      "Tasker/projects/",
+      "Primary Storage",
+      "Navigate up",
+      "Project File Select",
+      "Up",
+      "Cancel"
+    ],
+    [
+      "Error",
+      "Import failed.\n\nPlease make sure to update to the latest Tasker version.\n\nYou may need to sign up for the beta.\n\nError details: a project with that name already exists",
+      "BETA",
+      "CHECK UPDATE",
+      "OK"
+    ],
+    [
+      "116k",
+      "Santa_Fe_Direct",
+      "224k",
+      "Santa_Fe_Direct_1_2_0_JOIN_HTML",
+      "Tasker/projects/",
+      "Primary Storage",
+      "Navigate up",
+      "Project File Select",
+      "Up",
+      "Cancel"
+    ],
+    [
+      "",
+      "PROFILES",
+      "",
+      "TASKS",
+      "",
+      "SCENES",
+      "",
+      "VARS",
+      "SFD Join Event",
+      "SFD GUI Start cold",
+      "SFD GUI Start hot",
+      "SFD GUI Edit cold",
+      "SFD GUI Edit hot",
+      "SFD GUI Join settings",
+      "SFD Open Location",
+      "SFD Read Location",
+      "SFD Compare Locations",
+      "SFD Location Settings",
+      "SFD Periodic Location",
+      "SFD GUI Read car GPS",
+      "SFD GUI Compare GPS",
+      "SFD GUI Location settings",
+      "SFD Web Receive",
+      "",
+      "Default Project",
+      "",
+      "Santa Fe Direct",
+      "Add",
+      "Add",
+      "Tasker",
+      "Apply",
+      "Search Tasker",
+      "More options"
+    ]
+  ],
+  "before_update": {
     "tasks": 41,
     "actions": 89,
-    "scenes": 7,
-    "library_file_id": "libfile_8074b46719c08191b8d5fd7cc14aab80",
-    "version": 0,
-    "byte_identical_to_verified_release": true
+    "scenes": 7
   },
-  "fresh_import": {
-    "passed": true,
-    "checks": 60,
-    "workflow_run_id": 37360660103,
-    "source_commit": "748e512db6c9f96a74cde632674ea7f95dcf913f"
+  "saved_old_account": {
+    "tasks": 41,
+    "actions": 89,
+    "scenes": 7
   },
-  "in_place_import": {
-    "passed": false,
-    "reproduced": true,
-    "workflow_run_id": 37366362988,
-    "tested_source_commit": "3801982042f49567a4f0ab1446f18f54ead708f1",
-    "old_project": {
-      "tasks": 17,
-      "actions": 17,
-      "scenes": 0
-    },
-    "error": "a project with that name already exists",
-    "result": "Published 1.1.0 XML is rejected while the 1.0.0 project exists; earlier replace-if-offered instructions were incorrect.",
-    "creation_date_cause_not_proven": true
+  "existing_project_import_error": "Tasker refused the existing project update: ['Error', 'Import failed.\\n\\nPlease make sure to update to the latest Tasker version.\\n\\nYou may need to sign up for the beta.\\n\\nError details: a project with that name already exists', 'BETA', 'CHECK UPDATE', 'OK']",
+  "removal_windows": [
+    [
+      "Add",
+      "Delete",
+      "Export",
+      "Import Project",
+      "Lock",
+      "Properties",
+      "Rename",
+      "Set Icon"
+    ],
+    [
+      "Delete Contents",
+      "Keep Contents"
+    ],
+    [
+      "",
+      "PROFILES",
+      "",
+      "TASKS",
+      "",
+      "SCENES",
+      "",
+      "VARS",
+      "Tasks are sequences of actions which you would like Tasker to perform. They could be triggered by e.g. the conditions of a profile being met, clicking on a home-screen widget or by interacting with a scene.",
+      "",
+      "Default Project",
+      "Add",
+      "Add",
+      "Tasker",
+      "Apply",
+      "Search Tasker",
+      "More options"
+    ]
+  ],
+  "update_requires_removal": true,
+  "after_update": {
+    "tasks": 65,
+    "actions": 137,
+    "scenes": 9
   },
-  "recovery_check": {
-    "passed": false,
-    "status": "QUEUED",
-    "workflow_run_id": 37368933070,
-    "tested_source_commit": "3dc257c40b70e1defc53893e1eea81c79eea7dcc",
-    "settings_retention_verified": false,
-    "reported_platform_incident": "https://www.githubstatus.com/",
-    "method": "Select only old Santa Fe Direct project, Delete with contents, retain global variables, import distinctly named exact 1.1.0 XML, validate existing synthetic account, version and Home scene.",
-    "previous_attempt": {
-      "workflow_run_id": 37367244302,
-      "conclusion": "cancelled",
-      "steps_started": 0,
-      "no_recovery_result": true
-    }
-  },
-  "real_account_used": false,
-  "vehicle_commands_run": false
+  "scene_observation": "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms.",
+  "workflow_run_id": 37386233350,
+  "tested_source_commit": "f6e2bcc97cbefe991950befa1d131340ce3d701f",
+  "artifact_id": 11379921400
 }

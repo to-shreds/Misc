@@ -105,7 +105,7 @@
       "Allow Tasker to access photos and videos on this device?",
       "Allow limited access",
       "Allow all",
-      "Don\u2019t allow"
+      "Don’t allow"
     ],
     [
       "224k",
@@ -227,5 +227,8 @@
     "SFD Read Location": 1
   },
   "synthetic_account_saved": true,
-  "scene_observation": "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms."
+  "scene_observation": "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms.",
+  "workflow_run_id": 37413012569,
+  "tested_source_commit": "7caa1e82179c65e2c31a0534ba81f4203442cefb",
+  "artifact_id": 11390082142
 }

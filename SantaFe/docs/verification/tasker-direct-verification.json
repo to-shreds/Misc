@@ -1,183 +1,192 @@
 {
-  "version": "Santa Fe Direct 1.1.0",
-  "verified_at": "2026-10-05T19:02:53.738037+00:00",
+  "version": "Santa Fe Direct 1.2.0",
+  "verified_at": "2026-10-06T04:29:18.388795+00:00",
   "project": {
     "path": "tasker/Santa_Fe_Direct.prj.xml",
-    "bytes": 119057,
-    "sha256": "851c4cbac713570e194805692bb17bcfddac83e711c8dd098c9f95d161ecbb83",
-    "tasks": 41,
-    "executable_actions": 89,
-    "profiles": 0,
-    "scenes": 7
+    "bytes": 229938,
+    "sha256": "97b2e5322ee10e033c8aba6c25b51ac073e2ec0e5cade2731e67c6ebca493c21",
+    "tasks": 65,
+    "executable_actions": 137,
+    "scenes": 9,
+    "profiles": 2
   },
-  "user_confirmation": {
-    "lock": true,
-    "unlock": true,
-    "remote_start": true,
-    "remote_stop": true,
-    "basis": "Account-holder physical reports from tester; no additional export requested.",
-    "horn_lights": false,
-    "lights": false
+  "delivery": {
+    "filename": "Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml",
+    "bytes": 229938,
+    "sha256": "97b2e5322ee10e033c8aba6c25b51ac073e2ec0e5cade2731e67c6ebca493c21",
+    "saved_attachment": true,
+    "version": 2,
+    "library_file_id": "libfile_399e97a016f48191840f2fa9a72b94ac"
   },
   "host_runtime": {
     "passed": true,
     "interpreter": "BeanShell 2.0b5",
     "http_client": "OkHttp 3.14.9",
-    "scenarios": 43,
-    "assertions": 2553,
-    "network": "Application interceptor emits synthetic replies; zero real Hyundai requests.",
-    "android_dialogs": "Substituted in host fixtures. Actual Tasker UI test recorded separately.",
-    "stdout": [
-      "PARSE OK api.java",
-      "PARSE OK ui.java",
-      "PARSE OK core.java",
-      "PARSE OK gui.java",
-      "PASS offline imported action self-check",
-      "PASS setup remembers account without network",
-      "PASS initial login and cached status",
-      "PASS status labels cover both boolean states",
-      "PASS string booleans render without a boxed-type gate",
-      "PASS missing and malformed status flags stay unknown",
-      "PASS scene preparation is offline before setup",
-      "PASS scene preparation shows saved settings without secrets",
-      "PASS scene preparation retains unresolved outcome",
-      "PASS live session reused and explicit refresh",
-      "PASS expired session authenticates before read",
-      "PASS lock completes after bounded pending poll",
-      "PASS unlock completion and no replay",
-      "PASS remote start body and saved settings",
-      "PASS remote stop has empty request body",
-      "PASS cancelled remote start never submitted",
-      "PASS missing transaction prevents repeat and survives lost Java session",
-      "PASS command 401 never replayed",
-      "PASS login rejection blocks automatic repeated password attempts",
-      "PASS enrollment failure blocks automatic retry but explicit Connect recovers",
-      "PASS status failure prevents control submission",
-      "PASS terminal ERROR is a failed command without retry",
-      "PASS unrecognized poll result stays unknown",
-      "PASS bounded pending polls stop without command resend",
-      "PASS manual later poll completes pending transaction",
-      "PASS explicit physical acknowledgement sends no API request",
-      "PASS cancelled acknowledgement preserves guard",
-      "PASS setup blocked while outcome unresolved",
-      "PASS forget account retains unresolved outcome",
-      "PASS clearing login retains saved account and pending guard",
-      "PASS invalid climate settings withheld before control request",
-      "PASS unconfirmed vehicle type withheld",
-      "PASS multiple active vehicles require explicit selection",
-      "PASS cancelled enrollment never selected",
-      "PASS rate limit prevents further network until cooldown",
-      "PASS credential identity change invalidates stale token",
-      "PASS mismatched transaction remains guarded",
-      "PASS guard write failure prevents POST",
-      "PASS unknown operations and horn/lights rejected offline",
-      "PASS oversized and malformed replies fail without leak or retry",
-      "PASS header injection prevented before network",
-      "PASS enrollment encoding matches confirmed literal-at recipe",
-      "PASS overlapping tasks blocked before opening guard channel",
-      "PASS 2553 runtime assertions; 43 scenarios; zero real network requests or vehicle operations."
-    ]
+    "scenarios": 78,
+    "assertions": 7625,
+    "real_hyundai_requests": false,
+    "fixture_dialogs": true,
+    "workflow_run_id": 37413012569
   },
   "regressions": {
-    "python_passed": 97,
-    "javascript_passed": 64,
-    "python_body_guard_test": "Oversized declared Content-Length, small wire body; verifies early 413 without client broken-pipe race.",
-    "javascript_scope": "Preserved 64-test benchmark; diagnostic.js byte hash unchanged."
+    "python_passed": 101,
+    "node_protocol_passed": 8,
+    "chromium_scenarios_passed": 14,
+    "real_join_pushes": false,
+    "preserved_client_tests": 64,
+    "workflow_run_id": 37413012569
+  },
+  "browser_transport": {
+    "once_per_action": true,
+    "redirects": false,
+    "cookies": false,
+    "automatic_retries": false,
+    "acceptance_is_vehicle_completion": false,
+    "unreadable_response": "Network/unreadable reply or HTTP 408/5xx remains durable unknown delivery; check phone/car before acknowledgement",
+    "cors_probe": "controller-cors-probe.json"
+  },
+  "phone_webview": {
+    "scene": "SFD Web",
+    "mode": "Direct; bundled local HTML",
+    "entry": "SFD Open / SFD Open Web",
+    "named_receiver": "SFD Web Receive",
+    "global_reads": [
+      "SFDWebState",
+      "SFDWebLog"
+    ],
+    "ordinary_browser_return_channel": false,
+    "phone_ui_update": "Regenerate/import XML from the same source",
+    "settings_routing": "SFD Web Settings closes the scene, runs the native editor, then reopens the bundled page."
+  },
+  "remote_contract": {
+    "prefix": "hyundai=:=",
+    "shape": "COMMAND|REQUEST_ID|ISSUED_MS|SAFE",
+    "age_max_ms": 90000,
+    "future_max_ms": 10000,
+    "durable_replay_receipt_before_control": true,
+    "bare_starts": "Phone confirmation",
+    "join_enabled_default": false
+  },
+  "gps": {
+    "recipe": "GET /ac/v2/rcs/rfc/findMyCar",
+    "basis": "Pinned USA upstream source; prior account log redacted entire vehicleLocation",
+    "first_real_car_lookup_verified": false,
+    "phone_gps": "Tasker phone; precise location permission required",
+    "car_age_max_minutes": 15,
+    "phone_age_max_minutes": 2,
+    "phone_accuracy_max_meters": 100,
+    "verdict": "Approximate distance; stale/missing Unknown; overlapping accuracy Uncertain",
+    "auto_location_default": false,
+    "interval_hours": [
+      1,
+      24
+    ],
+    "requires_valid_lookup_and_opt_in": true,
+    "failure_pauses_schedule": true,
+    "background_elapsed_interval_verified": false,
+    "controls_run_by_periodic_task": false
+  },
+  "presets": {
+    "regular": {
+      "fahrenheit": 72,
+      "minutes": 10,
+      "defrost": false
+    },
+    "cold": {
+      "fahrenheit": 62,
+      "minutes": 10,
+      "defrost": false
+    },
+    "hot": {
+      "fahrenheit": 81,
+      "minutes": 10,
+      "defrost": true
+    },
+    "independently_editable": true,
+    "seats_and_steering_heat": 0,
+    "myhyundai_hi_lo_reproduced": false
+  },
+  "activity": {
+    "browser_limit": 100,
+    "phone_limit": 60,
+    "private_display_coordinates": true,
+    "exported_private_account_vehicle_device_identifiers_or_coordinates": false
+  },
+  "user_confirmation": {
+    "standalone_tasker_login": true,
+    "standalone_tasker_vehicle_selection": true,
+    "standalone_tasker_lock": true,
+    "standalone_tasker_unlock": true,
+    "prior_scene_gui_working": true,
+    "api_lab_regular_start": true,
+    "api_lab_stop": true,
+    "join_live_delivery": false,
+    "cold_hot_physical": false,
+    "horn_lights": false,
+    "basis": "Account-holder reports; no new export requested"
+  },
+  "credential_storage": "Ordinary Tasker globals explicitly authorized; distributed source/XML contains no personal credentials. Browser can remember only Join settings in its local storage.",
+  "native_tasker": {
+    "status": "PASSED",
+    "workflow_run_id": 37413012569,
+    "tested_source_commit": "7caa1e82179c65e2c31a0534ba81f4203442cefb",
+    "report": "tasker-direct-emulator.json",
+    "passed": true,
+    "checks": 90,
+    "artifact_id": 11390082142
+  },
+  "native_upgrade": {
+    "passed": true,
+    "checks": 14,
+    "workflow_run_id": 37386233350,
+    "tested_source_commit": "f6e2bcc97cbefe991950befa1d131340ce3d701f",
+    "report": "tasker-direct-upgrade-verification.json",
+    "requires_scoped_old_project_removal": true,
+    "saved_synthetic_credentials_retained": true,
+    "project_sha256": "97b2e5322ee10e033c8aba6c25b51ac073e2ec0e5cade2731e67c6ebca493c21",
+    "status": "PASSED",
+    "artifact_id": 11379921400
+  },
+  "cloud_regression": {
+    "passed": true,
+    "workflow_run_id": 37413012579,
+    "tested_source_commit": "7caa1e82179c65e2c31a0534ba81f4203442cefb"
   },
   "source_sha256": {
-    "tasker/direct/api.java": "e072f986d5b59c603822538145cc4a0812b2d924335e9357814a1aa08771bb89",
-    "tasker/direct/ui.java": "6415b4a080774c36782cd2dad5e84aa923d2d4a6c27deed3edfa5b2b22150f5e",
-    "tasker/direct/core.java": "1b09e68f66f1bbc628fd6994850d8f09dbfc5f210c13eee889713206f205a104",
-    "tools/build_tasker_direct.py": "a7146d5e172e8d2e2eb224193ab736dc1ebdd2e87c37b599e0a5c80f7b022645",
-    "tests/direct/DirectRuntimeTest.java": "468d9d1e23d6bba9210fad22f9492dd09d8b9f72ae9046431bb8c3244495e3d4",
-    "tests/direct/run-runtime-tests.sh": "f6d82f4628f9f529d4ef8a7023e32eedf813166e6c3c5a3b08a8f4b3bfe5c8ff",
-    "tests/test_tasker_direct.py": "6c207b217ff7b2d6fc33d152b9da7486b421d55037e82a518d3bb673fbb3f670",
-    "tests/test_http.py": "c8a255c2e80638bccb5f52fb10932828c314c0030f009a47899b339313cdd416",
-    "tests/direct/tasker_smoke.py": "97ad40ee919289f58d700c3fbcd8bcdb426c82d56e6d6ffa886a8ed05dc0b678",
-    "tasker/direct/gui.java": "ca0bc83b00436be937f4eb69bd1a3f13f2bb722e16ce6ae6e7e8c78c3bd6124e"
+    "control/index.html": "d4095f12651850a4f373afe7ae49620bd42cde997b3efea858a6b3149de2f488",
+    "control/control.css": "a697138f43c78df9d531c148125fb12c893c28f2888bf2f3a43dfb1dfcd993b7",
+    "control/control.js": "09ee387fc083e384a4bca0cb047e544c887f3aadf893eeb0583d5fb46cb774ce",
+    "control/protocol.js": "49420eaa9f8b4131e0d4b60cd1d1e76f21dcb8a5e81d2465d18185fd65e4193f",
+    "tasker/direct/api.java": "307384fa1dc9b378e04fa874fd39370c0c9b1ef01f8fa72098aa0a7e3dc41fe5",
+    "tasker/direct/ui.java": "00d770dacd2b52771b273c1e23712d746f928c4ee9ade538afe826f656b19383",
+    "tasker/direct/watch.java": "866d5177eef0582899b29ab1b217d2b1b735c94e7f3dd426fc986a3bb3b17d9e",
+    "tasker/direct/location.java": "545643cce2e9975b42ca3f1a692e4107f1c04990d4e389c203dc9cd0dc91ac76",
+    "tasker/direct/remote.java": "cd782777a63c2c5240135c0028e9cf7046b1da7f77d64ed678bd754ba0235076",
+    "tasker/direct/core.java": "a23b87044a8182cdfb5ff3304877c0d0e836187e42700cdcb0ee697a3577062b",
+    "tasker/direct/gui.java": "06949ceaf029305a57c1506f63aad43e46dce1cc359a5053475500605efb5777",
+    "tools/build_tasker_direct.py": "3f14f90f3893abeb6d7230de1d00459be54e7817e49045b21d85c67e2aaed39c",
+    "tests/direct/DirectRuntimeTest.java": "ad902ec0746b6c11cc8ba2a1c1db422924c511615b7fcc8cd20ffe81a083dd47",
+    "tests/direct/run-runtime-tests.sh": "f60fd90a1e7e8372820125bed7dd545cf450d750268cbc0b8976e4b39fb83500",
+    "tests/direct/tasker_smoke.py": "d76544021eb867cf620319480d7aa012157350b2971435583ebdfe174ffa8906",
+    "tests/direct/tasker_upgrade_smoke.py": "d7c2468739519da0b3e9ed982088f215359e0e8b5137bd58410424cb8f9c826f",
+    "tests/test_tasker_direct.py": "3e1503d7eb95e9ceee9bd8cd87e5e6d57426a1db84c6f4f9cc5f06493c7f34fc",
+    "tests/control_browser.cjs": "44d702d7e97e478fdc18605694fca322467ddc9ef41d5a98a848359f22d97196",
+    "tests/test_control.cjs": "e64c0b79c803169c3edb7c1c0dbe4623d74d7df66f1f640877e9cb861c387eff",
+    "tests/fixtures/tasker/join-received-push.xml": "631fe0dcee0ccc62bc8fe576bf85f7470e949d536bbfa584685b5a77e1c1ff05"
+  },
+  "workflow_sha256": {
+    "santafe-tasker-direct-ci.yml": "9ec9ddb7eb563791ca08aaec272f572b479d173fec9a27cfe7e45b8d65eae98b",
+    "santafe-tasker-upgrade-ci.yml": "7f053d78c32bcf392bab1188e978b1adc873e5c0df8e3c4f2f1b33c7037d0e28"
   },
   "preserved_sha256": {
     "tasker/Santa_Fe_Control_Center.prj.xml": "b707725dbc5bcce13c43c5fe886b28ced708e514d1fc229e2cb0af6f5cac1749",
-    "android/dist/SantaFe-API-Lab-0.3.3.apk": "fa176ff122be5948fb4ece2c49d0bd08032386f05985ed36fbddf7bfb62f3c4a",
-    "diagnostic.js": "699d855e550c367cef126d5969d8076f5ecff0963a8ddec09ed16e09cdba0e62"
+    "tasker/Santa_Fe_Direct_1_1_0_SCENES.prj.xml": "851c4cbac713570e194805692bb17bcfddac83e711c8dd098c9f95d161ecbb83",
+    "index.html": "57ac09d7bfd622bfff5f16e9945fd46228369aacf80cf10070228e87a18a13d5",
+    "diagnostic.js": "699d855e550c367cef126d5969d8076f5ecff0963a8ddec09ed16e09cdba0e62",
+    "android/dist/SantaFe-API-Lab-0.3.3.apk": "fa176ff122be5948fb4ece2c49d0bd08032386f05985ed36fbddf7bfb62f3c4a"
   },
-  "credential_storage": "Ordinary Tasker global variables explicitly authorized by the user. No personal credentials in repository or delivered project.",
-  "session_secrets": "Volatile global Java object. Persistent minimal private action/time marker only.",
   "real_account_used": false,
   "vehicle_commands_run": false,
-  "phone_acceptance": "The latest user report has no SFD Open/scenes and Unknown flags. Published 1.1.0 fresh import is verified, while actual in-place import is rejected by the existing project name. The scoped old-project removal/import test and updated phone acceptance remain pending.",
-  "cloud_regression": {
-    "passed": true,
-    "workflow_run_id": 37358500605,
-    "tested_source_commit": "59ca5f9e25d8405dfb25bae1231d017051d2373d"
-  },
-  "phone_confirmation": {
-    "version": "1.0.0",
-    "date": "2026-10-05",
-    "login": true,
-    "correct_vehicle_selection": true,
-    "lock_physical_success": true,
-    "unlock_physical_success": true,
-    "timestamp_received": true,
-    "status_flags": "Unknown",
-    "basis": "User report and screenshot; no additional export requested.",
-    "updated_gui_and_status_phone_acceptance": false,
-    "remote_start_stop_from_tasker": false
-  },
-  "status_display_change": {
-    "reader": "JSONObject.getBoolean directly, with missing/null/invalid values Unknown",
-    "prior_log_field_types": "doorLock, engine, airCtrlOn are Boolean in the existing supplied tester export",
-    "old_host_boolean_fixture": "Rendered correctly; exact 6.7.6-beta runtime difference not reproduced",
-    "new_checks": [
-      "both Boolean states",
-      "string Booleans",
-      "missing/null/malformed fields",
-      "actual Tasker offline parser check"
-    ],
-    "real_response_not_requested_again": true
-  },
-  "scene_pages": [
-    "Home",
-    "Controls",
-    "Status",
-    "Account",
-    "Climate",
-    "Command",
-    "Help"
-  ],
-  "scene_behavior": "Offline navigation. The saved masked account/climate form returns to its scene. GUI operations call the guarded core once and show updated state/result.",
-  "previous_native_tasker": {
-    "passed": true,
-    "checks": 20,
-    "tasker_version": "6.6.20",
-    "android_api": 35,
-    "imported_tasks": 17,
-    "imported_executable_actions": 17,
-    "delivered_core_retained": true,
-    "synthetic_account_saved_and_restored": true,
-    "password_and_pin_masked": true,
-    "network_or_vehicle_commands_run": false,
-    "workflow_run_id": 37286734266,
-    "tested_source_commit": "80e1073e7f11f9d6f8cf7fb8c53a788e3e5f0c48",
-    "report": "to-shreds/ProjectStatus/projects/santa-fe-control-center/artifacts/tasker-direct-emulator-v1.0.0.json"
-  },
-  "native_tasker": {
-    "passed": true,
-    "checks": 60,
-    "tasker_version": "6.6.20",
-    "android_api": 35,
-    "imported_tasks": 41,
-    "imported_executable_actions": 89,
-    "imported_scenes": 7,
-    "scene_navigation_and_settings_return": true,
-    "network_or_vehicle_commands_run": false,
-    "workflow_run_id": 37358500720,
-    "tested_source_commit": "59ca5f9e25d8405dfb25bae1231d017051d2373d",
-    "report": "tasker-direct-emulator.json",
-    "scene_observation": "Retained screenshots and Tesseract OCR of rendered titles/button bounds; UiAutomator for native forms.",
-    "workflow_run_attempt": 2,
-    "workflow_publish_note": "Native test step passed; rerun report push was rejected because an earlier bot report already advanced the branch. Passed artifact report was recovered and published manually."
-  },
-  "workflow_sha256": "439f290a8168c95b2a4aa911386fa433e11d8719aad501da373a46a488ed9b5e",
-  "upgrade_delivery": "tasker-direct-upgrade-verification.json"
+  "watch_project": "Explicitly deferred; no watch task/app exposed",
+  "acceptance": "First live Join ping, preset physical operation, actual GPS fields/permissions and elapsed background interval are phone checks."
 }

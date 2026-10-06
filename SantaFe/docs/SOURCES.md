@@ -1,5 +1,19 @@
 # Source and interface notes
 
+## Join controller and local Tasker WebView, October 5, 2026
+
+Santa Fe Direct 1.2.0 follows Jon's supplied native Join Received Push example: plugin event code 1668911626, FilterText hyundai=:= and the command tail in %joincomm. The private compressed project was decoded only to establish that shape. The independently named fixture at tests/fixtures/tasker/join-received-push.xml contains no personal key/device ID. The endpoint is Join's sendPush API. A credential-free OPTIONS probe returned HTTP 200 with Access-Control-Allow-Origin https://to-shreds.github.io; no push was sent. CORS permission is separate from authenticated/live delivery.
+
+Official Tasker Web documentation: https://tasker.joaoapps.com/userguide/en/element_web.html . The local scene uses Direct mode and the documented Tasker JavaScript interface. It bundles the exact generated HTML/CSS/scripts instead of giving a mutable website native privileges. Browser fixtures cover named-task dispatch and safe variable snapshots; actual Tasker/Android checks validate native serialization, rendering and button execution. See tasker-direct-verification.json and controller-browser.json for the final observations. The ordinary browser has no result return channel.
+
+The regular/cold/hot presets all keep the already confirmed USA hybrid remote-start request. Cold/hot alter only independently saved temperature/duration/defrost fields. MyHyundai HI/LO and seat ventilation were not inferred from its screenshot.
+
+Car location uses the same pinned HyundaiBlueLinkApiUSA.py below, blob 9a7fa8b0f333877451ce4b03073f85ed267084b9: GET /ac/v2/rcs/rfc/findMyCar and upstream vehicleLocation.coord/vehicleLocation.time. Upstream BaseApiImpl.py defines the USA data timezone as UTC. ISO times and strict compact UTC times are supported; malformed times remain unknown. Jon's prior export redacted the whole vehicleLocation object, so real coordinate/time fields remain a first-car acceptance check.
+
+Phone location uses Android LocationManager.getCurrentLocation with cancellation and a bounded wait: https://developer.android.com/reference/android/location/LocationManager#getCurrentLocation(java.lang.String,android.os.CancellationSignal,java.util.concurrent.Executor,java.util.function.Consumer%3Candroid.location.Location%3E) . Fix time and accuracy use the Location API: https://developer.android.com/reference/android/location/Location . Permissions/background execution must be configured on the phone. The distance is approximate; the phone's reported accuracy does not describe car accuracy.
+
+The periodic profile uses native hourly Time fields and an explicit opt-in variable, retained in actual Tasker. Its code enforces a durable 1 to 24 hour interval, pauses after lookup failure and never operates the car. An emulator import does not prove real GPS or an elapsed background hour. Amazfit work is deferred by Jon's explicit instruction.
+
 ## Browser-first API Lab benchmark, October 4, 2026
 
 Diagnostic request recipes are pinned to the primary upstream implementation:
