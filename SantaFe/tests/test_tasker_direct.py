@@ -6,6 +6,7 @@ import xml.etree.ElementTree as E
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "tasker/Santa_Fe_Direct.prj.xml"
+NAMED_PROJECT = ROOT / "tasker/Santa_Fe_Direct_1_3_0_BARE_JOIN.prj.xml"
 
 def test_native_action_shapes_and_membership():
     root = E.parse(PROJECT).getroot()
@@ -41,6 +42,15 @@ def test_embedded_source_and_reproducible_export(tmp_path):
     output = tmp_path / "direct.prj.xml"
     subprocess.run([sys.executable, str(ROOT / "tools/build_tasker_direct.py"), "--output", str(output)], check=True)
     assert output.read_bytes() == PROJECT.read_bytes()
+
+def test_named_1_3_0_release_matches_canonical_and_separates_join_from_web():
+    assert NAMED_PROJECT.read_bytes() == PROJECT.read_bytes()
+    content = PROJECT.read_text()
+    assert "Santa Fe Direct 1.3.0 loaded." in content
+    assert "Join accepts one command word only." in content
+    assert "Invalid local web command. No request was sent." in content
+    assert "santa-fe-direct-web-seen.json" in content
+    assert "santa-fe-direct-join-seen.json" not in content
 
 def test_fixed_origin_confirmed_controls_and_secret_handling():
     content = PROJECT.read_text()
