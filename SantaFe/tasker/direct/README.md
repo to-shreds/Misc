@@ -49,7 +49,7 @@ After a successful car-coordinate lookup, Location checks can opt into compariso
 
 The simple examples work: `hyundai=:=lock`, `unlock`, `ignition_on`, `ignition_on_cold`, `ignition_on_hot`, `ignition_off`. Bare starts keep the phone confirmation. Bare commands have no request identity and must not be automatically retried.
 
-The external controller sends only `hyundai=:=COMMAND`, using the same prefix and `%joincomm`. Tasker interprets the command and performs the existing Hyundai request locally. Bare starts keep the phone confirmation. The receiver still accepts the older structured `COMMAND|REQUEST_ID|ISSUED_MS|SAFE` form for compatibility, but the external website no longer generates it.
+The external controller sends only `hyundai=:=COMMAND`, using the same prefix and `%joincomm`. Tasker interprets the command and performs the existing Hyundai request locally. Bare starts keep the phone confirmation. The Join receiver rejects structured payloads. The structured `COMMAND|REQUEST_ID|ISSUED_MS|SAFE` form is reserved for the bundled local WebView, where it provides correlation and replay protection without going through Join.
 
 | Command | Phone operation |
 | --- | --- |
