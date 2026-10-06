@@ -15,9 +15,9 @@ Under Settings, open **Hyundai account**, save email/password/four-digit Bluelin
 ## Browser setup
 
 1. Install/enable Join on the same phone as Tasker. Enable **SFD Join Settings** and Save. The imported **SFD Join Commands** profile already has the native Join Received Push event from Jon's example, filtered on `hyundai=:=`, routing `%joincomm` into SFD Join Receive. No manual profile construction is needed.
-2. Open [the controller](https://to-shreds.github.io/Misc/santafe/). Under Settings, paste the Join sendPush link, or enter the key and one phone device ID. Save once. The public HTML contains no personal key or device ID. Remembered Join settings use local storage on that browser/device; this page does not encrypt them. Blank key fields retain the saved key. Forget removes it.
+2. Open [the controller](https://to-shreds.github.io/Misc/santafe/). Under Settings, enter only the Join API key and save it. By explicit request, the external controller is hard-coded to the current phone device ID. The API key is not in the public source; remembered keys use local storage on that browser/device and are not encrypted. Blank key fields retain the saved key. Forget removes it.
 3. Tap **Test connection**. The browser reports SENT; the phone should report PHONE REACHED. This test makes no Hyundai request and operates no car. Allow Tasker notifications to see results while its interface is closed. Join delivery can be delayed.
-4. Try Lock and Unlock, checking the phone result. Every start requires an outdoors/safe-to-start checkbox on the page.
+4. Try Lock and Unlock, checking the phone result. For a remote start, the website sends only the bare start command and Tasker asks the outdoors/safe-to-start question on the phone before contacting Hyundai.
 
 GitHub serves files; your browser sends the Join request. The website contacts only Join, once per action, with URL-encoded parameters, no cookies, no redirects and no retries. A network/unreadable response or HTTP 408/5xx is delivery unknown, not proof that nothing happened. The warning survives reload until you check the phone/car and acknowledge it.
 
@@ -49,7 +49,7 @@ After a successful car-coordinate lookup, Location checks can opt into compariso
 
 The simple examples work: `hyundai=:=lock`, `unlock`, `ignition_on`, `ignition_on_cold`, `ignition_on_hot`, `ignition_off`. Bare starts keep the phone confirmation. Bare commands have no request identity and must not be automatically retried.
 
-The controller sends `hyundai=:=COMMAND|REQUEST_ID|ISSUED_MS|SAFE`, still using the same prefix and `%joincomm`. IDs are 12 to 64 lowercase letters/digits/underscore/hyphen. Time is 13-digit Unix milliseconds. The phone rejects requests older than 90 seconds or more than 10 seconds in the future. SAFE is 1 only for a confirmed start, otherwise 0. A durable replay receipt is saved before a command. Keep device clocks automatic.
+The external controller sends only `hyundai=:=COMMAND`, using the same prefix and `%joincomm`. Tasker interprets the command and performs the existing Hyundai request locally. Bare starts keep the phone confirmation. The receiver still accepts the older structured `COMMAND|REQUEST_ID|ISSUED_MS|SAFE` form for compatibility, but the external website no longer generates it.
 
 | Command | Phone operation |
 | --- | --- |
