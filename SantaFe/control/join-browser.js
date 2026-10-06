@@ -39,6 +39,12 @@
   }
   detail.textContent = 'Save your Join API key first. The phone ID is fixed in this controller. This check sends no push and operates no car.';
   root.SFControl = Object.freeze({ ...P,
+    // External-browser Join commands are intentionally tiny. Tasker owns all
+    // Hyundai translation, authentication, submission and polling.
+    envelope: command => {
+      if (!Object.hasOwn(P.COMMANDS, command)) throw new Error('Unsupported command.');
+      return command;
+    },
     settings: value => capture(P.settings({ ...value, deviceId: FIXED_DEVICE_ID })),
     fromLink: value => {
       const parsed = P.fromLink(value);
