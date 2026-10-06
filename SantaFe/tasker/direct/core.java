@@ -1,4 +1,4 @@
-// Santa Fe Direct 1.2.0 entry and command state. Credentials are Tasker settings.
+// Santa Fe Direct 1.3.0 entry and command state. Credentials are Tasker settings.
 // Tokens and transaction details stay in a volatile global Java object.
 import java.nio.channels.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -166,7 +166,7 @@ String sfDispatch(String operation) {
         String flags = sfStatusFlag(sample, "doorLock", "Locked", "Unlocked") + " / " + sfStatusFlag(sample, "engine", "Running", "Off") + " / " + sfStatusFlag(sample, "airCtrlOn", "On", "Off");
         if (!flags.equals("Locked / Off / Off")) sfFail("The status parser self-check failed. No request was sent.");
         sfWatchSignature("0000000000000000000000000000000000000000000000000000000000000000", "offline-verification");
-        String message = sfReport("READY", "Santa Fe Direct 1.2.0 loaded. Core has " + actions + " executable action(s). Java, JSON, HTTP and Join command routing are available. Status parser verified: " + flags + ". No network request was made.");
+        String message = sfReport("READY", "Santa Fe Direct 1.3.0 loaded. Core has " + actions + " executable action(s). Java, JSON, HTTP and Join command routing are available. Status parser verified: " + flags + ". No network request was made.");
         sfMessage("Santa Fe Direct verification", message);
         return message;
     }
