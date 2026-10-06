@@ -134,7 +134,7 @@ JSONObject sfJoinForm() {
             final Activity activity = (Activity)object;
             activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
             LinearLayout layout = new LinearLayout(activity); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(24, 12, 24, 12);
-            TextView explanation = new TextView(activity); explanation.setText("Accept hyundai=:= commands delivered by your Join account. The website asks you to confirm each start. Keep your Join API key private. Bare start commands ask for confirmation on the phone. Hyundai credentials stay in Tasker."); layout.addView(explanation);
+            TextView explanation = new TextView(activity); explanation.setText("Accept simple hyundai=:= commands delivered by your Join account. The website sends only the command word. Remote starts ask for outdoors confirmation on this phone before Tasker contacts Hyundai. Keep your Join API key private. Hyundai credentials stay in Tasker."); layout.addView(explanation);
             CheckBox enabled = new CheckBox(activity); enabled.setText("Enable Join car commands"); enabled.setChecked(sfValue("SFDJoinEnabled").equals("1")); layout.addView(enabled);
             new AlertDialog.Builder(activity).setTitle("Santa Fe Join settings").setView(layout).setCancelable(false)
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
