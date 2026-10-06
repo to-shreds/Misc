@@ -90,6 +90,9 @@ def control_bundle():
     """One UI source, packaged locally so a privileged WebView stays offline."""
     folder = ROOT / "control"
     source = (folder / "index.html").read_text()
+    # Join transport diagnostics apply only to the external browser. Keep the
+    # installed phone interface unchanged; it sends directly to Tasker.
+    source = source.replace('  <script src="join-browser.js?v=1" defer></script>\n', '')
     source = source.replace('<link rel="stylesheet" href="control.css">', '<style>' + (folder / "control.css").read_text() + '</style>')
     for name in ["protocol.js", "control.js"]:
         source = source.replace('<script src="' + name + '" defer></script>', '<script>' + (folder / name).read_text() + '</script>')

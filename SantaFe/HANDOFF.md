@@ -24,6 +24,14 @@ Periodic checks default off. After a valid car lookup, settings can enable 1 to 
 
 ## Verification and delivery
 
+### Browser Join diagnostics correction, 2026-10-06
+
+Jon reported the website's generic "Join rejected the push" message with no explanation in Settings. The browser-only join-browser.js extension now shows the sanitized Join error reason and opens Settings after a definitive rejection. Check saved Join settings makes one read-only request to the officially documented listDevices endpoint, distinguishing a rejected API key from a phone ID absent from that account. It sends no push, operates no car and never saves device-list responses. Keys, device IDs, URLs, emails, VIN-shaped identifiers and coordinate-shaped values are removed from provider errors before display or logging. A rejected push is not retried; ambiguous delivery retains the original guard.
+
+The shared controller/protocol, native phone source and every existing XML remain unchanged. The generator deliberately removes the browser-only extension so the installed phone interface and its reproducible export retain their exact verified bytes. No Tasker reimport is needed for this website correction. The actual cause of Jon's rejected push is still unknown until the new settings check or safe provider reason is read on his browser.
+
+Correction verification: 18 Node transport/diagnostic tests and 19 intercepted Chromium scenarios pass. Nine Tasker source/export regressions pass; a fresh export is byte-for-byte identical to the existing 1.2.0 XML. An unauthenticated OPTIONS probe of listDevices returned HTTP 200 and explicitly allowed the GitHub Pages origin and GET. No real key, account, push or car was exercised.
+
 The exact XML is 229,938 bytes, SHA256 97b2e5322ee10e033c8aba6c25b51ac073e2ec0e5cade2731e67c6ebca493c21. The distinct attachment/source copy is Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml.
 
 Host tests pass 78 actual BeanShell scenarios / 7,625 assertions, 101 Python regressions, eight Node protocol tests and 14 Chromium scenarios. Replies are intercepted; no real account, Join push or car operation is used. An unauthenticated OPTIONS probe confirms Join permits the GitHub Pages origin. Actual Tasker 6.6.20 on Android 15 passed 90 fresh-import/UI checks in run 37413012569 on source 7caa1e82179c65e2c31a0534ba81f4203442cefb. The exact 65-task XML imported, its masked account editor opened from HTML and returned to the page, and its offline ping displayed the correlated phone result. Replacement from 1.1.0 passed 14 checks in run 37386233350 on source f6e2bcc97cbefe991950befa1d131340ce3d701f, using the same XML hash. Native evidence is in docs/verification/tasker-direct-emulator.json and tasker-direct-upgrade-verification.json. The preserved Android workflow passed run 37413012579. No real account, Join push or car was used. Source fixtures and tests match the tested Git blobs.

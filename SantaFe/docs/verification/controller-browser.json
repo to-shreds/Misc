@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "scenarios": 14,
+  "scenarios": 19,
   "real_join_requests": false,
   "real_hyundai_requests": false,
   "results": [
@@ -38,6 +38,26 @@
     },
     {
       "test": "Join API rejection and exported logs omit secret errors",
+      "passed": true
+    },
+    {
+      "test": "rejected push opens Settings with its specific safe reason",
+      "passed": true
+    },
+    {
+      "test": "saved settings check sends one device-list read without a push",
+      "passed": true
+    },
+    {
+      "test": "wrong phone ID and invalid API key get distinct Settings explanations",
+      "passed": true
+    },
+    {
+      "test": "settings check works with memory-only configuration and does not save device responses",
+      "passed": true
+    },
+    {
+      "test": "Join reason renders as text and cannot inject markup",
       "passed": true
     },
     {

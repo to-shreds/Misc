@@ -1,0 +1,64 @@
+{
+  "checked_at": "2026-10-06T20:54:45.344856+00:00",
+  "change": "Browser-only Join rejection reasons and read-only saved-settings check",
+  "node_tests": {
+    "passed": 18,
+    "failed": 0
+  },
+  "chromium_scenarios": {
+    "passed": 19,
+    "failed": 0
+  },
+  "tasker_source_export_regressions": {
+    "passed": 9,
+    "failed": 0
+  },
+  "xml_rebuilt_identically": true,
+  "live_pushes": false,
+  "live_hyundai_requests": false,
+  "real_accounts": false,
+  "list_devices_cors": {
+    "probe": "unauthenticated OPTIONS",
+    "http": 200,
+    "origin": "https://to-shreds.github.io",
+    "get_allowed": true
+  },
+  "unresolved": "Actual rejection cause requires the browser settings check or a fresh sanitized push reason.",
+  "files": [
+    {
+      "path": "SantaFe/control/index.html",
+      "bytes": 8712,
+      "sha256": "490e07ed98c67890d5cb20198fa67c9a20253f0109e2212306cbdba954b722e9"
+    },
+    {
+      "path": "SantaFe/control/join-browser.js",
+      "bytes": 8500,
+      "sha256": "3fff61800014338479fbf0dd591680b40258fc040fbdb3870234a9c9e65e5b83"
+    },
+    {
+      "path": "SantaFe/control/control.js",
+      "bytes": 14641,
+      "sha256": "09ee387fc083e384a4bca0cb047e544c887f3aadf893eeb0583d5fb46cb774ce"
+    },
+    {
+      "path": "SantaFe/control/protocol.js",
+      "bytes": 3851,
+      "sha256": "49420eaa9f8b4131e0d4b60cd1d1e76f21dcb8a5e81d2465d18185fd65e4193f"
+    },
+    {
+      "path": "SantaFe/tools/build_tasker_direct.py",
+      "bytes": 18786,
+      "sha256": "2bbd06bcfc9e2d6a0017ba19ce9e98579bece747734522b4ac47f3ae9e077004"
+    },
+    {
+      "path": "SantaFe/tasker/Santa_Fe_Direct.prj.xml",
+      "bytes": 229938,
+      "sha256": "97b2e5322ee10e033c8aba6c25b51ac073e2ec0e5cade2731e67c6ebca493c21"
+    },
+    {
+      "path": "SantaFe/tasker/Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml",
+      "bytes": 229938,
+      "sha256": "97b2e5322ee10e033c8aba6c25b51ac073e2ec0e5cade2731e67c6ebca493c21"
+    }
+  ]
+}

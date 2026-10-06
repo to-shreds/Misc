@@ -10,6 +10,7 @@ on:
       - "SantaFe/tests/direct/**"
       - "SantaFe/tests/test_tasker_direct.py"
       - "SantaFe/tests/test_control.cjs"
+      - "SantaFe/tests/test_join_browser.cjs"
       - "SantaFe/tests/control_browser.cjs"
       - "SantaFe/tests/fixtures/tasker/join-received-push.xml"
       - ".github/workflows/santafe-tasker-direct-ci.yml"
@@ -43,7 +44,7 @@ jobs:
       - name: Execute delivered BeanShell with intercepted HTTP fixtures
         run: bash SantaFe/tests/direct/run-runtime-tests.sh
       - name: Join command contract and transport fixtures
-        run: node --test SantaFe/tests/test_control.cjs
+        run: node --test SantaFe/tests/test_control.cjs SantaFe/tests/test_join_browser.cjs
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 15
