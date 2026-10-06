@@ -136,7 +136,7 @@
   $('acknowledge').addEventListener('click', () => { unknown = null; store.remove(KEYS.pending); notice('Delivery warning acknowledged. The next tap creates a new request.'); buttons(); });
   $('clear-log').addEventListener('click', () => { entries = []; store.remove(KEYS.log); renderLog(); });
   $('export-log').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify({ format: 'santa-fe-control-log-v1', controller: '1.2.0', exportedAt: new Date().toISOString(), entries: entries.concat(phoneEntries).map(cleanEntry) }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ format: 'santa-fe-control-log-v1', controller: '1.3.0', exportedAt: new Date().toISOString(), entries: entries.concat(phoneEntries).map(cleanEntry) }, null, 2)], { type: 'application/json' });
     const link = document.createElement('a'), url = URL.createObjectURL(blob); link.href = url; link.download = 'SantaFe-control-log-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
   settingsView(); renderLog();
