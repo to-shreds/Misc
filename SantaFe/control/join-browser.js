@@ -6,6 +6,14 @@
     return;
   }
   const P = root.SFControl, diagnostics = factory(P), document = root.document;
+  const FIXED_DEVICE_ID = '77ebc6e220414eada086692685d25353';
+  for (const id of ['join-link', 'device-id']) {
+    const input = document.getElementById(id), label = document.querySelector('label[for="' + id + '"]');
+    if (input) { input.hidden = true; input.value = ''; }
+    if (label) label.hidden = true;
+  }
+  const connectionHint = document.querySelector('#settings > p.hint.external-note');
+  if (connectionHint) connectionHint.textContent = 'Enter only your Join API key. This controller is locked to your phone ID. Your Hyundai account stays in Tasker.';
   const card = document.createElement('div'), title = document.createElement('h2');
   const detail = document.createElement('p'), button = document.createElement('button');
   const instructions = document.createElement('p'), link = document.createElement('a');
@@ -17,7 +25,7 @@
   instructions.className = 'hint';
   link.href = 'https://joinjoaomgcd.appspot.com/'; link.target = '_blank'; link.rel = 'noopener noreferrer';
   link.textContent = 'Open Join';
-  instructions.append(link, ' and select this phone. Choose JOIN API (or Create a Join API link for your device), then paste the generated link above and save.');
+  instructions.append(link, ' if you need a new API key. This controller is already locked to your phone ID; enter only the API key above and save.');
   card.append(title, detail, button, instructions);
   document.getElementById('settings-form').after(card);
   let configured = null, checking = false, sending = false, revision = 0;
@@ -29,10 +37,13 @@
     }
     configured = value; enabled(); return value;
   }
-  detail.textContent = 'Save your Join API key and phone ID first. This check sends no push and operates no car.';
+  detail.textContent = 'Save your Join API key first. The phone ID is fixed in this controller. This check sends no push and operates no car.';
   root.SFControl = Object.freeze({ ...P,
-    settings: value => capture(P.settings(value)),
-    fromLink: value => capture(P.fromLink(value)),
+    settings: value => capture(P.settings({ ...value, deviceId: FIXED_DEVICE_ID })),
+    fromLink: value => {
+      const parsed = P.fromLink(value);
+      return capture(P.settings({ ...parsed, deviceId: FIXED_DEVICE_ID }));
+    },
     async send(config, payload, fetcher, signal) {
       capture(config); const current = revision; sending = true; enabled();
       try {
@@ -48,19 +59,19 @@
   button.addEventListener('click', async () => {
     if (!configured || checking || sending) return;
     const config = { ...configured }, current = revision, abort = new AbortController();
-    checking = true; enabled(); detail.textContent = 'Checking the saved key and phone ID with Join. No push is being sent.';
+    checking = true; enabled(); detail.textContent = 'Checking the API key and this controller\'s fixed phone ID with Join. No push is being sent.';
     const timer = setTimeout(() => abort.abort(), 15000);
     try { const result = await diagnostics.inspect(config, root.fetch.bind(root), abort.signal); if (current === revision) display(result); }
     catch (_) { if (current === revision) display({ state: 'UNKNOWN', message: 'The browser could not complete the settings check. Check your Internet connection and try this check again. No push was sent.' }); }
     finally { clearTimeout(timer); checking = false; enabled(); }
   });
   document.getElementById('forget').addEventListener('click', () => {
-    revision++; configured = null; enabled(); detail.textContent = 'Join settings removed. Save a new Join API link above.'; card.classList.remove('warning');
+    revision++; configured = null; enabled(); detail.textContent = 'Join API key removed. Enter the API key above.'; card.classList.remove('warning');
   });
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (P) {
   'use strict';
   const DEVICES = 'https://joinjoaomgcd.appspot.com/_ah/api/registration/v1/listDevices';
-  const freshLink = 'Open Join, select this phone and create a new Join API link. Paste it in Settings and save.';
+  const freshLink = 'Open Join, select this phone and create a new Join API link, then enter that link\'s API key in Settings.';
   function redact(value, config) {
     if (typeof value !== 'string') return '';
     let text = value;
@@ -121,7 +132,7 @@
     if (!response.ok || (body && (body.success === false || body.userAuthError === true || body.error))) return rejection(body, http, clean, 'the settings check');
     if (!body || body.success !== true || !Array.isArray(body.records)) throw new Error('Unreadable Join device list.');
     if (!body.records.some(device => device && typeof device.deviceId === 'string' && device.deviceId.toLowerCase() === clean.deviceId.toLowerCase()))
-      return { state: 'REJECTED', http, message: 'Join accepted the API key, but the saved phone ID is not in that account. ' + freshLink + ' No push was sent.' };
+      return { state: 'REJECTED', http, message: 'Join accepted the API key, but the fixed phone ID is not in that account. ' + freshLink + ' No push was sent.' };
     return { state: 'SETTINGS OK', http, message: 'Join accepted the API key and found the selected phone. Tap Test connection to check delivery to Tasker. This check sent no push.' };
   }
   return Object.freeze({ DEVICES, redact, rejection, send, inspect });
