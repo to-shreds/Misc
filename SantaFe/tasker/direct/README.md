@@ -1,14 +1,14 @@
-# Santa Fe Direct 1.2.0
+# Santa Fe Direct 1.3.0
 
 The browser sends Join commands. Tasker on your phone performs the working Hyundai USA API calls with its saved account. SFD Open opens the same small HTML interface locally, with vehicle results. Amazfit is a separate future project.
 
 ## Install or update
 
-Download **Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml**. It contains 65 tasks, 137 executable actions, nine scenes and two opt-in profiles. All original 41 task names/IDs and account variables remain. No external Java files, APK, Termux or server are required. Join is needed only for browser commands.
+Download **Santa_Fe_Direct_1_3_0_BARE_JOIN.prj.xml**. It contains 65 tasks, 137 executable actions, nine scenes and two opt-in profiles. All original 41 task names/IDs and account variables remain. No external Java files, APK, Termux or server are required. Join is needed only for browser commands.
 
 Back up Tasker before updating. It rejects an existing project name. Long-press only the **Santa Fe Direct** bottom tab, choose **Delete**, then **With Contents**, retaining global variables. Import the distinctly named file. Leave unrelated projects alone. Check the saved account afterward; restore it once if your Tasker version removed the variables.
 
-Run **SFD Verify Actions**. Expect **1.2.0** and **Status parser verified: Locked / Off / Off**. This is an offline fixture, not a real car reading. Run **SFD Open** or **SFD Open Web**. A home-screen Tasker shortcut to SFD Open gives quick access.
+Run **SFD Verify Actions**. Expect **1.3.0** and **Status parser verified: Locked / Off / Off**. This is an offline fixture, not a real car reading. Run **SFD Open** or **SFD Open Web**. A home-screen Tasker shortcut to SFD Open gives quick access.
 
 Under Settings, open **Hyundai account**, save email/password/four-digit Bluelink PIN once, and Connect. Password/PIN stay masked and blank on revisit; blank retains saved values. With multiple active cars, use Choose car. Credentials remain ordinary Tasker globals by Jon's explicit choice; personal backups can contain them. The distributed project has no personal credentials.
 
