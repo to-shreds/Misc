@@ -40,7 +40,10 @@
   detail.textContent = 'Save your Join API key first. The phone ID is fixed in this controller. This check sends no push and operates no car.';
   root.SFControl = Object.freeze({ ...P,
     // External-browser Join commands are intentionally tiny. Tasker owns all
-    // Hyundai translation, authentication, submission and polling.
+    // Hyundai translation, authentication, start safety, submission and polling.
+    // The browser therefore treats starts like any other command; Tasker asks
+    // the outdoors/safety question when the bare start reaches the phone.
+    starts: () => false,
     envelope: command => {
       if (!Object.hasOwn(P.COMMANDS, command)) throw new Error('Unsupported command.');
       return command;
