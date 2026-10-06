@@ -183,7 +183,7 @@ public class DirectRuntimeTest {
     interface RunnableWithException { void run() throws Exception; }
     public static void main(String[] args) throws Exception {
         sources=Path.of(args[0]);
-        test("offline imported action self-check",()->{Fixture f=f();check(f.run("verify").startsWith("Santa Fe Direct 1.2.0 loaded."),"BeanShell returns the reported result");check(f.state().equals("READY") && f.seen.isEmpty(),"verify is offline");});
+        test("offline imported action self-check",()->{Fixture f=f();check(f.run("verify").startsWith("Santa Fe Direct 1.3.0 loaded."),"BeanShell returns the reported result");check(f.state().equals("READY") && f.seen.isEmpty(),"verify is offline");});
         test("setup remembers account without network",()->{Fixture f=f();f.account=new JSONObject().put("email",EMAIL).put("password",PASSWORD).put("pin",PIN).put("vin","");f.run("setup");check(f.state().equals("SAVED") && f.tasker.getVariable("SFDPassword").equals(PASSWORD),"setup saved");});
         test("initial login and cached status",()->{Fixture f=f();f.connect();check(f.session().get("token").equals("fixture-token") && !f.tasker.variables.containsValue("fixture-token"),"token only Java object");check(f.tasker.getVariable("SFDDoorLock").equals("Locked") && f.tasker.getVariable("SFDEngine").equals("Off") && f.tasker.getVariable("SFDClimate").equals("Off"),"boolean status values render correctly: " + f.tasker.getVariable("SFDStatus"));});
         test("status labels cover both boolean states",()->{Fixture f=f();f.connect();f.expected.add(new Expected("GET","/ac/v2/rcs/rvs/vehicleStatus",200,"{\"vehicleStatus\":{\"dateTime\":\"2026-10-05T18:00:43Z\",\"doorLock\":false,\"engine\":true,\"airCtrlOn\":true}}"));f.run("status");check(f.tasker.getVariable("SFDDoorLock").equals("Unlocked") && f.tasker.getVariable("SFDEngine").equals("Running") && f.tasker.getVariable("SFDClimate").equals("On"),"false and true map to the displayed labels");check(f.tasker.getVariable("SFDVehicleTime").equals("2026-10-05T18:00:43Z"),"vehicle timestamp retained");});
@@ -267,68 +267,70 @@ public class DirectRuntimeTest {
         test("locations cannot be compared across vehicles or credential identities",()->{Fixture f=f();f.locationReady();int seen=f.seen.size();f.tasker.setVariable("SFDVin",VIN2);f.run("compare_location");check(f.tasker.getVariable("SFDProximity").equals("Unknown")&&f.seen.size()==seen,"old VIN invalidated offline");f.tasker.setVariable("SFDVin","");f.tasker.setVariable("SFDPassword","different");f.run("compare_location");check(f.tasker.getVariable("SFDLocationResult").contains("selected account/car"),"different account cannot reuse coordinates");});
         test("failed periodic lookup pauses schedule even after process loss",()->{Fixture f=f();f.locationReady();f.tasker.setVariable("SFDAutoLocation","1");f.expected.add(new Expected("GET","/ac/v2/rcs/rfc/findMyCar",502,"{}"));f.run("periodic_location");check(f.tasker.getVariable("SFDAutoLocation").equals("0")&&f.tasker.getVariable("SFDLocationResult").contains("paused"),"failure disables background lookup");int seen=f.seen.size();f.tasker.objects.clear();f.now+=3600000;f.run("periodic_location");check(f.seen.size()==seen,"process loss cannot trigger another credential attempt");});
         test("forget account also removes GPS cache and periodic consent",()->{Fixture f=f();f.locationReady();f.tasker.setVariable("SFDAutoLocation","1");int seen=f.seen.size();f.run("forget");check(f.tasker.getVariable("SFDCarLat").isEmpty()&&f.tasker.getVariable("SFDCarIdentity").isEmpty()&&f.tasker.getVariable("SFDLocationVerified").isEmpty()&&f.tasker.getVariable("SFDAutoLocation").equals("0")&&f.seen.size()==seen,"forget clears location offline");});
-        test("Join opt-in and connection test are offline", () -> {
+        test("Join opt-in and bare connection test are offline", () -> {
             Fixture f=f(); f.tasker.setVariable("par2", "ping"); f.run("join");
             check(f.state().equals("FAILED") && f.seen.isEmpty(), "receiver disabled by default");
             f.joinSettings=new JSONObject().put("enabled", true); f.run("join_settings");
-            f.tasker.setVariable("par2", "ping|fixture_join_001|"+f.now+"|0"); f.run("join");
-            check(f.state().equals("PHONE REACHED") && f.seen.isEmpty() && f.notifications.size()==2, "ping never logs in or controls vehicle");
+            f.tasker.setVariable("par2", "ping"); f.run("join");
+            check(f.state().equals("PHONE REACHED") && f.seen.isEmpty() && f.notifications.size()==2, "bare ping never logs in or controls vehicle");
             JSONObject state=new JSONObject(f.tasker.getVariable("SFDWebState"));
-            check(state.getJSONObject("result").getString("id").equals("fixture_join_001") && !state.getBoolean("busy"), "final reply correlated to request");
+            check(state.getJSONObject("result").getString("id").isEmpty() && !state.getBoolean("busy"), "external Join result needs no request identity");
         });
-        test("Join lock unlock and stop use existing exact API recipes once", () -> {
+        test("Join lock unlock and stop use existing exact API recipes", () -> {
             for (String command:List.of("lock", "unlock", "ignition_off")) {
                 Fixture f=f(); f.connect(); f.tasker.setVariable("SFDJoinEnabled", "1");
-                f.tasker.setVariable("par2", command+"|fixture_join_001|"+f.now+"|0");
+                f.tasker.setVariable("par2", command);
                 f.status(false); f.command(command.equals("ignition_off")?"stop":command,200,"","fixture-tid"); f.poll("SUCCESS"); f.run("join");
-                int seen=f.seen.size(); f.run("join");
-                check(f.seen.size()==seen && f.state().equals("FAILED"), "duplicate never repeats command");
+                check(f.state().equals("SUCCESS"), "bare Join command uses the existing Hyundai recipe");
             }
         });
-        test("Join three start modes require frontend confirmation and use distinct presets", () -> {
+        test("Join three start modes require phone confirmation and use distinct presets", () -> {
             for (String command:List.of("ignition_on", "ignition_on_cold", "ignition_on_hot")) {
-                Fixture f=f(); f.connect(); f.tasker.setVariable("SFDJoinEnabled", "1"); f.confirmation="no";
-                f.tasker.setVariable("par2", command+"|fixture_join_001|"+f.now+"|1");
+                Fixture cancelled=f(); cancelled.connect(); cancelled.tasker.setVariable("SFDJoinEnabled", "1"); cancelled.confirmation="no";
+                cancelled.tasker.setVariable("par2", command); cancelled.run("join");
+                check(cancelled.state().equals("CANCELLED") && cancelled.confirmationRequests==1, "bare start cannot bypass phone confirmation");
+
+                Fixture f=f(); f.connect(); f.tasker.setVariable("SFDJoinEnabled", "1"); f.confirmation="yes";
+                f.tasker.setVariable("par2", command);
                 int temp=command.endsWith("cold")?62:command.endsWith("hot")?81:72;
                 f.status(false); Expected request=f.command("start",200,"","fixture-tid"); var original=request.inspect;
                 request.inspect=r -> { original.accept(r); check(body(r).getJSONObject("airTemp").getInt("value")==temp, "correct saved preset temperature"); };
                 f.poll("SUCCESS"); f.run("join");
-                check(f.state().equals("SUCCESS") && f.confirmationRequests==0, "confirmed remote start runs without second phone prompt");
+                check(f.state().equals("SUCCESS") && f.confirmationRequests==1, "confirmed phone start uses existing Hyundai recipe");
             }
         });
-        test("Legacy sample routes exact command and keeps phone start confirmation", () -> {
+        test("Join accepts the original prefix but only one command word", () -> {
             Fixture f=f(); f.connect(); f.tasker.setVariable("SFDJoinEnabled", "1");
             f.tasker.setVariable("par2", "hyundai=:=lock"); f.status(false); f.command("lock",200,"","fixture-tid"); f.poll("SUCCESS"); f.run("join");
-            f.confirmation="no"; f.tasker.setVariable("par2", "ignition_on_hot"); f.run("join");
-            check(f.state().equals("CANCELLED") && f.confirmationRequests==1, "bare start cannot bypass confirmation");
+            check(f.state().equals("SUCCESS"), "optional original prefix still routes the command");
         });
-        test("Malformed expired future and unconfirmed Join commands are offline", () -> {
+        test("Malformed or structured Join commands are rejected offline", () -> {
             Fixture f=f(); f.tasker.setVariable("SFDJoinEnabled", "1");
-            for (String payload:List.of("lock;unlock", "horn", "lights", "forget", "lock|bad|"+f.now+"|0", "lock|fixture_join_001|"+(f.now-90001)+"|0", "lock|fixture_join_001|"+(f.now+10001)+"|0", "ignition_on|fixture_join_001|"+f.now+"|0", "lock|fixture_join_001|"+f.now+"|1")) {
+            for (String payload:List.of("lock;unlock", "horn", "lights", "forget", "lock|fixture_join_001|"+f.now+"|0", "ignition_on|fixture_join_001|"+f.now+"|1")) {
                 f.tasker.setVariable("par2", payload); f.run("join");
-                check(f.state().equals("FAILED") && f.seen.isEmpty(), "invalid commands cannot contact Hyundai");
+                check(f.state().equals("FAILED") && f.seen.isEmpty(), "external Join accepts only one allowlisted command word");
             }
         });
-        test("Join durable replay guard and unresolved control guard survive session loss", () -> {
+        test("Join still honors the unresolved-command guard before authentication", () -> {
             Fixture f=f(); f.tasker.setVariable("SFDJoinEnabled", "1");
-            f.tasker.setVariable("par2", "ping|fixture_join_001|"+f.now+"|0"); f.run("join"); f.tasker.objects.clear(); f.run("join");
-            check(f.state().equals("FAILED") && f.seen.isEmpty(), "replay blocked after process loss");
-            Files.writeString(f.marker().toPath(), "{}"); f.tasker.setVariable("par2", "unlock|fixture_join_002|"+f.now+"|0"); f.run("join");
+            Files.writeString(f.marker().toPath(), "{}"); f.tasker.setVariable("par2", "unlock"); f.run("join");
             check(f.state().equals("UNKNOWN") && f.marker().exists() && f.seen.isEmpty(), "pending guard precedes authentication");
         });
-        test("Corrupt Join receipts fail closed before authentication", () -> {
-            Fixture f=f(); f.tasker.setVariable("SFDJoinEnabled", "1");
-            Files.writeString(new File(f.context.root,"santa-fe-direct-join-seen.json").toPath(), "bad JSON");
-            f.tasker.setVariable("par2", "lock|fixture_join_001|"+f.now+"|0"); f.run("join");
-            check(f.state().equals("FAILED") && f.seen.isEmpty(), "corruption cannot cause repeat controls");
-        });
-        test("Bundled WebView uses local receiver with correlation without Join opt-in", () -> {
+        test("Bundled WebView keeps structured correlation and replay protection without Join opt-in", () -> {
             Fixture f=f(); f.run("web_prepare");
             check(f.seen.isEmpty() && new JSONObject(f.tasker.getVariable("SFDWebState")).getInt("version")==1, "opening phone interface is offline");
             f.tasker.setVariable("par2", "ping|fixture_web_0001|"+f.now+"|0"); f.run("web");
             check(f.state().equals("PHONE REACHED") && f.seen.isEmpty(), "local test works without Join key");
+            f.tasker.setVariable("par2", "ping|fixture_web_0001|"+f.now+"|0"); f.run("web");
+            check(f.state().equals("FAILED") && f.seen.isEmpty(), "duplicate local request is blocked");
             f.tasker.setVariable("par2", "lock"); f.run("web");
             check(f.state().equals("FAILED") && f.seen.isEmpty(), "local UI requires replay metadata");
+        });
+        test("Corrupt local WebView receipts fail closed before authentication", () -> {
+            Fixture f=f();
+            Files.writeString(new File(f.context.root,"santa-fe-direct-web-seen.json").toPath(), "bad JSON");
+            f.tasker.setVariable("par2", "lock|fixture_web_0002|"+f.now+"|0"); f.run("web");
+            check(f.state().equals("FAILED") && f.seen.isEmpty(), "corrupt local receipt cannot cause a control");
         });
         test("Phone logs and reply snapshots exclude credentials and GPS in activity", () -> {
             Fixture f=f(); f.locationReady(); f.run("web_prepare");
