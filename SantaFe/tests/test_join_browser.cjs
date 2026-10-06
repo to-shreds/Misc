@@ -42,7 +42,7 @@ test('read-only check verifies membership with one listDevices call and no push'
 });
 test('valid key paired with the wrong phone gets a specific correction', async () => {
   const result = await D.inspect(config, async () => reply({ success: true, records: [{ deviceId: 'b'.repeat(32) }] }));
-  assert.equal(result.state, 'REJECTED'); assert.match(result.message, /saved phone ID is not in that account/);
+  assert.equal(result.state, 'REJECTED'); assert.match(result.message, /fixed phone ID is not in that account/);
 });
 test('authentication flag distinguishes an API key rejection without echoing a key', async () => {
   const result = await D.inspect(config, async () => reply({ success: false, userAuthError: true, errorMessage: config.apiKey }));
