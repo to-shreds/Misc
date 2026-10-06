@@ -6,7 +6,7 @@ import pathlib
 import xml.etree.ElementTree as E
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 STAMP = "1791223200000"
 TASKS = [
     ("SFD Verify Actions", "verify"), ("SFD Setup", "setup"),
