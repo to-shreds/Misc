@@ -259,9 +259,9 @@ def scene_screen():
     picture = RESULTS / f"scene-observation-{SEQUENCE:03d}.png"
     picture.write_bytes(adb("exec-out", "screencap", "-p"))
     lines = {}
-    # Sparse text works well for most scenes; uniform text also reads smaller
-    # button labels accurately. Retain both observations and their real bounds.
-    for mode in [11, 6]:
+    # Retain complementary observations. PSM 12 detects the first two mint
+    # button rows in the HTML editor that PSM 11/6 omit on Android WebView.
+    for mode in [11, 6, 12]:
         result = subprocess.run(["tesseract", str(picture), "stdout", "--psm", str(mode), "tsv"], capture_output=True, text=True, check=True, timeout=20)
         picture.with_suffix(".psm" + str(mode) + ".tsv").write_text(result.stdout)
         for item in csv.DictReader(io.StringIO(result.stdout), delimiter="\t"):
