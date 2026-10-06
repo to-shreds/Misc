@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Observe the real Tasker 1.1.0 -> 1.2.0 import flow with synthetic settings."""
+"""Observe the real Tasker 1.1.0 -> 1.3.0 import flow with synthetic settings."""
 import argparse
 import hashlib
 import json
@@ -105,7 +105,7 @@ def run(old):
     m.check(after=={'tasks':65,'actions':137,'scenes':9},'Updating existing project imports all 65 tasks, 137 actions and nine scenes')
     m.startup();m.play(m.open_task('SFD Verify Actions'))
     root=m.wait_for('Santa Fe Direct verification')
-    m.check(any('1.2.0' in n.get('text','') for n in m.nodes(root)),'Updated verification task actually reports 1.2.0')
+    m.check(any('1.3.0' in n.get('text','') for n in m.nodes(root)),'Updated verification task actually reports 1.3.0')
     m.check(any('Status parser verified: Locked / Off / Off' in n.get('text','') for n in m.nodes(root)),'Updated native status reader executes after replacement')
     m.click(root,['OK']);m.back_to_tasks();m.play(m.open_task('SFD Setup'))
     root=m.wait_for('Santa Fe account');inputs=[n for n in m.nodes(root) if n.get('class')=='android.widget.EditText']
