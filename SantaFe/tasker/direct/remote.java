@@ -4,33 +4,32 @@ import android.app.NotificationManager;
 
 JSONObject sfAcceptRemote(String payload, boolean fromJoin) {
     if (payload.startsWith("hyundai=:=")) payload = payload.substring(10);
-    if (payload.length() > 180) sfFail("Invalid Join command. No request was sent.");
+    if (payload.length() > 180) sfFail("Invalid remote command. No request was sent.");
     String[] fields = payload.split("\\|", -1);
-    if (fields.length != 1 && fields.length != 4) sfFail("Invalid Join command. No request was sent.");
+    if (fromJoin && fields.length != 1) sfFail("Join accepts one command word only. No request was sent.");
+    if (!fromJoin && fields.length != 4) sfFail("Invalid local web command. No request was sent.");
     String command = fields[0];
     if (!Arrays.asList(new String[]{"ignition_on", "ignition_on_cold", "ignition_on_hot", "ignition_off", "lock", "unlock", "ping", "status", "refresh", "location", "compare_location", "poll"}).contains(command))
-        sfFail("Unsupported Join command. No request was sent.");
+        sfFail("Unsupported remote command. No request was sent.");
     sfRemoteCommand = command;
     boolean start = command.startsWith("ignition_on"), confirmed = false;
-    if (fields.length == 4) {
-        if (!fields[1].matches("[a-z0-9_-]{12,64}") || !fields[2].matches("[0-9]{13}") || !fields[3].matches("[01]")) sfFail("Invalid Join request identity. No request was sent.");
+    if (fromJoin) {
+        if (!sfValue("SFDJoinEnabled").equals("1")) sfFail("Join commands are disabled. Open SFD Join Settings on your phone.");
+    } else {
+        if (!fields[1].matches("[a-z0-9_-]{12,64}") || !fields[2].matches("[0-9]{13}") || !fields[3].matches("[01]")) sfFail("Invalid local web request identity. No request was sent.");
         sfRemoteId = fields[1];
         long issued = Long.parseLong(fields[2]), now = sfNow();
-        if (issued < now - 90000 || issued > now + 10000) sfFail("Join command expired or the clocks differ. No request was sent.");
+        if (issued < now - 90000 || issued > now + 10000) sfFail("Local web command expired or the clocks differ. No request was sent.");
         confirmed = fields[3].equals("1");
-        if (start != confirmed) sfFail("A remote start needs an outdoors confirmation. No request was sent.");
-    } else if (!fromJoin) sfFail("The phone page must supply a request identity. No request was sent.");
-    if (fromJoin && !sfValue("SFDJoinEnabled").equals("1")) sfFail("Join commands are disabled. Open SFD Join Settings on your phone.");
-    if (fields.length == 4) {
-        File file = new File(context.getNoBackupFilesDir(), "santa-fe-direct-join-seen.json");
+        if (start != confirmed) sfFail("A local web start needs an outdoors confirmation. No request was sent.");
+        File file = new File(context.getNoBackupFilesDir(), "santa-fe-direct-web-seen.json");
         JSONArray seen = sfReadArray(file, true), retained = new JSONArray();
-        long now = sfNow(), issued = Long.parseLong(fields[2]);
         for (int i = 0; i < seen.length(); i++) {
             JSONObject old = seen.getJSONObject(i);
-            if (old.getString("id").equals(sfRemoteId)) sfFail("Duplicate Join command ignored. No request was sent.");
+            if (old.getString("id").equals(sfRemoteId)) sfFail("Duplicate local web command ignored. No request was sent.");
             if (old.getLong("expires") >= now) retained.put(old);
         }
-        if (retained.length() >= 128) sfFail("Too many recent Join requests. Wait before trying again.");
+        if (retained.length() >= 128) sfFail("Too many recent local web requests. Wait before trying again.");
         retained.put(new JSONObject().put("id", sfRemoteId).put("expires", issued + 100000));
         sfWriteArray(file, retained);
     }
@@ -46,7 +45,7 @@ JSONArray sfReadArray(File file, boolean strict) {
         finally { input.close(); }
         return new JSONArray(new String(bytes.toByteArray(), "UTF-8"));
     } catch (Exception failure) {
-        if (strict) sfFail("Join receipt storage is invalid. No request was sent.");
+        if (strict) sfFail("Remote receipt storage is invalid. No request was sent.");
         return new JSONArray();
     }
 }
