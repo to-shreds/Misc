@@ -1440,7 +1440,7 @@ Read car GPS once before opting into periodic comparisons. These never operate t
       &lt;p class="hint external-note"&gt;Remembered Join settings use this browser's local storage. They are not uploaded to GitHub or included in exported logs.&lt;/p&gt;
       &lt;button class="command secondary" data-command="ping"&gt;Test connection&lt;/button&gt;&lt;p class="hint"&gt;This test reaches Tasker without contacting Hyundai or operating the car.&lt;/p&gt;
       &lt;div class="card"&gt;&lt;h2&gt;Phone settings&lt;/h2&gt;&lt;p class="hint"&gt;Save your account once, then enable the Join receiver. These editors return to the phone controls when finished.&lt;/p&gt;&lt;div class="actions phone-editors native-only" hidden&gt;&lt;button data-task="SFD Setup"&gt;Hyundai account&lt;/button&gt;&lt;button data-task="SFD Connect"&gt;Connect&lt;/button&gt;&lt;button data-task="SFD Choose Vehicle"&gt;Choose car&lt;/button&gt;&lt;button data-task="SFD Join Settings"&gt;Join receiver&lt;/button&gt;&lt;button data-task="SFD Climate Settings"&gt;Regular preset&lt;/button&gt;&lt;button data-task="SFD Cold Settings"&gt;Cold preset&lt;/button&gt;&lt;button data-task="SFD Hot Settings"&gt;Hot preset&lt;/button&gt;&lt;button data-task="SFD Location Settings"&gt;Location checks&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
-      &lt;p class="hint"&gt;Controller 1.2.0 · Setup instructions accompany the project download&lt;/p&gt;
+      &lt;p class="hint"&gt;Controller 1.3.0 · Setup instructions accompany the project download&lt;/p&gt;
     &lt;/section&gt;
     &lt;section id="log" class="page" hidden&gt;
       &lt;div class="section-title"&gt;&lt;h2&gt;Activity&lt;/h2&gt;&lt;span&gt;Newest first&lt;/span&gt;&lt;/div&gt;&lt;div class="actions"&gt;&lt;button id="export-log" class="secondary"&gt;Download log&lt;/button&gt;&lt;button id="clear-log" class="secondary"&gt;Clear browser log&lt;/button&gt;&lt;/div&gt;&lt;p class="hint"&gt;Logs keep command names, times and outcomes. They omit API keys, passwords, PINs, tokens, full VINs and GPS coordinates.&lt;/p&gt;&lt;ol id="activity"&gt;&lt;/ol&gt;
@@ -1651,7 +1651,7 @@ Read car GPS once before opting into periodic comparisons. These never operate t
   $('acknowledge').addEventListener('click', () =&gt; { unknown = null; store.remove(KEYS.pending); notice('Delivery warning acknowledged. The next tap creates a new request.'); buttons(); });
   $('clear-log').addEventListener('click', () =&gt; { entries = []; store.remove(KEYS.log); renderLog(); });
   $('export-log').addEventListener('click', () =&gt; {
-    const blob = new Blob([JSON.stringify({ format: 'santa-fe-control-log-v1', controller: '1.2.0', exportedAt: new Date().toISOString(), entries: entries.concat(phoneEntries).map(cleanEntry) }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ format: 'santa-fe-control-log-v1', controller: '1.3.0', exportedAt: new Date().toISOString(), entries: entries.concat(phoneEntries).map(cleanEntry) }, null, 2)], { type: 'application/json' });
     const link = document.createElement('a'), url = URL.createObjectURL(blob); link.href = url; link.download = 'SantaFe-control-log-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json'; link.click(); setTimeout(() =&gt; URL.revokeObjectURL(url), 1000);
   });
   settingsView(); renderLog();
