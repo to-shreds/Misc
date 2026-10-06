@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#263f62">
+<meta name="description" content="Turn images into editable text. Extract, organize, copy and save, directly in your browser.">
+<title>Image to Text</title>
+<style>
+:root{color-scheme:light dark;--bg:#f3f5f8;--panel:#fff;--soft:#edf2f8;--ink:#1d2b40;--muted:#52647a;--line:#d5deea;--accent:#263f62;--on-accent:#fff;--good:#246044;--bad:#a03232;--warn:#805700;--radius:14px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}button,select,textarea,input{font:inherit}button,select{min-height:42px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);padding:8px 12px}button{cursor:pointer;font-weight:600}button:hover:not(:disabled){background:var(--soft)}button:disabled{opacity:.48;cursor:default}.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}.primary:hover:not(:disabled){filter:brightness(1.18);background:var(--accent)}.quiet{background:transparent;border-color:transparent}.danger{color:var(--bad)}a{color:var(--accent)}[hidden]{display:none!important}:focus-visible{outline:3px solid #789bc7;outline-offset:3px}.shell{max-width:1170px;margin:auto;padding:22px 20px 30px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:11px}.mark{display:grid;place-items:center;width:43px;height:43px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:750;font-size:20px}h1{font-size:23px;letter-spacing:-.7px;margin:0}h2{font-size:15px;margin:0}p{margin:5px 0}.muted,.hint{color:var(--muted)}.hint{font-size:12px}.badge{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:6px 10px;white-space:nowrap}.upload{background:var(--panel);border:1.5px dashed var(--line);border-radius:var(--radius);padding:19px;display:flex;align-items:center;justify-content:space-between;gap:18px}.upload.over{border-color:var(--accent);background:var(--soft)}.upload strong{font-size:16px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.upload-actions{flex-shrink:0}.link-button{border:0;background:transparent;min-height:32px;padding:3px 0;color:var(--accent);font-size:12px}.statusbar{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:49px;padding:7px 2px}.statusbar p{margin:0;font-size:12px;color:var(--muted)}.statusbar button{min-height:32px;padding:4px 10px;font-size:12px}.workspace{display:grid;grid-template-columns:285px minmax(0,1fr);gap:15px;align-items:start}.panel{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden}.panel-head{padding:13px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}.panel-head button{min-height:32px;padding:4px 8px;font-size:12px}.image-list{padding:8px;max-height:590px;overflow:auto}.image-empty{padding:30px 16px;color:var(--muted);font-size:13px;text-align:center}.image-item{display:flex;align-items:center;width:100%;text-align:left;gap:10px;border:1px solid transparent;padding:9px;margin:3px 0;min-height:71px;min-width:0}.image-item.selected{background:var(--soft);border-color:var(--line)}.thumb{width:42px;height:48px;object-fit:contain;border:1px solid var(--line);border-radius:5px;background:#fff;flex-shrink:0}.image-label{min-width:0;flex:1}.filename{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:600}.file-status{display:block;color:var(--muted);font-size:11px;font-weight:400;margin-top:4px}.file-status.error{color:var(--bad)}.file-status.done{color:var(--good)}progress{width:100%;height:4px;display:block;margin-top:6px;accent-color:var(--accent)}.all-images{width:100%;text-align:left;margin-bottom:6px}.all-images[aria-pressed="true"]{background:var(--soft)}.result-title{min-width:0}.result-title h2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.result-head{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--line)}.tabs{display:flex;background:var(--soft);padding:3px;border-radius:10px;flex-shrink:0}.tabs button{border:0;min-height:34px;background:transparent;padding:6px 13px;font-size:12px}.tabs button[aria-selected="true"]{background:var(--panel);box-shadow:0 1px 4px #00000012}.toolbar{display:flex;justify-content:space-between;gap:10px;padding:11px 16px;align-items:center;flex-wrap:wrap}.toolbar label{font-size:12px;color:var(--muted)}.toolbar select{min-height:36px;padding:5px 9px;font-size:12px}.toolbar button{min-height:36px;padding:6px 10px;font-size:12px}.text-wrap{padding:0 16px 12px}textarea{width:100%;display:block;min-height:365px;resize:vertical;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:14px;line-height:1.7;font-size:14px;tab-size:4}textarea[readonly]{background:var(--bg)}.text-meta{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--muted);margin-top:7px}.empty-result{min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;color:var(--muted)}.empty-result strong{font-size:19px;font-weight:600;color:var(--ink);margin-bottom:7px}.empty-symbol{font-size:34px;line-height:1;margin-bottom:17px;color:var(--accent)}.details{padding:0 16px 16px;max-height:500px;overflow:auto}.detail-group{margin:12px 0 18px}.detail-group h3{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:0 0 8px}.detail-value{padding:9px 11px;margin-top:5px;background:var(--soft);border-radius:8px;overflow-wrap:anywhere;display:flex;justify-content:space-between;gap:12px;align-items:center}.detail-value small{display:block;font-size:10px;color:var(--muted);margin-top:3px}.detail-value button{font-size:11px;min-height:32px;padding:4px 8px;flex-shrink:0}.result-foot{border-top:1px solid var(--line);padding:11px 16px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.result-foot button{min-height:36px;font-size:12px;padding:5px 9px}.file-tools{padding:0 16px 12px}.file-tools details{border-top:1px solid var(--line);padding-top:10px}.file-tools summary{cursor:pointer;font-size:12px;color:var(--muted);min-height:30px}.preview{max-width:100%;max-height:350px;display:block;margin:10px auto;border:1px solid var(--line);background:#fff}.file-tools .row{margin-top:9px}.file-tools button{min-height:36px;font-size:12px;padding:6px 9px}.warning{padding:8px 10px;border-radius:8px;background:var(--soft);font-size:12px;color:var(--warn);margin:0 16px 10px;overflow-wrap:anywhere}footer{margin-top:17px;color:var(--muted);font-size:11px;line-height:1.6}footer p{margin:3px 0}.toast{position:fixed;bottom:max(20px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:min(560px,calc(100% - 30px));width:max-content;background:var(--ink);color:var(--panel);padding:11px 17px;border-radius:11px;box-shadow:0 5px 25px #0003;z-index:10;font-size:13px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(prefers-color-scheme:dark){:root{--bg:#131a25;--panel:#1b2533;--soft:#253347;--ink:#e5edf8;--muted:#a6b6ca;--line:#37475d;--accent:#adc9ee;--on-accent:#172b46;--good:#92d4ac;--bad:#ffabab;--warn:#f0ce85}.mark{background:#30486a;color:#e5edf8}}
+@media(max-width:720px){.shell{padding:15px 12px 24px}header{margin-bottom:14px}.badge{display:none}h1{font-size:21px}.upload{align-items:stretch;flex-direction:column;gap:12px;padding:16px}.upload-actions{display:flex}.upload-actions button{flex:1}.workspace{grid-template-columns:1fr;gap:12px}.image-list{max-height:220px}.image-item{min-height:62px}.thumb{height:39px;width:34px}.result-head{padding:12px}.toolbar{padding:10px 12px}.text-wrap{padding:0 12px 12px}textarea{min-height:320px;font-size:16px}.empty-result{min-height:240px}.result-foot{padding:10px 12px}.details{padding:0 12px 12px}.text-meta{flex-wrap:wrap}.toolbar .row{gap:6px}.upload .hint{max-width:100%}}
+@media(prefers-reduced-motion:no-preference){button{transition:background .12s}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header><div class="brand"><div class="mark" aria-hidden="true">T</div><div><h1>Image to Text</h1><p class="hint">Extract it. Tidy it. Use it.</p></div></div><span class="badge">No account. No image uploads to a server.</span></header>
+<section class="upload" id="dropzone" aria-label="Add images">
+<div><strong>Drop images here. Text comes out automatically.</strong><p class="hint">Choose multiple images, paste a screenshot, or take a photo. English text.</p></div>
+<div class="row upload-actions"><button class="primary" id="add">Add images</button><button id="camera">Take photo</button></div>
+<input type="file" id="files" accept="image/png,image/jpeg,image/webp,image/bmp,image/gif" multiple hidden>
+<input type="file" id="photo" accept="image/*" capture="environment" hidden>
+</section>
+<div class="statusbar"><p id="status" role="status" aria-live="polite">Ready when you are.</p><div class="row"><button id="stop" hidden>Stop</button><button id="resume" hidden>Resume</button><button id="clear" class="quiet" disabled>Clear all</button></div></div>
+<div class="workspace">
+<aside class="panel"><div class="panel-head"><h2>Images <span id="image-count" class="muted">0</span></h2><button class="quiet" id="sample">Try a sample</button></div><div class="image-list" id="image-list"><div class="image-empty">Your images will appear here.</div></div></aside>
+<section class="panel" aria-label="Extracted text">
+<div class="result-head"><div class="result-title"><h2 id="result-title">Your text</h2><p class="hint" id="result-subtitle">Ready to copy, edit, and organize.</p></div><div class="tabs" role="tablist" aria-label="Results"><button id="text-tab" role="tab" aria-selected="true" aria-controls="text-panel">Text</button><button id="details-tab" role="tab" aria-selected="false" aria-controls="details-panel" tabindex="-1">Key details</button></div></div>
+<div id="result-empty" class="empty-result"><div class="empty-symbol" aria-hidden="true">▤</div><strong>A little less retyping.</strong><p>Add an image to get editable text,<br>clean paragraphs, and useful details.</p></div>
+<p id="warning" class="warning" hidden></p>
+<div id="text-panel" role="tabpanel" aria-labelledby="text-tab" hidden>
+<div class="toolbar"><div class="row"><label for="format">Show as</label><select id="format"><option value="clean">Clean paragraphs</option><option value="raw">Original OCR</option><option value="lines">Line list</option></select></div><button id="reset-text" class="quiet" hidden>Reset edits</button></div>
+<div class="text-wrap"><label for="output" class="sr-only">Extracted text</label><textarea id="output" spellcheck="false" placeholder="Extracted text will appear here."></textarea><div class="text-meta"><span id="edit-note"></span><span id="word-count"></span></div></div>
+</div>
+<div id="details-panel" role="tabpanel" aria-labelledby="details-tab" hidden><div class="toolbar"><p class="hint">Detected patterns, not an AI summary. Check against the image.</p></div><div id="details" class="details"></div></div>
+<div class="file-tools" id="file-tools" hidden><details id="image-options"><summary>Image preview &amp; options</summary><img class="preview" id="preview" alt="Selected source image"><div class="row"><button id="rotate">Rotate 90°</button><button id="retry">Re-scan</button><label class="hint" for="layout">Layout</label><select id="layout" title="Used for the next scan"><option value="3">Automatic</option><option value="6">Single text block</option><option value="11">Scattered text</option></select></div><div class="row"><button id="move-up">Move up</button><button id="move-down">Move down</button><button id="remove" class="danger">Remove image</button></div><p class="hint">Rotation and re-scanning replace this image’s extracted text. Order controls combined exports.</p></details></div>
+<div class="result-foot"><div class="row"><button id="copy" class="primary" disabled>Copy text</button><button id="download" disabled>Save .txt</button></div><div class="row"><label for="export-format" class="sr-only">Export format</label><select id="export-format" aria-label="Export format"><option value="txt">Text (.txt)</option><option value="md">Markdown (.md)</option><option value="json">Full results (.json)</option><option value="csv">Key details (.csv)</option></select></div></div>
+</section>
+</div>
+<footer><p>Images and extracted text stay in this tab. Nothing is saved after you close or reload it. Export anything you need.</p><p>The OCR engine and English language data download from public CDNs on first use; internet access is required for those downloads. No API key, analytics, or AI service. OCR can misread names, numbers, handwriting, and complex layouts.</p></footer>
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<noscript><p>This page needs JavaScript enabled to extract text.</p></noscript>
+<script>
+'use strict';
+(() => {
+  // Single-file app; only the pinned OCR runtime and language assets are external.
+  const VERSION = '1.0.0';
+  const ENGINE = 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js';
+  const WORKER = 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/worker.min.js';
+  const $ = id => document.getElementById(id);
+  const state = { items: [], selected: 'all', tab: 'text', busy: false, paused: false, worker: null, token: null, active: null, enginePromise: null, failCurrent: null };
+  let nextId = 1, toastTimer, editTimer;
+  const MAX_FILES = 40, MAX_FILE_BYTES = 25 * 1024 * 1024, MAX_BATCH_BYTES = 100 * 1024 * 1024;
+  const scanned = item => ['done', 'empty'].includes(item.status);
+  const selectedItem = () => state.items.find(i => i.id === state.selected);
+  const scope = () => state.selected === 'all' ? state.items : state.items.filter(i => i.id === state.selected);
+  const completed = () => scope().filter(scanned);
+  function toast(text) { clearTimeout(toastTimer); $('toast').textContent = text; $('toast').hidden = false; toastTimer = setTimeout(() => { $('toast').hidden = true; }, 5500); }
+  function el(tag, className, text) { const n = document.createElement(tag); if (className) n.className = className; if (text !== undefined) n.textContent = text; return n; }
+  const normalize = text => String(text || '').replace(/\r\n?/g, '\n').replace(/\f/g, '\n').replace(/[ \t]+$/gm, '').trim();
+  const isList = line => /^(?:[-*•▪◦]\s+|\d+[.)]\s+|\[[ xX]\]\s*)/.test(line);
+  const isField = line => /^[\p{L}][\p{L}\d /_()#-]{0,38}:\s*\S/u.test(line);
+  function cleanText(raw) {
+    const result = []; let paragraph = [];
+    const flush = () => { if (paragraph.length) { result.push(paragraph.join(' ')); paragraph = []; } };
+    for (const source of normalize(raw).split('\n')) {
+      const line = source.trim();
+      if (!line) { flush(); if (result.length && result.at(-1) !== '') result.push(''); continue; }
+      const heading = line.length < 80 && (/:$/.test(line) || (/^[A-Z\d\s&/(),'-]+$/.test(line) && /[A-Z]{2}/.test(line)));
+      if (isList(line) || isField(line) || heading || /\S[ \t]{3,}\S/.test(line)) { flush(); result.push(line); }
+      else paragraph.push(line.replace(/[ \t]+/g, ' '));
+    }
+    flush(); return result.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function lineList(text) { return normalize(text).split('\n').map(s => s.trim()).filter(Boolean).map(s => isList(s) ? s : '• ' + s).join('\n'); }
+  function itemText(item) { const format = $('format').value; return format === 'raw' ? item.raw : format === 'lines' ? lineList(item.text) : item.text; }
+  function combinedText() {
+    const items = completed();
+    return items.map(item => state.selected === 'all' && state.items.length > 1 ? `=== ${item.name} ===\n\n${itemText(item)}` : itemText(item)).join('\n\n');
+  }
+  function extractDetails(items) {
+    const result = [], seen = new Map();
+    function add(type, value, item) {
+      value = value.trim(); if (!value) return;
+      const key = type + '\0' + value.toLowerCase();
+      if (seen.has(key)) { const row = seen.get(key); if (!row.sourceIds.includes(item.id)) { row.sources.push(item.name); row.sourceIds.push(item.id); } return; }
+      const row = { type, value, sources: [item.name], sourceIds: [item.id] }; seen.set(key, row); result.push(row);
+    }
+    for (const item of items) {
+      const text = item.text;
+      const patterns = [
+        ['Emails', /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi],
+        ['Links', /\b(?:https?:\/\/|www\.)[^\s<>"']+/gi],
+        ['Phone numbers', /(?<!\d)(?:\+1[ .-]?)?(?:\(\d{3}\)|\d{3})[ .-]?\d{3}[ .-]\d{4}(?:\s*(?:ext\.?|x)\s*\d{1,6})?(?!\d)/gi],
+        ['Dates', /\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}|(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?)\b/gi],
+        ['Amounts', /(?:[$€£]\s*\d[\d,]*(?:\.\d{1,2})?|\b(?:USD|EUR|GBP)\s*\d[\d,]*(?:\.\d{1,2})?)\b/gi]
+      ];
+      for (const [type, pattern] of patterns) for (const match of text.matchAll(pattern)) add(type, type === 'Links' ? match[0].replace(/[.,;:!?)\]}]+$/, '') : match[0], item);
+      for (const line of text.split('\n')) if (isField(line.trim()) && !/^https?:/i.test(line.trim())) add('Labeled fields', line.trim(), item);
+    }
+    return result;
+  }
+  function detailsText() { const rows = extractDetails(completed()); const types = [...new Set(rows.map(r => r.type))]; return types.map(t => `${t}\n${rows.filter(r => r.type === t).map(r => `${r.value}${state.selected === 'all' ? ` [${r.sources.join('; ')}]` : ''}`).join('\n')}`).join('\n\n'); }
+  function renderList() {
+    const list = $('image-list'); list.replaceChildren(); $('image-count').textContent = state.items.length;
+    if (!state.items.length) { list.append(el('div', 'image-empty', 'Your images will appear here.')); return; }
+    const all = el('button', 'all-images', `All images · ${state.items.length}`); all.setAttribute('aria-pressed', String(state.selected === 'all')); all.onclick = () => select('all'); list.append(all);
+    for (const item of state.items) {
+      const button = el('button', 'image-item' + (state.selected === item.id ? ' selected' : '')); button.setAttribute('aria-pressed', String(state.selected === item.id));
+      const img = el('img', 'thumb'); img.src = item.url; img.alt = ''; img.style.transform = `rotate(${item.rotation}deg)`;
+      const label = el('span', 'image-label'); label.append(el('span', 'filename', item.name));
+      const status = el('span', 'file-status ' + item.status); status.id = `status-${item.id}`; status.textContent = statusText(item); label.append(status);
+      const progress = el('progress'); progress.id = `progress-${item.id}`; progress.max = 1; progress.value = item.progress || 0; progress.hidden = item.status !== 'processing'; progress.setAttribute('aria-label', `OCR progress for ${item.name}`); label.append(progress);
+      button.append(img, label); button.onclick = () => select(item.id); list.append(button);
+    }
+  }
+  function statusText(item) {
+    if (item.status === 'processing') return item.stage || 'Reading image…';
+    if (item.status === 'done') return `${Math.round(item.confidence)}% confidence${item.edited ? ' · edited' : ''}`;
+    return { queued: 'Waiting', empty: 'No text detected', error: 'Could not read · select for details', stopped: 'Stopped' }[item.status] || item.status;
+  }
+  function select(id) { state.selected = id; renderList(); renderResult(); }
+  function renderDetails() {
+    const area = $('details'); area.replaceChildren(); const rows = extractDetails(completed());
+    if (!rows.length) { area.append(el('p', 'hint', 'No emails, links, phone numbers, dates, amounts, or labeled fields detected. Your full text is still available in the Text tab.')); return; }
+    for (const type of [...new Set(rows.map(r => r.type))]) {
+      const group = el('section', 'detail-group'); group.append(el('h3', '', type));
+      for (const row of rows.filter(r => r.type === type)) { const div = el('div', 'detail-value'); const value = el('div', '', row.value); if (state.selected === 'all') value.append(el('small', '', row.sources.join(' · '))); const copy = el('button', '', 'Copy'); copy.setAttribute('aria-label', `Copy ${row.value}`); copy.onclick = () => copyText(row.value); div.append(value, copy); group.append(div); }
+      area.append(group);
+    }
+  }
+  function updateCounts() { const text = $('output').value; $('word-count').textContent = `${text.trim() ? text.trim().split(/\s+/).length : 0} words · ${text.length.toLocaleString()} characters`; }
+  function renderResult() {
+    const item = selectedItem(), items = completed(); const hasItems = state.items.length > 0;
+    $('result-title').textContent = item ? item.name : hasItems ? 'All images' : 'Your text';
+    $('result-subtitle').textContent = item ? statusText(item) : hasItems ? `${items.length} of ${state.items.length} images scanned` : 'Ready to copy, edit, and organize.';
+    $('result-empty').hidden = hasItems;
+    $('text-panel').hidden = !hasItems || state.tab !== 'text'; $('details-panel').hidden = !hasItems || state.tab !== 'details';
+    for (const tab of ['text', 'details']) { $(tab + '-tab').setAttribute('aria-selected', String(state.tab === tab)); $(tab + '-tab').tabIndex = state.tab === tab ? 0 : -1; }
+    $('output').value = combinedText(); $('output').readOnly = !item || !scanned(item) || $('format').value !== 'clean';
+    $('edit-note').textContent = !item ? 'Select an image to edit its text.' : $('format').value === 'raw' ? 'Original OCR is preserved, including before your edits.' : $('format').value === 'lines' ? 'Line list reflects your edited text.' : !scanned(item) ? 'Text appears here when scanning finishes.' : 'Edit here. Key details and exports use your corrections.';
+    $('reset-text').hidden = !item || !item.edited || $('format').value !== 'clean'; updateCounts();
+    let warning = '';
+    if (item?.error) warning = item.error;
+    else if (item?.status === 'empty') warning = 'No text found. Try a sharper image, rotate it, or choose a different layout under Image preview & options.';
+    else if (item?.status === 'done' && item.confidence < 75) warning = 'Lower-confidence OCR. Check names, numbers, and punctuation against the image.';
+    $('warning').textContent = warning; $('warning').hidden = !warning;
+    $('file-tools').hidden = !item;
+    if (item) { if ($('preview').dataset.id !== String(item.id)) { $('preview').src = item.url; $('preview').dataset.id = String(item.id); } $('preview').style.transform = ''; $('preview').style.rotate = `${item.rotation}deg`; $('layout').value = item.layout; const idx = state.items.indexOf(item); $('move-up').disabled = idx === 0 || state.busy; $('move-down').disabled = idx === state.items.length - 1 || state.busy; }
+    for (const id of ['rotate', 'retry', 'remove', 'layout']) $(id).disabled = !item || state.busy;
+    const text = state.tab === 'details' ? detailsText() : combinedText(); $('copy').disabled = !text.trim(); $('copy').textContent = state.tab === 'details' ? 'Copy details' : 'Copy text';
+    $('download').disabled = !items.length; $('download').textContent = 'Save .' + $('export-format').value;
+    if (state.tab === 'details') renderDetails();
+  }
+  function renderStatus() {
+    $('clear').disabled = !state.items.length; $('stop').hidden = !state.busy; $('resume').hidden = state.busy || !state.items.some(i => ['stopped', 'queued'].includes(i.status));
+    const done = state.items.filter(scanned).length, errors = state.items.filter(i => i.status === 'error').length;
+    $('status').textContent = state.busy ? `Reading ${state.active?.name || 'images'}…` : !state.items.length ? 'Ready when you are.' : `${done} of ${state.items.length} scanned${errors ? ` · ${errors} could not be read` : ''}${state.paused ? ' · paused' : ''}.`;
+  }
+  function render() { renderList(); renderResult(); renderStatus(); }
+  function addFiles(fileList) {
+    const rejected = []; let added = 0, total = state.items.reduce((n, i) => n + i.file.size, 0);
+    for (const file of Array.from(fileList || [])) {
+      if (state.items.length >= MAX_FILES) { rejected.push('Limit: 40 images per session.'); break; }
+      if (!/\.(png|jpe?g|webp|bmp|gif)$/i.test(file.name) && !/^image\/(png|jpeg|webp|bmp|gif)$/.test(file.type)) { rejected.push(`${file.name}: use PNG, JPG, WebP, BMP, or GIF (first frame). Convert HEIC to JPG first.`); continue; }
+      if (!file.size || file.size > MAX_FILE_BYTES || total + file.size > MAX_BATCH_BYTES) { rejected.push(`${file.name}: limit is 25 MB per image and 100 MB total.`); continue; }
+      const item = { id: nextId++, file, name: file.name || `Image ${nextId - 1}`, url: URL.createObjectURL(file), rotation: 0, layout: '3', status: 'queued', progress: 0, raw: '', text: '', confidence: 0, edited: false, error: '' };
+      state.items.push(item); total += file.size; added++;
+      if (state.items.length === 1) state.selected = item.id;
+    }
+    if (rejected.length) toast(rejected.slice(0, 3).join(' '));
+    render(); if (added && !state.paused) runQueue();
+  }
+  function loadEngine() {
+    if (window.Tesseract) return Promise.resolve();
+    if (state.enginePromise) return state.enginePromise;
+    state.enginePromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script'); let timer;
+      const fail = () => { clearTimeout(timer); script.remove(); state.enginePromise = null; reject(new Error('Could not download the OCR engine. Check your internet connection or content blocker, then re-scan.')); };
+      script.src = ENGINE; script.crossOrigin = 'anonymous'; script.referrerPolicy = 'no-referrer'; script.onload = () => { clearTimeout(timer); if (window.Tesseract) resolve(); else fail(); }; script.onerror = fail;
+      timer = setTimeout(fail, 30000); document.head.append(script);
+    });
+    return state.enginePromise;
+  }
+  function cancellable(promise, token, timeout = 120000) {
+    let timer; const timed = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('This scan took too long. Check your connection or try a smaller image.')), timeout); });
+    return Promise.race([promise, token.cancel, timed]).finally(() => clearTimeout(timer));
+  }
+  function progress(message) {
+    const item = state.active; if (!item || !state.busy) return;
+    item.progress = Math.max(0, Math.min(1, Number(message.progress) || 0));
+    item.stage = /recognizing/i.test(message.status) ? `Reading text · ${Math.round(item.progress * 100)}%` : /traineddata|language/i.test(message.status) ? 'Loading English language data…' : 'Preparing OCR engine…';
+    const label = $(`status-${item.id}`), bar = $(`progress-${item.id}`); if (label) label.textContent = item.stage; if (bar) bar.value = item.progress;
+  }
+  async function getWorker(token) {
+    if (state.worker) return state.worker;
+    await cancellable(loadEngine(), token, 35000);
+    const creating = Tesseract.createWorker('eng', 1, { workerPath: WORKER, logger: progress, errorHandler: error => { if (state.failCurrent) state.failCurrent(new Error(String(error?.message || error))); } });
+    creating.then(worker => { if (token.cancelled) worker.terminate().catch(() => {}); }, () => {});
+    const worker = await cancellable(creating, token);
+    if (token.cancelled) { await worker.terminate(); throw new Error('Stopped'); }
+    state.worker = worker; return worker;
+  }
+  async function prepareImage(item) {
+    const img = new Image(); img.src = item.url; await img.decode();
+    const width = img.naturalWidth, height = img.naturalHeight;
+    if (!width || !height) throw new Error('This image could not be decoded. Try a JPG or PNG copy.');
+    const scale = Math.min(2, Math.max(1, 1500 / Math.max(width, height)), 4200 / Math.max(width, height), Math.sqrt(12000000 / (width * height)));
+    const w = Math.max(1, Math.round(width * scale)), h = Math.max(1, Math.round(height * scale));
+    const canvas = document.createElement('canvas'), sideways = item.rotation % 180 !== 0; canvas.width = sideways ? h : w; canvas.height = sideways ? w : h;
+    const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('Your browser could not prepare the image.');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.translate(canvas.width / 2, canvas.height / 2); ctx.rotate(item.rotation * Math.PI / 180); ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    return canvas;
+  }
+  async function releaseWorker() { const worker = state.worker; state.worker = null; if (worker) try { await worker.terminate(); } catch (_) {} }
+  async function runQueue() {
+    if (state.busy || state.paused || !state.items.some(i => i.status === 'queued')) return;
+    state.busy = true;
+    const token = { cancelled: false }; token.cancel = new Promise((_, reject) => { token.reject = reject; }); token.cancel.catch(() => {}); state.token = token; state.failCurrent = token.reject;
+    try {
+      let item;
+      while (!token.cancelled && (item = state.items.find(i => i.status === 'queued'))) {
+        state.active = item; item.status = 'processing'; item.stage = 'Preparing image…'; item.error = ''; render();
+        let canvas, engineStage = false;
+        try {
+          canvas = await cancellable(prepareImage(item), token, 30000);
+          engineStage = true;
+          const worker = await getWorker(token);
+          await cancellable(worker.setParameters({ tessedit_pageseg_mode: item.layout, preserve_interword_spaces: '1', user_defined_dpi: '300' }), token);
+          const { data } = await cancellable(worker.recognize(canvas), token);
+          if (token.cancelled) break;
+          item.raw = String(data.text || ''); item.text = cleanText(item.raw); item.confidence = Number(data.confidence) || 0; item.edited = false; item.status = item.raw.trim() ? 'done' : 'empty'; item.progress = 1;
+        } catch (error) {
+          if (token.cancelled) { item.status = 'stopped'; break; }
+          item.status = 'error'; item.error = `Could not read this image. ${String(error?.message || error).slice(0, 260)}`;
+          // A worker/network failure can poison pending jobs. Pause the batch rather than hanging it.
+          if (engineStage) {
+            token.cancelled = true; state.paused = true; await releaseWorker();
+            for (const pending of state.items) if (pending.status === 'queued') pending.status = 'stopped';
+          }
+        } finally { if (canvas) { canvas.width = 1; canvas.height = 1; } }
+        render();
+      }
+    } finally {
+      if (state.active?.status === 'processing') state.active.status = 'stopped';
+      state.active = null; state.busy = false; state.token = null; state.failCurrent = null; render();
+      if (!state.paused && state.items.some(i => i.status === 'queued')) queueMicrotask(runQueue);
+    }
+  }
+  function stopQueue() {
+    state.paused = true;
+    if (state.token) { state.token.cancelled = true; state.token.reject(new Error('Stopped')); }
+    for (const item of state.items) if (['queued', 'processing'].includes(item.status)) item.status = 'stopped';
+    void releaseWorker(); render();
+  }
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); toast('Copied.'); }
+    catch (_) { const temp = el('textarea'); temp.value = text; temp.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; document.body.append(temp); temp.focus(); temp.select(); const ok = document.execCommand('copy'); temp.remove(); toast(ok ? 'Copied.' : 'Clipboard access is blocked. Select the text and use your device’s Copy command.'); }
+  }
+  function safeFilename(name) { return name.replace(/\.[^.]+$/, '').replace(/[^a-z0-9 _-]/gi, '_').slice(0, 90) || 'image-text'; }
+  function csvCell(value) { let s = String(value); if (/^[\s]*[=+@-]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; }
+  function exportData() {
+    const format = $('export-format').value, items = completed(), rows = extractDetails(items); let content, mime;
+    if (format === 'json') { content = JSON.stringify({ version: VERSION, exportedAt: new Date().toISOString(), notice: 'OCR and pattern matches may be inaccurate. Confidence refers to original OCR, not edits.', images: scope().map(i => ({ name: i.name, status: i.status, rotation: i.rotation, layout: i.layout, confidence: i.confidence, edited: i.edited, originalText: i.raw, text: i.text, error: i.error || undefined })), details: rows.map(({ sourceIds, ...row }) => row) }, null, 2); mime = 'application/json'; }
+    else if (format === 'csv') { content = '\uFEFF' + [['Type', 'Value', 'Source images'], ...rows.map(r => [r.type, r.value, r.sources.join('; ')])].map(r => r.map(csvCell).join(',')).join('\r\n'); mime = 'text/csv'; }
+    else if (format === 'md') { content = items.map(i => `## ${i.name.replace(/[\r\n<>]/g, ' ')}\n\n${itemText(i)}`).join('\n\n---\n\n'); if (state.tab === 'details') content = detailsText(); mime = 'text/markdown'; }
+    else { content = state.tab === 'details' ? detailsText() : combinedText(); mime = 'text/plain'; }
+    const blob = new Blob([content], { type: mime + ';charset=utf-8' }), url = URL.createObjectURL(blob), a = el('a'); a.href = url; a.download = (selectedItem() ? safeFilename(selectedItem().name) : 'image-text') + '.' + format; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000); toast('Export created.');
+  }
+  function queueAgain(rotate = false) {
+    const item = selectedItem(); if (!item || state.busy) return;
+    if ((item.edited || scanned(item)) && !confirm('Replace this image’s extracted text with a new scan?')) return;
+    if (rotate) item.rotation = (item.rotation + 90) % 360;
+    item.layout = $('layout').value; item.status = 'queued'; item.error = ''; item.progress = 0; state.paused = false; render(); runQueue();
+  }
+  $('add').onclick = () => $('files').click(); $('camera').onclick = () => $('photo').click();
+  for (const id of ['files', 'photo']) $(id).onchange = event => { addFiles(event.target.files); event.target.value = ''; };
+  document.addEventListener('paste', event => { const files = Array.from(event.clipboardData?.items || []).filter(i => i.type.startsWith('image/')).map(i => i.getAsFile()).filter(Boolean); if (files.length) { event.preventDefault(); addFiles(files); } });
+  let dragDepth = 0;
+  document.addEventListener('dragover', event => { if (event.dataTransfer?.types.includes('Files')) event.preventDefault(); });
+  document.addEventListener('drop', event => { if (event.dataTransfer?.files.length) { event.preventDefault(); dragDepth = 0; $('dropzone').classList.remove('over'); addFiles(event.dataTransfer.files); } });
+  $('dropzone').addEventListener('dragenter', event => { event.preventDefault(); dragDepth++; $('dropzone').classList.add('over'); });
+  $('dropzone').addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; $('dropzone').classList.remove('over'); } });
+  $('stop').onclick = stopQueue;
+  $('resume').onclick = () => { state.paused = false; for (const i of state.items) if (i.status === 'stopped') i.status = 'queued'; runQueue(); };
+  $('clear').onclick = () => { if (!confirm('Clear all images and extracted text? Export anything you need first.')) return; stopQueue(); for (const i of state.items) URL.revokeObjectURL(i.url); state.items = []; state.selected = 'all'; state.paused = false; $('preview').removeAttribute('src'); delete $('preview').dataset.id; render(); };
+  $('remove').onclick = () => { const item = selectedItem(); if (!item || state.busy) return; if (item.text && !confirm('Remove this image and its text?')) return; const index = state.items.indexOf(item); URL.revokeObjectURL(item.url); state.items.splice(index, 1); state.selected = state.items[Math.min(index, state.items.length - 1)]?.id || 'all'; render(); };
+  for (const [id, delta] of [['move-up', -1], ['move-down', 1]]) $(id).onclick = () => { const item = selectedItem(), index = state.items.indexOf(item); if (state.busy || index < 0 || index + delta < 0 || index + delta >= state.items.length) return; [state.items[index], state.items[index + delta]] = [state.items[index + delta], state.items[index]]; render(); };
+  $('rotate').onclick = () => queueAgain(true); $('retry').onclick = () => queueAgain(); $('layout').onchange = () => { const item = selectedItem(); if (item) item.layout = $('layout').value; };
+  function switchTab(tab) { state.tab = tab; renderResult(); }
+  for (const tab of ['text', 'details']) { $(tab + '-tab').onclick = () => switchTab(tab); $(tab + '-tab').onkeydown = e => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) { e.preventDefault(); const next = e.key === 'Home' ? 'text' : e.key === 'End' ? 'details' : tab === 'text' ? 'details' : 'text'; switchTab(next); $(next + '-tab').focus(); } }; }
+  $('format').onchange = renderResult; $('export-format').onchange = renderResult;
+  $('output').addEventListener('input', () => { const item = selectedItem(); if (!item || $('output').readOnly) return; item.text = $('output').value; item.edited = item.text !== cleanText(item.raw); updateCounts(); $('reset-text').hidden = !item.edited; $('copy').disabled = !item.text.trim(); clearTimeout(editTimer); editTimer = setTimeout(renderList, 300); });
+  $('reset-text').onclick = () => { const item = selectedItem(); if (item && confirm('Discard your edits and restore cleaned OCR text?')) { item.text = cleanText(item.raw); item.edited = false; render(); } };
+  $('copy').onclick = () => copyText(state.tab === 'details' ? detailsText() : combinedText()); $('download').onclick = exportData;
+  $('sample').onclick = () => { const c = document.createElement('canvas'); c.width = 1200; c.height = 700; const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.fillStyle = '#111'; ctx.font = 'bold 40px sans-serif'; ctx.fillText('PROJECT NOTES', 65, 85); ctx.font = '30px sans-serif'; ['Date: October 6, 2026', 'Contact: alex@example.com', 'Phone: (617) 555-0123', 'Website: https://example.com', 'Budget: $1,250.00', '', 'Next steps:', '- Review the draft on Friday.', '- Send feedback to Alex.'].forEach((s, i) => ctx.fillText(s, 65, 150 + i * 53)); c.toBlob(blob => { if (blob) addFiles([new File([blob], 'sample-notes.png', { type: 'image/png' })]); c.width = c.height = 1; }); };
+  window.addEventListener('beforeunload', event => { if (state.items.length) { event.preventDefault(); event.returnValue = ''; } });
+  window.addEventListener('pagehide', () => { if (state.worker) state.worker.terminate().catch(() => {}); state.worker = null; });
+  render();
+})();
+</script>
+</body>
+</html>
