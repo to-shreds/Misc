@@ -1,10 +1,10 @@
-# Santa Fe Direct 1.2.0
+# Santa Fe Direct 1.3.0
 
-[Download Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml](https://to-shreds.github.io/Misc/SantaFe/tasker/Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml) and [open the controller](https://to-shreds.github.io/Misc/santafe/).
+[Download Santa_Fe_Direct_1_3_0_BARE_JOIN.prj.xml](https://to-shreds.github.io/Misc/SantaFe/tasker/Santa_Fe_Direct_1_3_0_BARE_JOIN.prj.xml) and [open the controller](https://to-shreds.github.io/Misc/santafe/).
 
 1. Back up Tasker. Long-press only the old **Santa Fe Direct** project tab, choose **Delete**, then **With Contents**. Retain your saved global variables. Import the downloaded XML as a project. Tasker rejects an import while that project name already exists.
-2. Run **SFD Verify Actions**, confirm **1.2.0**, then run **SFD Open**. The verification task is offline. Under **Settings**, check **Hyundai account** and **Connect**. Existing account variables are reused. Blank password and PIN fields retain saved values; restore them only if missing. The phone has compact HTML controls and smaller native fallback screens.
-3. Under phone **Settings**, open **Join receiver**, enable it and save. In the website's **Settings**, paste your Join sendPush link or enter the key and phone ID once, then save. Tap **Test connection**. The browser should say **SENT** and the phone should say **PHONE REACHED**. This test operates no car.
+2. Run **SFD Verify Actions**, confirm **1.3.0**, then run **SFD Open**. The verification task is offline. Under **Settings**, check **Hyundai account** and **Connect**. Existing account variables are reused. Blank password and PIN fields retain saved values; restore them only if missing. The phone has compact HTML controls and smaller native fallback screens.
+3. Under phone **Settings**, open **Join receiver**, enable it and save. In the website's **Settings**, enter only your Join API key, then save. The site already targets this phone. Tap **Test connection**. The browser should say **SENT** and the phone should say **PHONE REACHED**. This test operates no car.
 
 Use the phone's results to confirm each operation. **SENT** means Join accepted the push. The local phone interface displays the vehicle result; an ordinary browser has no return channel. There are separate regular, cold and hot presets. Starts require confirmation that the car is outdoors and safe to start.
 
