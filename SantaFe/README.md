@@ -1,8 +1,8 @@
 # Santa Fe
 
-**[Open the Join controller](https://to-shreds.github.io/Misc/santafe/).** The website sends commands through Join; Tasker on your phone makes the working Hyundai API calls. Save Join settings once. Your Hyundai account remains in Tasker.
+**[Open the Join controller](https://to-shreds.github.io/Misc/santafe/).** The website sends commands through Join; Tasker on your phone makes the working Hyundai API calls. Enter the Join API key once. Your Hyundai account remains in Tasker.
 
-**Santa Fe Direct 1.2.0** adds regular/cold/hot start, stop, lock/unlock, small HTML phone controls, correlated results, private activity and opt-in car/phone GPS comparison. Download [Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml](tasker/Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml), follow [setup](tasker/direct/README.md), then run **SFD Open**. There are 65 tasks, 137 actions, nine scenes and two guarded profiles. All 41 original task IDs and account variables remain. Amazfit is deferred.
+**Santa Fe Direct 1.3.0** adds regular/cold/hot start, stop, lock/unlock, small HTML phone controls, correlated results, private activity and opt-in car/phone GPS comparison. Download [Santa_Fe_Direct_1_3_0_BARE_JOIN.prj.xml](tasker/Santa_Fe_Direct_1_3_0_BARE_JOIN.prj.xml), follow [setup](tasker/direct/README.md), then run **SFD Open**. There are 65 tasks, 137 actions, nine scenes and two guarded profiles. All 41 original task IDs and account variables remain. Amazfit is deferred.
 
 The phone HTML is generated from the same UI source and bundled locally. Native fallback pages remain under SFD Open Home. Join acceptance and Hyundai completion stay separate. The upstream USA GPS lookup needs its first real-car check; periodic comparison defaults off and never controls the car. See [HANDOFF.md](HANDOFF.md) for current verification and acceptance limits.
 
