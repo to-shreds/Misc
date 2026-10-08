@@ -1,3 +1,5 @@
+> **Historical import.** Arcade is now the sole maintained source for this game. Use [the Arcade activity](https://to-shreds.github.io/arcade/?game=adventure) and edit [arcade/adventure/index.html](https://github.com/to-shreds/arcade/blob/main/adventure/index.html). This folder remains an archived import; the notes below describe the pre-integration version.
+
 # Logan and Jenkins: Operation Giggle
 
 A complete, standalone choose-your-own-adventure game for Logan, intended for a reader around age 7 or 8. This folder is the source package for a future addition to [Jon's Arcade](https://github.com/to-shreds/arcade). Arcade integration has not been performed.
@@ -76,3 +78,4 @@ This was an archive/documentation handoff, not another rewrite or a fresh visual
 Start with [HANDOFF.md](HANDOFF.md). Add the game through Arcade's existing catalog and lifecycle conventions. Preserve the simple reading-first interface, offline single-file copy, deterministic replay, and exact Back behavior. If Arcade wants synchronized shared play, add an explicit adapter for the active controller, accepted story state, recipe, decisions, and text-page position. Independently starting the file on two devices does not synchronize their stories.
 
 Do not treat this upload as an Arcade release, deployment, or multiplayer implementation.
+
