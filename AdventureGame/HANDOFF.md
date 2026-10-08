@@ -1,3 +1,5 @@
+> **Historical import.** Arcade is now the sole maintained source for this game. Use [the Arcade activity](https://to-shreds.github.io/arcade/?game=adventure) and edit [arcade/adventure/index.html](https://github.com/to-shreds/arcade/blob/main/adventure/index.html). This folder remains an archived import; the notes below describe the pre-integration version.
+
 # Adventure Game handoff to Arcade
 
 ## Current package
@@ -37,3 +39,4 @@ Include this game in the Arcade project. This upload only provides the game and 
 The content is finite. Run recipes and stored history discourage repeats; they cannot make every scene forever unique, and clearing/changing browser storage resets history. The prose targets young readers but has no independently certified reading-level score. No Arcade integration or physical-device compatibility is claimed by this package.
 
 Next action: the Arcade project consumes this folder and implements its catalog/lifecycle integration.
+
