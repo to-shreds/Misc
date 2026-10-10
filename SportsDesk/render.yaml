@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: sports-desk-links
+    runtime: python
+    plan: free
+    region: virginia
+    buildCommand: python -m py_compile SportsDesk/server.py
+    startCommand: python SportsDesk/server.py
+    healthCheckPath: /healthz
+    autoDeployTrigger: "off"
