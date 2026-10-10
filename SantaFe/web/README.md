@@ -2,7 +2,7 @@
 
 A password-gated web controller backed by a free Render Python service. It sends the existing confirmed Hyundai USA API requests directly, without a phone, Join or Tasker. The old phone projects and API Lab remain separate.
 
-The service has not been deployed or tested against a real Hyundai account yet. Local verification uses synthetic accounts and intercepted replies only.
+The service is live at [santa-fe-emergency.onrender.com](https://santa-fe-emergency.onrender.com/) on Render's Free plan. The hosted website password gate, protected assets/APIs, secure session cookies, CSRF/Origin checks and logout have been verified over HTTPS. Authentication with a real Hyundai account still needs the account holder's first check; local Hyundai verification uses synthetic accounts and intercepted replies only.
 
 ## Access
 
