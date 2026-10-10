@@ -1,14 +1,18 @@
 # Santa Fe handoff
 
-## Selected backup web architecture, 2026-10-10
+## Free Render emergency web build, 2026-10-10
 
-Jon wants a web control page that works without his phone, Join or Tasker. He selected Render's free web service because this is occasional emergency backup access; approximately one minute of cold-start delay is acceptable. Do not upgrade to paid hosting merely to remove that delay.
+Jon selected a free Render service for occasional emergency web control without his phone, Join or Tasker. He accepts the roughly one-minute wake delay. He requested a password gate before the control page loads; the implementation uses a separate website password of at least 12 characters and optional per-command Bluelink PIN.
 
-Proposed flow: authenticated browser page -> restricted Render backend -> the previously confirmed Hyundai USA API recipes. Hosting both page and backend together is the simplest starting point. Hyundai account credentials belong in protected server-side settings, outside git, browser storage and logs. An idle shutdown can discard in-memory Hyundai tokens; the backend should establish a fresh session when needed. Opening or waking the page must not submit a vehicle command.
+The new implementation is under SantaFe/web. It serves only a login page publicly; controller HTML, assets and all Hyundai APIs are protected server-side. It reuses the already-confirmed Hyundai USA request recipes and supports Lock, Unlock, Regular start (72 F), Cool cabin (62 F), Warm cabin (81 F with defrost), and Stop. Starts last ten minutes and require outdoor confirmation. Account credentials may be provided inside the authenticated page or protected Render environment settings; browser storage/cookies/logs do not contain them. Tokens remain in server memory.
 
-The free backend is selected but has not been implemented, deployed or tested. Server-to-Hyundai authentication and cached-status access remain unverified. The next implementation milestone is a minimal read-only cloud proof using the existing recipes before rebuilding the controls. Preserve the existing APKs, Tasker projects and working request recipes. Backend authentication, restart-safe handling of ambiguous commands, and actual command completion still need implementation and verification; a timeout must never cause a blind resubmission.
+Fifty-four offline tests passed, including independent adversarial checks and actual local HTTP cookie/control-flow tests. JavaScript syntax, Gunicorn configuration and Blueprint YAML parsing passed. All Hyundai replies in these checks were synthetic. No new hosted or physical-car verification is claimed. Chromium integration could not run because this container has no browser executable and its browser download was unusable; the optional test is included. See web/TEST_REPORT.md.
 
-Jon reports that the old end-to-end web-to-Tasker version never reliably worked. Earlier source/UI tests and individual working Hyundai calls do not establish that full chain's usability. The legacy implementation below is retained for reference.
+The code is ready for deployment but no service has been created. Render's connection requires destination-workspace confirmation; list_workspaces returned one workspace, My Workspace (tea-dakujgmk1f9s73d2v8ng), not yet confirmed by Jon. No paid resources were selected or created. The next action is to confirm that workspace, create a new free Virginia Python web service from to-shreds/Misc main with the commands in web/README.md, and configure a unique WEBSITE_PASSWORD plus SESSION_SECRET. Runtime Hyundai account entry is available after site sign-in, so deployment does not require Hyundai secrets in chat.
+
+Command preparation delivers a signed HttpOnly pending cookie before execution; single-use intents and an owner-wide lock prevent silent replay. A timeout or restart requires explicit checked-car acknowledgement, with no automatic command retry. Free hosting does not provide a durable global command ledger across browsers, so the server begins conservatively after every process restart. Keep Gunicorn at one worker. Opening/waking the page never operates the car.
+
+Preserve the old Tasker projects, API Lab APKs, bridge and working recipes below. Jon reports that the full web-to-Tasker version never reliably worked; previous component checks do not establish that end-to-end path's reliability.
 
 ## Preserved phone implementation
 
@@ -93,6 +97,6 @@ No guessed endpoints, challenge bypass, public credential relay, Termux:Tasker, 
 
 ## Next action
 
-Prepare a minimal free Render backend and verify Hyundai login, vehicle enrollment and cached status from that deployment. Do not claim the new phone-independent web version works until the hosted path is tested. No hosted code or deployment was created at this architecture-selection benchmark.
+Confirm the Render destination workspace, then deploy the new SantaFe/web service on the Free plan with a unique site password and session-signing secret. Verify the hosted password gate, then have Jon connect his Hyundai account inside the protected page and verify login, enrollment and cached status from Render before testing controls. No hosted endpoint currently exists.
 
-Preserve API Lab assets/APKs, prior named downloads, bridge/simulator and unrelated projects. Keep phone HTML bundled locally and logs free of secrets/coordinates. Keep source/fixture evidence separate from account-holder physical confirmation.
+Preserve API Lab assets/APKs, prior downloads, bridge/simulator and unrelated projects. The old phone implementation stays unchanged. Keep private credentials and signing material out of git, browser storage and logs.

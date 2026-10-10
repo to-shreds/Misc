@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c1721">
+  <meta name="csrf-token" content="{{ csrf }}">
+  <title>Santa Fe · Emergency controls</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <svg class="icon-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-car" viewBox="0 0 24 24"><path d="m4 10 2.5-5h11L20 10M4 10h16v9H4v-9ZM6 19v2m12-2v2M7 14h2m6 0h2"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></symbol>
+    <symbol id="icon-unlock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.5-2m-3.5 10v2"/></symbol>
+    <symbol id="icon-start" viewBox="0 0 24 24"><path d="M12 3v9m-5.5-6a8 8 0 1 0 11 0"/></symbol>
+    <symbol id="icon-cold" viewBox="0 0 24 24"><path d="M12 2v20M3.34 7l17.32 10M3.34 17l17.32-10M9 4l3 3 3-3M9 20l3-3 3 3M4 11l1.1-4.1L9.2 8M14.8 16l4.1 1.1L20 13M4 13l1.1 4.1L9.2 16M14.8 8l4.1-1.1L20 11"/></symbol>
+    <symbol id="icon-hot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5"/></symbol>
+    <symbol id="icon-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5m9.2-6a8 8 0 0 0-13.4 3m.9 9a8 8 0 0 0 13.5-3"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="icon-alert" viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3Zm0 6v5m0 3h.01"/></symbol>
+  </svg>
+  <main class="shell">
+    <header class="page-header">
+      <div class="brand"><div class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#icon-car"/></svg></div><div><p class="eyebrow">Emergency access</p><h1>Santa Fe</h1></div></div>
+      <form action="/logout" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="text-button" type="submit">Sign out</button></form>
+    </header>
+
+    <section class="vehicle-panel" aria-label="Vehicle connection">
+      <div class="vehicle-top"><div><p class="eyebrow">Your vehicle</p><h2 id="vehicle-name">Santa Fe</h2><p id="vehicle-detail" class="muted compact">Checking connection…</p></div><span id="connection-pill" class="pill"><span class="dot"></span><span id="connection-label">Connecting</span></span></div>
+      <div id="status-grid" class="status-grid" hidden>
+        <div><span class="metric-label">Doors</span><strong id="status-lock">Unknown</strong></div>
+        <div><span class="metric-label">Engine</span><strong id="status-engine">Unknown</strong></div>
+        <div><span class="metric-label">Fuel</span><strong id="status-fuel">Unknown</strong></div>
+        <div><span class="metric-label">Odometer</span><strong id="status-odometer">Unknown</strong></div>
+      </div>
+      <div id="status-footer" class="status-footer" hidden><span id="status-time">No recent status</span><button id="refresh-status" type="button" class="text-button small"><svg class="icon" aria-hidden="true"><use href="#icon-refresh"/></svg>Refresh status</button></div>
+    </section>
+
+    <div id="message" class="notice" role="status" hidden><svg class="icon" aria-hidden="true"><use href="#icon-alert"/></svg><p id="message-text"></p><button type="button" id="dismiss-message" class="notice-close" aria-label="Dismiss message">×</button></div>
+
+    <section id="connection-panel" class="card connection-card" hidden>
+      <h2 id="connection-title">Connect your Bluelink account</h2>
+      <p id="connection-description" class="muted">Reconnect here if your account session has cleared.</p>
+      <button id="connect-saved" class="primary-button" type="button" hidden>Use saved Bluelink account</button>
+      <p id="saved-divider" class="divider" hidden><span>or enter an account</span></p>
+      <form id="vehicle-select-form" hidden>
+        <label for="vehicle-select">Choose your vehicle</label>
+        <select id="vehicle-select" required></select>
+        <button class="primary-button" type="submit">Use this vehicle</button>
+      </form>
+      <form id="connect-form">
+        <label for="account-email">Email</label>
+        <input id="account-email" type="email" name="email" autocomplete="username" required>
+        <label for="account-password">Bluelink password</label>
+        <input id="account-password" type="password" name="password" autocomplete="current-password" required>
+        <label for="account-pin">Bluelink PIN <span class="optional">optional</span></label>
+        <input id="account-pin" class="pin-input" type="password" name="pin" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" placeholder="4 digits">
+        <p class="field-hint">You can enter your PIN with each command instead.</p>
+        <button id="connect-button" class="primary-button" type="submit">Connect to car</button>
+      </form>
+    </section>
+
+    <section id="command-notice" class="notice command-notice" aria-live="polite" hidden>
+      <div id="command-spinner" class="spinner" aria-hidden="true" hidden></div>
+      <svg id="command-result-icon" class="icon" aria-hidden="true"><use id="command-icon-use" href="#icon-check"/></svg>
+      <div class="notice-body"><h2 id="command-title"></h2><p id="command-description"></p><button id="resolve-command" class="secondary-button" type="button" hidden>I checked the car</button></div>
+    </section>
+
+    <section id="controls-panel" class="controls-panel" aria-label="Car controls" hidden>
+      <div class="section-heading"><h2>Car controls</h2><span class="muted">One command at a time</span></div>
+      <div class="control-grid door-controls">
+        <button type="button" class="control-button" data-action="lock"><svg class="icon" aria-hidden="true"><use href="#icon-lock"/></svg><span>Lock</span><small>Secure the doors</small></button>
+        <button type="button" class="control-button" data-action="unlock"><svg class="icon" aria-hidden="true"><use href="#icon-unlock"/></svg><span>Unlock</span><small>Open the doors</small></button>
+      </div>
+      <p class="group-label">Remote start</p>
+      <div class="control-grid start-controls">
+        <button type="button" class="control-button" data-action="start_regular"><svg class="icon" aria-hidden="true"><use href="#icon-start"/></svg><span>Regular</span><small>72°F cabin</small></button>
+        <button type="button" class="control-button" data-action="start_cold"><svg class="icon" aria-hidden="true"><use href="#icon-cold"/></svg><span>Cool cabin</span><small>62°F cabin</small></button>
+        <button type="button" class="control-button" data-action="start_hot"><svg class="icon" aria-hidden="true"><use href="#icon-hot"/></svg><span>Warm cabin</span><small>81°F + defrost</small></button>
+      </div>
+      <button type="button" class="stop-button" data-action="stop"><svg class="icon" aria-hidden="true"><use href="#icon-stop"/></svg><span>Stop remote start</span></button>
+      <button id="disconnect-button" type="button" class="text-button disconnect-button">Disconnect Bluelink account</button>
+    </section>
+    <p class="page-footnote">Status can be older than the car's current condition. Check the time above.</p>
+  </main>
+
+  <dialog id="confirm-dialog">
+    <form id="command-form">
+      <p class="eyebrow">Confirm command</p>
+      <h2 id="confirm-title">Send command?</h2>
+      <p id="confirm-description" class="muted"></p>
+      <label for="command-pin">Bluelink PIN <span id="command-pin-optional" class="optional">if not already entered</span></label>
+      <input id="command-pin" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" placeholder="4 digits">
+      <label id="outdoors-row" class="checkbox-row" hidden><input id="outdoors-confirmation" type="checkbox"><span>The car is outdoors, away from enclosed spaces.</span></label>
+      <div class="dialog-buttons"><button id="cancel-command" type="button" class="secondary-button">Cancel</button><button id="submit-command" type="submit" class="primary-button">Send command</button></div>
+    </form>
+  </dialog>
+  <dialog id="resolve-dialog">
+    <form id="resolve-form">
+      <p class="eyebrow">Check before continuing</p>
+      <h2>Is the car ready?</h2>
+      <p class="muted">A previous command's result may be unavailable. Check the car's doors and engine before sending another command.</p>
+      <label class="checkbox-row"><input id="checked-car-confirmation" type="checkbox" required><span>I checked the car and know its current condition.</span></label>
+      <div class="dialog-buttons"><button id="cancel-resolve" type="button" class="secondary-button">Cancel</button><button type="submit" class="primary-button">Continue</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

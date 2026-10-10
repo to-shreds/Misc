@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: santa-fe-emergency
+    runtime: python
+    plan: free
+    region: virginia
+    rootDir: SantaFe/web
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -c gunicorn.conf.py app:app
+    healthCheckPath: /healthz
+    autoDeployTrigger: off
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: WEBSITE_PASSWORD
+        sync: false
