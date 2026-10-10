@@ -1,41 +1,54 @@
 # Sports Desk handoff
 
-Updated 2026-10-10. The code in `to-shreds/Misc`, directory `SportsDesk/`, controls implementation. GitHub Pages publishes from `main`; the separate Render service follows `feature/sports-desk` with auto-deploy off. `to-shreds/ProjectStatus/projects/sports-desk/STATUS.md` controls readiness and next steps.
+Updated 2026-10-10T23:22:39Z. The code in `to-shreds/Misc`, directory `SportsDesk/`, controls implementation. `to-shreds/ProjectStatus/projects/sports-desk/STATUS.md` controls readiness and next steps.
 
 ## Goal and fixed choices
 
-Independent GitHub-hosted HTML sports interface, editable Buffstreams source address, automatic catalog replacement after successful validation, and no Render video bandwidth. Preserve all TorBox projects and all other Misc applications. No spoilers or scores in this interface. No paid service or video relay.
+Independent GitHub-hosted HTML sports interface, editable Buffstreams source address, successful replacement of the saved event catalog, and no Render video bandwidth. Preserve all TorBox projects and other Misc applications. No scores or spoilers in the interface. No paid service or video relay.
 
-## Completed
+## Live entry points
 
-- `index.html`: one self-contained file with responsive layout, live search, sport/live/favorite filters, persistent settings/list/favorites, time labels without an assumed source timezone, explicit loading/error states and bounded requests.
-- `server.py`: public-HTML-only metadata discovery with pinned public DNS, HTTPS validation, redirect/size/time/concurrency/cache limits, safe JSON output and two bounded API endpoints. No media/player fetching and no generic proxy.
-- Atomic source change: rejects failed/empty/bad replacement catalogs, preserves the previous list, cancels obsolete requests and prevents late overwrite.
-- Watch resolves a current source player on demand and opens it as a top-level page. Back restores list/filter state. The source's player, rather than a custom embedded player, owns playback.
-- `render.yaml`, requirements note, README, 16 passing Python tests and 7 passing JavaScript behavior tests. Render Blueprint validated against `https://render.com/schema/render.yaml.json`.
-- Live parser check at 2026-10-10T23:10:59Z found 49 events across nine sports. Current college-football and MMA player links were resolved.
+- Page: https://to-shreds.github.io/Misc/SportsDesk/
+- Helper: https://sports-desk-links.onrender.com
+- Health: https://sports-desk-links.onrender.com/healthz
+- Source: https://github.com/to-shreds/Misc/tree/main/SportsDesk
+- GitHub Pages publishes `main`, repository root. The first live application commit is `d90eb3a4b67b86aa9f14eb97f7a1886cbd51d37c`; later documentation commits do not change that HTML.
+- Published HTML SHA-256: `3015631e9a8c69122919defe8815815d303bd60383253152da45cf05e6523892`.
 
-## Controlling playback evidence
+## Implemented behavior
 
-Public homepage redirects to `/home6` and does not grant GitHub CORS reading access. The examined player uses `gooz.aapmains.net/new-stream-embed/...` and excludes GitHub in its iframe ancestor policy. Playlist requests from the GitHub context failed; source-player context succeeded. The examined R2 video segment allows the source-player origin but not GitHub. Thus a text-only manifest helper does not enable normal hls.js playback from GitHub.
+- `index.html` is a single self-contained responsive page with search, sport/live/favorite filters, locally saved settings/list/favorites, bounded loading/errors, and source-time labels without an assumed timezone.
+- The actual verified helper URL is preconfigured. Normal use needs no setup. Settings exposes the source website; the helper address sits in collapsed advanced settings.
+- Settings > Website address > Check & save validates the new catalog before replacing the old source/list. Failed, empty, malformed, cancelled and superseded requests retain the previous list. A domain-only input is normalized to HTTPS.
+- Watch resolves a current source player on demand and navigates to it as a top-level page. Back restores list/filter state. The source player owns playback; the helper never fetches player, playlist or video bytes.
+- Lists older than five minutes are marked saved. Live markers are not represented as current after that threshold. Source times are not silently converted to local time.
+- The parser supports numbered events, preseason/playoff categories, and named UFC/WWE/boxing events. A domain move with a supported layout works. A changed layout or player policy can still need adapter maintenance.
+- `server.py` fetches only bounded public HTTPS HTML and returns JSON. It validates and pins public DNS, retains TLS hostname checking, validates redirects, rejects media MIME types before reading the body, and bounds time, bytes, concurrency, caching and requests. There is no arbitrary proxy endpoint.
 
-The source player successfully played as a top-level page in the cloud browser: 1280x720, readyState 4, paused false, time approximately 19 seconds, no media error. The test was stopped. Do not show screenshots of source pages/video containing scores. This evidence proves one source-player path, not every event or a full app flow.
+## Render deployment and future updates
 
-## Deployment in progress
+The user explicitly confirmed **My Workspace**, ID `tea-dakujgmk1f9s73d2v8ng`. The new separate service is `sports-desk-links`, ID `srv-db5cfgt9fdbs73ccm2l0`. Runtime python, plan free, region virginia, branch `feature/sports-desk`, automatic deployment off. Build: `python -m py_compile SportsDesk/server.py`. Start: `python SportsDesk/server.py`.
 
-The user explicitly confirmed **My Workspace**, ID `tea-dakujgmk1f9s73d2v8ng`. The separate new free helper is created and live. No existing Render service was changed.
+Initial live deployment: `dep-db5cfhd9fdbs73ccm480`, backend commit `c2946bdbc825d64c80953fc52101720fa753a584`. The running backend source is unchanged by the frontend connection and documentation commits. Do not create a duplicate helper. No existing Render service was modified.
 
-- Service: `sports-desk-links`, ID `srv-db5cfgt9fdbs73ccm2l0`, URL `https://sports-desk-links.onrender.com`.
-- Initial live deploy: `dep-db5cfhd9fdbs73ccm480`, commit `c2946bdbc825d64c80953fc52101720fa753a584`.
-- Runtime python, plan free, region virginia, branch `feature/sports-desk`, automatic deployment off.
-- Build `python -m py_compile SportsDesk/server.py`; start `python SportsDesk/server.py`.
-- Production health, GitHub-origin CORS preflight, 47-event catalog across nine sports, and college-football/MMA player resolution all passed. The production pinned-DNS transport works.
-- `DEFAULT_HELPER` now uses the actual verified URL. Advanced connection settings are collapsed; normal domain changes need only the website address.
+Keep `feature/sports-desk` in sync with the approved SportsDesk changes on `main`. Because automatic deployment is off, a backend change needs an explicit deploy trigger after its code is committed on that branch. Frontend-only changes publish through the existing Pages workflow and need no Render deploy. Check current branch heads and preserve unrelated changes before updating either ref. A sleeping free helper may take about a minute to wake; the page permits 80 seconds before offering a retry.
 
-Next: publish this new directory to `main` without replacing unrelated files, verify the actual GitHub Pages bytes and API flow, then update this handoff and ProjectStatus. Intended page: `https://to-shreds.github.io/Misc/SportsDesk/`.
+## Verification
 
-## Verification limits
+- 16 Python checks passed for URL/private DNS/redirect/media boundaries, score-free parsing, current layouts, player resolution without fetching the player, API flow and absent proxy routes.
+- 7 JavaScript behavior checks passed, including a rerun after production configuration. They cover safe replacement, failures, late/cancelled requests, unsafe URLs and direct player navigation.
+- Render Blueprint validated against the published JSON Schema.
+- Render deployment is live. Health returned `html-metadata-only` and `mediaProxy: false`. Actual production transport and GitHub-origin CORS preflight passed.
+- Initial production check discovered 47 events across nine sports and resolved college-football and MMA players. The final check read configuration from the delivered public page, discovered 46 events across nine sports at 2026-10-10T23:22:24Z, and resolved a current source player. Counts naturally change with the schedule.
+- GitHub Pages workflow `38094714871` completed successfully. Public HTTP 200 HTML matched local source byte for byte. The publication commit changed only the nine new files within `SportsDesk/`.
+- The source player previously played video in the cloud browser: 1280x720, readyState 4, paused false, approximately 19 seconds elapsed, no media error. Playback was stopped. This establishes one playback path, not every stream.
 
-- GitHub Pages publication and delivered frontend verification are the remaining deployment checks.
-- No full browser UI acceptance: the Sites managed environment had no control-browser skill, so no local browser-preview path was improvised. JavaScript tests check state/behavior in a simulated DOM. Physical Android remains untested.
-- Domain moves with the current layout are handled; a changed site structure or player policy may still need adapter work. Discovery does not establish stream availability.
+## Controlling playback constraints
+
+The source homepage redirects to `/home6` and does not grant GitHub CORS reading access. Examined source players use `gooz.aapmains.net/new-stream-embed/...`; their iframe ancestor policy excludes GitHub. Playlists reject the GitHub context and source media does not grant the GitHub origin CORS access. A text-only manifest helper cannot make normal in-page HLS playback work under those policies. Use the verified top-level source-player approach unless new evidence changes this. Do not show source-page or video screenshots that reveal scores.
+
+## Readiness and verification limits
+
+The page is published and usable; no deployment blocker remains. Render and Pages HTTP/API checks passed. Full rendered UI acceptance and physical Android testing were not performed: the managed Sites environment lacked its required control-browser skill, so no alternate preview/browser-control path was improvised. JavaScript checks use a simulated DOM. Stream links can be offline, expired or changed by the provider; discovery is not an all-stream playback guarantee. Future source structure changes may require parser updates.
+
+No further deployment step is needed. The next user action is to open Sports Desk and select an event. Any specific phone or event failure should be investigated without routing video through Render. Update this handoff before finalizing ProjectStatus after future work.

@@ -2,7 +2,7 @@
 
 A separate, self-contained HTML event browser for GitHub Pages. Source: `SportsDesk/index.html`. It has no TorBox dependency, credentials, external JavaScript, or video relay.
 
-The metadata helper is live at `https://sports-desk-links.onrender.com` and preconfigured in the HTML. GitHub Pages publication is in progress at `https://to-shreds.github.io/Misc/SportsDesk/`. No setup is needed to load the default source.
+**Live:** [Open Sports Desk](https://to-shreds.github.io/Misc/SportsDesk/). The metadata helper is live at `https://sports-desk-links.onrender.com` and preconfigured in the HTML. No setup is needed to load the default source.
 
 ## How it works
 
@@ -52,6 +52,8 @@ node --test SportsDesk/tests/frontend.mjs
 
 Current result: **16 Python tests and 7 JavaScript state/behavior tests passed**. Tests cover unsafe URL/DNS/redirect handling, rejecting media responses before reading the body, score removal, domain changes, player resolution without fetching the player, API flow, absent proxy route, invalid/failed/cancelled source replacement, late responses, and direct navigation.
 
-Production Render discovery on October 10, 2026 returned **47 distinct events across nine sports** and resolved current college-football and MMA player links. This verifies the deployed pinned-DNS transport, HTML parser, API responses, and CORS. No full browser UI acceptance or physical-phone testing is claimed. UI behavior tests use a small simulated DOM, not a rendering engine.
+GitHub Pages deployment succeeded for application commit `d90eb3a4b67b86aa9f14eb97f7a1886cbd51d37c`. The public page returned HTTP 200 and matched the tested HTML byte for byte (SHA-256 `3015631e9a8c69122919defe8815815d303bd60383253152da45cf05e6523892`). The final check read the helper/source settings from that delivered page, fetched **46 distinct events across nine sports**, and resolved a current source player successfully at 2026-10-10T23:22:24Z. The earlier 47-event production check also resolved college-football and MMA players. Event counts change as the source schedule changes.
+
+These checks verify published configuration, the deployed pinned-DNS transport, HTML parsing, API responses, and CORS. The 7 JavaScript behavior checks passed again after configuring the production helper. No full rendered-browser UI acceptance or physical-phone testing is claimed. The managed Sites environment did not expose its required control-browser capability; no alternate preview mechanism was used. UI behavior tests use a small simulated DOM, not a rendering engine.
 
 See [HANDOFF.md](HANDOFF.md) and `to-shreds/ProjectStatus/projects/sports-desk/STATUS.md` for continuation.
