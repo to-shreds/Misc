@@ -15,7 +15,13 @@ Date: October 10, 2026. Revision: automatic password-free status loading on GitH
 
 ## Hosted verification
 
-Publishing and live verification of this revision are pending. Jon reports the preceding emergency web controls work, and the live backend now reports that saved account settings are available. Credential values were not inspected or altered.
+Code commit c5e05939d1d086179346e24070a52227f6e469e6 is published. GitHub Pages run 38085464261 succeeded; Free Render deployment dep-db5ab9jbc2fs73es64og is live on the same commit. All 22 local source-file Git blob hashes match the published tree. Render environment values, plan, process count and confirmed Hyundai client were not changed.
+
+29 hosted HTTPS checks passed. An anonymous request and a GitHub-Origin request retrieved actual cached status using the saved account, including observation/read timestamps, without a website password or browser cookie. Public response shape/types, exact CORS, foreign-Origin and invalid-preflight rejection, no-store headers, private web/legacy state gating, anonymous command/prepare/resolve denial, initial Loading HTML, and exact live asset bytes all passed. These checks performed the explicitly requested read-only Hyundai status query and sent zero vehicle commands.
+
+A cloud browser loaded the live GitHub page without authentication, visibly showed Loading, then displayed the car name and returned Doors, Engine, Fuel, Odometer and cached observation time. Desktop layout was readable and all anonymous command buttons remained disabled. DOM tests separately verify every reload and public Refresh status.
+
+Jon reports the emergency web controls work. Saved account settings are now configured, superseding the prior missing-account setup note. Credential values were not inspected or altered. His report is user acceptance, not an independently observed physical control outcome.
 
 ## Verification limits
 
