@@ -57,6 +57,7 @@ def create_app(settings=None, client_factory=HyundaiClient):
         HYUNDAI_EMAIL=os.environ.get("HYUNDAI_EMAIL", ""),
         HYUNDAI_PASSWORD=os.environ.get("HYUNDAI_PASSWORD", ""),
         HYUNDAI_PIN=os.environ.get("HYUNDAI_PIN", ""),
+        WEB_ORIGIN=os.environ.get("WEB_ORIGIN", "https://to-shreds.github.io"),
         SESSION_COOKIE_NAME="sf_access", SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SECURE=True, SESSION_COOKIE_SAMESITE="Strict",
         PERMANENT_SESSION_LIFETIME=1800, MAX_CONTENT_LENGTH=8192,
@@ -66,7 +67,8 @@ def create_app(settings=None, client_factory=HyundaiClient):
     if settings:
         app.config.update(settings)
     # Never start an unprotected controller when setup is incomplete.
-    configured = len(app.config["SECRET_KEY"]) >= 32 and len(app.config["WEBSITE_PASSWORD"]) >= 12
+    configured = (isinstance(app.config["SECRET_KEY"], str) and len(app.config["SECRET_KEY"]) >= 32
+                  and isinstance(app.config["WEBSITE_PASSWORD"], str) and bool(app.config["WEBSITE_PASSWORD"]))
     if not app.config["SECRET_KEY"]:
         app.config["SECRET_KEY"] = secrets.token_urlsafe(48)
     host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
@@ -76,6 +78,46 @@ def create_app(settings=None, client_factory=HyundaiClient):
     controller = Controller(client_factory)
     app.extensions["controller"] = controller
     signer = URLSafeSerializer(app.config["SECRET_KEY"], salt="santa-fe-command-guard-v1")
+    web_signer = URLSafeSerializer(app.config["SECRET_KEY"], salt="santa-fe-web-session-v1")
+
+    def is_web_route():
+        return request.path.startswith("/api/web/")
+
+    def allowed_web_origin():
+        origin = request.headers.get("Origin")
+        if origin and origin in {app.config["WEB_ORIGIN"], request.host_url.rstrip("/")}:
+            return origin
+        return None
+
+    def password_check(candidate):
+        """One global failure counter shared by login and every command gate."""
+        now = time.monotonic()
+        with controller.lock:
+            attempts = controller.login_attempts
+            while attempts and attempts[0] < now - app.config["LOGIN_WINDOW"]:
+                attempts.popleft()
+            if len(attempts) >= app.config["LOGIN_LIMIT"]:
+                return False, 429
+            valid = (isinstance(candidate, str) and len(candidate) <= 512
+                     and hmac.compare_digest(candidate.encode(), app.config["WEBSITE_PASSWORD"].encode()))
+            if not valid:
+                attempts.append(now)
+                return False, 401
+            return True, 200
+
+    def command_password_gate():
+        valid, status = password_check(request.headers.get("X-Command-Password", ""))
+        if not valid:
+            message = ("Too many password attempts. Wait five minutes and try again." if status == 429
+                       else "Enter the website password for this command.")
+            return jsonify(error=message, code="password_rate_limited" if status == 429 else "command_password_required"), status
+        return None
+
+    def command_owner():
+        return g.web_owner if is_web_route() else session["owner"]
+
+    def guard_value():
+        return request.headers.get("X-Command-Guard", "") if is_web_route() else request.cookies.get(JOURNAL_COOKIE, "")
 
     def authenticated():
         return (session.get("authenticated") is True
@@ -110,7 +152,7 @@ def create_app(settings=None, client_factory=HyundaiClient):
         return bool(app.config["HYUNDAI_EMAIL"] and app.config["HYUNDAI_PASSWORD"])
 
     def restore_guard():
-        value = request.cookies.get(JOURNAL_COOKIE)
+        value = guard_value()
         if not value:
             return
         try:
@@ -133,6 +175,41 @@ def create_app(settings=None, client_factory=HyundaiClient):
             return None
         if app.config["REQUIRE_HTTPS"] and not request.is_secure:
             abort(400, description="Use the HTTPS address.")
+        if is_web_route():
+            origin = allowed_web_origin()
+            if request.headers.get("Origin") and not origin:
+                abort(403)
+            if request.method == "OPTIONS":
+                if not origin:
+                    abort(403)
+                requested_method = request.headers.get("Access-Control-Request-Method", "")
+                requested_headers = {header.strip().lower() for header in request.headers.get("Access-Control-Request-Headers", "").split(",") if header.strip()}
+                if requested_method not in {"GET", "POST"} or not requested_headers <= {"content-type", "x-web-session", "x-command-password", "x-command-guard"}:
+                    abort(403)
+                return "", 204
+            if request.path == "/api/web/info" and request.method == "GET":
+                return None
+            if not origin:
+                abort(403)
+            if not configured:
+                return jsonify(error="Service setup is incomplete."), 503
+            if request.path == "/api/web/session" and request.method == "POST":
+                return None
+            try:
+                token = web_signer.loads(request.headers.get("X-Web-Session", ""))
+                issued_at = token.get("issued_at") if isinstance(token, dict) else None
+                owner = token.get("owner") if isinstance(token, dict) else None
+                if (not isinstance(token, dict) or token.get("epoch") != controller.epoch
+                        or type(issued_at) not in (int, float) or not 0 <= time.time() - issued_at < 1800
+                        or not isinstance(owner, str) or not 16 <= len(owner) <= 128):
+                    raise BadSignature("Invalid session")
+            except (BadSignature, TypeError, ValueError):
+                return jsonify(error="Enter the website password to continue."), 401
+            g.web_owner = owner
+            restore_guard()
+            if request.path in {"/api/web/prepare", "/api/web/command", "/api/web/resolve"} and request.method == "POST":
+                return command_password_gate()
+            return None
         if not configured:
             return "Service setup is incomplete.", 503
         is_auth = authenticated()
@@ -151,6 +228,8 @@ def create_app(settings=None, client_factory=HyundaiClient):
                 abort(403)
         if is_auth:
             restore_guard()
+        if request.path in {"/api/prepare", "/api/command", "/api/resolve"} and request.method == "POST":
+            return command_password_gate()
 
     @app.after_request
     def headers(response):
@@ -162,6 +241,15 @@ def create_app(settings=None, client_factory=HyundaiClient):
         })
         if request.is_secure:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
+        if is_web_route():
+            response.vary.add("Origin")
+            origin = allowed_web_origin()
+            if origin:
+                response.headers["Access-Control-Allow-Origin"] = origin
+                if request.method == "OPTIONS":
+                    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+                    response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Web-Session, X-Command-Password, X-Command-Guard"
+                    response.headers["Access-Control-Max-Age"] = "600"
         return response
 
     @app.errorhandler(HTTPException)
@@ -192,19 +280,10 @@ def create_app(settings=None, client_factory=HyundaiClient):
 
     @app.post("/login")
     def login():
-        now = time.monotonic()
-        with controller.lock:
-            attempts = controller.login_attempts
-            while attempts and attempts[0] < now - app.config["LOGIN_WINDOW"]:
-                attempts.popleft()
-            if len(attempts) >= app.config["LOGIN_LIMIT"]:
-                return render_template("login.html", login_csrf=session.get("login_csrf"), nonce=g.nonce,
-                                       error="Too many attempts. Wait five minutes and try again."), 429
-            attempts.append(now)
-        candidate = request.form.get("password", "")
-        if not hmac.compare_digest(candidate.encode(), app.config["WEBSITE_PASSWORD"].encode()):
+        valid, status = password_check(request.form.get("password", ""))
+        if not valid:
             return render_template("login.html", login_csrf=session.get("login_csrf"), nonce=g.nonce,
-                                   error="Incorrect password."), 401
+                                   error="Too many attempts. Wait five minutes and try again." if status == 429 else "Incorrect password."), status
         session.clear()
         session.update(authenticated=True, epoch=controller.epoch, login_at=time.time(),
                        csrf=secrets.token_urlsafe(32), owner=secrets.token_urlsafe(24))
@@ -217,11 +296,28 @@ def create_app(settings=None, client_factory=HyundaiClient):
         # The independent unresolved-command cookie survives signing out.
         return redirect("/", code=303)
 
+    @app.get("/api/web/info")
+    def web_info():
+        return jsonify(configured=configured, saved_account_available=saved_available())
+
+    @app.post("/api/web/session")
+    def web_session():
+        body = json_body()
+        valid, status = password_check(body.get("password", ""))
+        if not valid:
+            return jsonify(error="Too many password attempts. Wait five minutes and try again." if status == 429 else "Incorrect password."), status
+        with controller.lock:
+            owner = secrets.token_urlsafe(24)
+            token = web_signer.dumps({"owner": owner, "epoch": controller.epoch, "issued_at": time.time()})
+            return jsonify(session_token=token, expires_in=1800, state=controller.state(saved_available()))
+
+    @app.get("/api/web/state")
     @app.get("/api/state")
     def state():
         with controller.lock:
             return jsonify(controller.state(saved_available()))
 
+    @app.post("/api/web/connect")
     @app.post("/api/connect")
     def connect():
         body = json_body()
@@ -254,6 +350,7 @@ def create_app(settings=None, client_factory=HyundaiClient):
                 return jsonify(error=error.message), 502
             return jsonify(controller.state(saved_available()))
 
+    @app.post("/api/web/select")
     @app.post("/api/select")
     def select():
         body = json_body()
@@ -282,6 +379,7 @@ def create_app(settings=None, client_factory=HyundaiClient):
                 return jsonify(error=error.message), 502
             return jsonify(controller.state(saved_available()))
 
+    @app.post("/api/web/status")
     @app.post("/api/status")
     def status():
         json_body()
@@ -297,6 +395,7 @@ def create_app(settings=None, client_factory=HyundaiClient):
                 return jsonify(error=error.message), 502
             return jsonify(controller.state(saved_available()))
 
+    @app.post("/api/web/prepare")
     @app.post("/api/prepare")
     def prepare():
         body = json_body()
@@ -312,13 +411,15 @@ def create_app(settings=None, client_factory=HyundaiClient):
                 return jsonify(error="Confirm that the car is outdoors before starting it."), 400
             request_id = secrets.token_urlsafe(32)
             controller.command = {"state": "prepared", "action": action, "request_id": request_id,
-                                  "owner": session["owner"], "prepared_at": time.monotonic(),
+                                  "owner": command_owner(), "prepared_at": time.monotonic(),
                                   "submitted_at": utc_now(), "message": "Ready to send."}
-            response = jsonify(request_id=request_id)
-            response.set_cookie(JOURNAL_COOKIE, signer.dumps({"request_id": request_id, "action": action, "epoch": controller.epoch}),
-                                secure=app.config["SESSION_COOKIE_SECURE"], httponly=True, samesite="Strict", max_age=2592000)
+            guard = signer.dumps({"request_id": request_id, "action": action, "epoch": controller.epoch, "owner": command_owner()})
+            response = jsonify(request_id=request_id, command_guard=guard) if is_web_route() else jsonify(request_id=request_id)
+            if not is_web_route():
+                response.set_cookie(JOURNAL_COOKIE, guard, secure=app.config["SESSION_COOKIE_SECURE"], httponly=True, samesite="Strict", max_age=2592000)
             return response
 
+    @app.post("/api/web/command")
     @app.post("/api/command")
     def command():
         body = json_body()
@@ -327,18 +428,19 @@ def create_app(settings=None, client_factory=HyundaiClient):
             request_id = body.get("request_id")
             if not isinstance(request_id, str):
                 abort(400)
+            try:
+                marker = signer.loads(guard_value())
+            except BadSignature:
+                marker = {}
+            if (not isinstance(marker, dict) or marker.get("request_id") != request_id
+                    or marker.get("epoch") != controller.epoch or marker.get("owner") != command_owner()):
+                return jsonify(error="The command guard is missing. Check the car before continuing."), 409
             if request_id in controller.seen:
                 return jsonify(controller.state(saved_available()))
-            if request_id != cmd.get("request_id") or cmd.get("owner") != session["owner"]:
+            if request_id != cmd.get("request_id") or cmd.get("owner") != command_owner():
                 return jsonify(error="This command was not prepared in this session."), 409
             if cmd.get("state") != "prepared":
                 return jsonify(controller.state(saved_available()))
-            try:
-                marker = signer.loads(request.cookies.get(JOURNAL_COOKIE, ""))
-            except BadSignature:
-                marker = {}
-            if marker.get("request_id") != request_id or marker.get("epoch") != controller.epoch:
-                return jsonify(error="The command guard is missing. Check the car before continuing."), 409
             if time.monotonic() - cmd["prepared_at"] > 120:
                 cmd.update(state="failure", message="The confirmation expired. Nothing was sent.")
                 controller.seen[request_id] = "failure"
@@ -358,6 +460,7 @@ def create_app(settings=None, client_factory=HyundaiClient):
                 controller.seen[request_id] = cmd["state"]
             return jsonify(controller.state(saved_available()))
 
+    @app.post("/api/web/poll")
     @app.post("/api/poll")
     def poll():
         json_body()
@@ -384,6 +487,7 @@ def create_app(settings=None, client_factory=HyundaiClient):
                 controller.seen[cmd["request_id"]] = cmd["state"]
             return jsonify(controller.state(saved_available()))
 
+    @app.post("/api/web/resolve")
     @app.post("/api/resolve")
     def resolve():
         body = json_body()
@@ -399,9 +503,11 @@ def create_app(settings=None, client_factory=HyundaiClient):
                 controller.seen[key] = "resolved"
             controller.command = {"state": "idle", "message": "Ready."}
             response = jsonify(controller.state(saved_available()))
-            response.delete_cookie(JOURNAL_COOKIE, secure=app.config["SESSION_COOKIE_SECURE"], httponly=True, samesite="Strict")
+            if not is_web_route():
+                response.delete_cookie(JOURNAL_COOKIE, secure=app.config["SESSION_COOKIE_SECURE"], httponly=True, samesite="Strict")
             return response
 
+    @app.post("/api/web/disconnect")
     @app.post("/api/disconnect")
     def disconnect():
         json_body()

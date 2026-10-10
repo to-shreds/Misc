@@ -48,7 +48,7 @@ h2 { font-size: 19px; font-weight: 650; letter-spacing: -.025em; }
 .primary-button:hover:not(:disabled) { background: #cef8eb; }
 .secondary-button { background: #20343f; color: #e0ebef; border-color: #405663; }
 .secondary-button:hover:not(:disabled) { background: #2c4552; }
-#connect-button, #connect-saved { width: 100%; margin-top: 20px; }
+#connect-button, #connect-saved, #authorize-button { width: 100%; margin-top: 20px; }
 #vehicle-select-form .primary-button { width: 100%; margin-top: 14px; }
 .divider { margin: 21px 0 0; display: flex; gap: 13px; align-items: center; font-size: 10px; color: #91a7b3; }
 .divider::before, .divider::after { content: ""; height: 1px; background: var(--border); flex: 1; }
@@ -57,6 +57,7 @@ h2 { font-size: 19px; font-weight: 650; letter-spacing: -.025em; }
 .notice p { font-size: 12px; line-height: 1.55; }
 .notice > p { flex: 1; }
 .notice-close { background: none; color: inherit; border: 0; font-size: 22px; line-height: 1; padding: 0 3px 4px; }
+.notice.information { color: #d4eeec; background: #173b3d; border-color: #356161; }
 .command-notice { background: #173b3d; border-color: #356161; color: #d4eeec; }
 .command-notice h2 { font-size: 14px; margin: 0 0 4px; }
 .command-notice.unknown, .command-notice.failed { background: #3b2a25; border-color: #69514a; color: #f1cfc0; }

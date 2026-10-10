@@ -2,7 +2,7 @@
 
 (() => {
   const byId = (id) => document.getElementById(id);
-  const csrf = document.querySelector('meta[name="csrf-token"]').content;
+  const backend = document.querySelector('meta[name="backend-url"]').content.replace(/\/$/, "");
   const markerKey = "santa-fe-pending-command";
   const pendingStates = new Set(["pending", "accepted", "submitted", "queued", "requested", "waiting", "processing", "running", "in_progress"]);
   const successStates = new Set(["succeeded", "completed", "complete", "success", "done"]);
@@ -24,6 +24,9 @@
   let chosenAction = null;
   let localUncertain = false;
   let marker = readMarker();
+  let sessionToken = "";
+  let publicInfo = { configured: false, saved_account_available: false };
+  let accessPurpose = "connect";
 
   function readMarker() {
     try {
@@ -54,9 +57,10 @@
     return { command, status, pending: pendingStates.has(status), unresolved, terminal };
   }
 
-  function showMessage(message) {
+  function showMessage(message, tone = "error") {
     byId("message-text").textContent = message;
     byId("message").hidden = !message;
+    byId("message").classList.toggle("information", tone === "info");
   }
 
   function errorText(data, fallback) {
@@ -66,26 +70,27 @@
     return fallback;
   }
 
-  async function api(path, method = "POST", body = {}) {
+  async function api(path, method = "POST", body = {}, extraHeaders = {}) {
     const abort = new AbortController();
     const timeout = setTimeout(() => abort.abort(), 90000);
     const options = {
       method,
-      credentials: "same-origin",
+      credentials: "omit",
       cache: "no-store",
       signal: abort.signal,
-      headers: { "Accept": "application/json", "X-CSRF-Token": csrf }
+      headers: {
+        "Accept": "application/json",
+        ...(sessionToken ? { "X-Web-Session": sessionToken } : {}),
+        ...(marker && marker.command_guard ? { "X-Command-Guard": marker.command_guard } : {}),
+        ...extraHeaders
+      }
     };
     if (method !== "GET") {
       options.headers["Content-Type"] = "application/json";
       options.body = JSON.stringify(body);
     }
     try {
-      const response = await fetch(path, options);
-      if (response.status === 401) {
-        location.assign("/");
-        throw new Error("Your website session has ended. Sign in again.");
-      }
+      const response = await fetch(`${backend}${path}`, options);
       let data;
       try { data = await response.json(); }
       catch (error) {
@@ -93,6 +98,7 @@
         throw new Error("The service did not return a result. Please check your connection.");
       }
       if (!response.ok || data.ok === false) {
+        if (response.status === 401 && path !== "/api/web/session" && data.code !== "command_password_required") forgetAccess();
         const error = new Error(errorText(data, "The request could not be completed."));
         error.data = data;
         error.status = response.status;
@@ -118,7 +124,40 @@
     return false;
   }
 
-  async function reloadState() { acceptState(await api("/api/state", "GET")); }
+  async function reloadState() {
+    if (!sessionToken) throw new Error("Enter your website password to reconnect.");
+    acceptState(await api("/api/web/state", "GET"));
+  }
+
+  function publicState() {
+    return { connected: false, vehicle: null, status: null, vehicles: [], command: { state: "idle" }, saved_account_available: publicInfo.saved_account_available };
+  }
+
+  function forgetAccess() {
+    sessionToken = "";
+    byId("account-email").value = "";
+    byId("account-password").value = "";
+    byId("account-pin").value = "";
+    clearTimeout(pollTimer);
+    pollTimer = null;
+    state = publicState();
+    render();
+  }
+
+  async function authorize(password) {
+    const result = await api("/api/web/session", "POST", { password });
+    if (!result.session_token) throw new Error("The service could not authorize access.");
+    sessionToken = result.session_token;
+    acceptState(result.state);
+  }
+
+  function openAccess(purpose = "connect") {
+    if (busy) return;
+    accessPurpose = purpose;
+    byId("access-title").textContent = purpose === "status" ? "View your car's status" : "Connect to your car";
+    byId("access-password").value = "";
+    byId("access-dialog").showModal();
+  }
 
   function firstValue(object, keys) {
     for (const key of keys) {
@@ -155,16 +194,17 @@
 
   function render() {
     if (!state) return;
-    const accountConnected = Boolean(state.connected);
+    const authorized = Boolean(sessionToken);
+    const accountConnected = authorized && Boolean(state.connected);
     const connected = accountConnected && Boolean(state.vehicle);
     const info = commandInfo();
     const vehicle = state.vehicle || {};
     const status = state.status || {};
     const vehicleName = vehicle.name || [vehicle.year, vehicle.model].filter(Boolean).join(" ") || "Santa Fe";
     byId("vehicle-name").textContent = vehicleName;
-    byId("connection-label").textContent = connected ? "Connected" : (accountConnected ? "Choose vehicle" : "Disconnected");
+    byId("connection-label").textContent = connected ? "Connected" : (accountConnected ? "Choose vehicle" : (authorized ? "Disconnected" : (busy === "wake" ? "Waking service" : "Private access")));
     byId("connection-pill").classList.toggle("connected", connected);
-    byId("vehicle-detail").textContent = connected ? (vehicle.vin_last4 ? `VIN ending ${vehicle.vin_last4}` : "Bluelink account connected") : (accountConnected ? "Select a vehicle below" : "Connect your account to reach the car");
+    byId("vehicle-detail").textContent = connected ? (vehicle.vin_last4 ? `VIN ending ${vehicle.vin_last4}` : "Bluelink account connected") : (accountConnected ? "Select a vehicle below" : (authorized ? "Connect your account to reach the car" : "Enter your website password to connect"));
     byId("status-grid").hidden = !connected;
     byId("status-footer").hidden = !connected;
     byId("status-lock").textContent = boolText(firstValue(status, ["locked", "door_locked", "doorLock"]), "Locked", "Unlocked");
@@ -174,15 +214,18 @@
     byId("status-odometer").textContent = numberText(firstValue(status, ["odometer", "odometer_value"]), unit);
     byId("status-time").textContent = formattedTime(firstValue(status, ["updated_at", "last_updated", "timestamp"]));
     byId("connection-panel").hidden = connected;
-    byId("controls-panel").hidden = !connected;
-    byId("connect-saved").hidden = accountConnected || !state.saved_account_available;
-    byId("saved-divider").hidden = accountConnected || !state.saved_account_available;
+    byId("controls-panel").hidden = false;
+    byId("access-button").textContent = authorized ? "Forget access" : "Connect";
+    byId("authorize-button").hidden = authorized;
+    byId("authorize-button").disabled = Boolean(busy || !publicInfo.configured);
+    byId("connect-saved").hidden = !authorized || accountConnected || !state.saved_account_available;
+    byId("saved-divider").hidden = !authorized || accountConnected || !state.saved_account_available;
     const vehicles = Array.isArray(state.vehicles) ? state.vehicles : [];
     const chooseVehicle = accountConnected && !connected && vehicles.length > 0;
-    byId("connection-title").textContent = chooseVehicle ? "Choose your vehicle" : "Connect your Bluelink account";
-    byId("connection-description").textContent = chooseVehicle ? "Select the car you want to control." : "Reconnect here if your account session has cleared.";
+    byId("connection-title").textContent = !authorized ? "Private car access" : (chooseVehicle ? "Choose your vehicle" : "Connect your Bluelink account");
+    byId("connection-description").textContent = !authorized ? "The page is public. Vehicle details and commands require your website password." : (chooseVehicle ? "Select the car you want to control." : "Reconnect here if your account session has cleared.");
     byId("vehicle-select-form").hidden = !chooseVehicle;
-    byId("connect-form").hidden = chooseVehicle;
+    byId("connect-form").hidden = !authorized || chooseVehicle;
     if (chooseVehicle) {
       const select = byId("vehicle-select");
       const previous = select.value;
@@ -196,8 +239,9 @@
       if ([...select.options].some((option) => option.value === previous)) select.value = previous;
     }
     document.querySelectorAll("[data-action]").forEach((button) => { button.disabled = Boolean(busy || info.pending || info.unresolved || !connected); });
-    ["refresh-status", "connect-button", "connect-saved"].forEach((id) => { byId(id).disabled = Boolean(busy); });
+    ["refresh-status", "connect-button", "connect-saved", "access-button"].forEach((id) => { byId(id).disabled = Boolean(busy); });
     byId("disconnect-button").disabled = Boolean(busy || info.pending);
+    byId("disconnect-button").hidden = !accountConnected;
     byId("resolve-command").disabled = Boolean(busy);
     byId("connect-button").textContent = busy === "connect" ? "Connecting…" : "Connect to car";
     byId("connect-saved").textContent = busy === "saved" ? "Connecting…" : "Use saved Bluelink account";
@@ -237,19 +281,25 @@
   function schedulePoll() {
     clearTimeout(pollTimer);
     pollTimer = null;
-    if (!state) return;
+    if (!sessionToken || !state) return;
     const info = commandInfo();
     if (info.pending && !info.unresolved && busy !== "command") pollTimer = setTimeout(pollResult, 5000);
   }
 
   async function pollResult() {
-    if (!state || !commandInfo().pending || commandInfo().unresolved) return;
+    if (!sessionToken || !state || !commandInfo().pending || commandInfo().unresolved) return;
     try {
-      const result = await api("/api/poll");
+      const result = await api("/api/web/poll");
       pollFailures = 0;
       if (!acceptState(result)) await reloadState();
     } catch (error) {
       if (error.data && acceptState(error.data)) return;
+      if (error.status === 401) {
+        localUncertain = true;
+        showMessage("Private access expired while checking the command. Reconnect or check the car before continuing.");
+        render();
+        return;
+      }
       pollFailures += 1;
       if (pollFailures < 3) {
         pollTimer = setTimeout(pollResult, 8000);
@@ -263,6 +313,7 @@
 
   async function ordinaryRequest(name, path, body) {
     if (busy) return;
+    if (!sessionToken) { openAccess(name === "status" ? "status" : "connect"); return; }
     busy = name;
     showMessage("");
     render();
@@ -286,21 +337,50 @@
     const credentials = { email: byId("account-email").value.trim(), password: byId("account-password").value, pin: byId("account-pin").value };
     byId("account-password").value = "";
     byId("account-pin").value = "";
-    await ordinaryRequest("connect", "/api/connect", credentials);
+    await ordinaryRequest("connect", "/api/web/connect", credentials);
     credentials.password = "";
     credentials.pin = "";
   });
-  byId("connect-saved").addEventListener("click", () => ordinaryRequest("saved", "/api/connect", { saved: true }));
+  byId("connect-saved").addEventListener("click", () => ordinaryRequest("saved", "/api/web/connect", { saved: true }));
   byId("vehicle-select-form").addEventListener("submit", (event) => {
     event.preventDefault();
     const id = Number(byId("vehicle-select").value);
-    if (Number.isInteger(id)) ordinaryRequest("select", "/api/select", { vehicle_id: id });
+    if (Number.isInteger(id)) ordinaryRequest("select", "/api/web/select", { vehicle_id: id });
   });
-  byId("refresh-status").addEventListener("click", () => ordinaryRequest("status", "/api/status", {}));
+  byId("refresh-status").addEventListener("click", () => ordinaryRequest("status", "/api/web/status", {}));
   byId("disconnect-button").addEventListener("click", () => {
-    if (state && !commandInfo().pending) ordinaryRequest("disconnect", "/api/disconnect", {});
+    if (state && !commandInfo().pending) ordinaryRequest("disconnect", "/api/web/disconnect", {});
   });
   byId("dismiss-message").addEventListener("click", () => showMessage(""));
+  byId("authorize-button").addEventListener("click", () => openAccess("connect"));
+  byId("access-button").addEventListener("click", () => {
+    if (sessionToken) { forgetAccess(); showMessage(""); }
+    else openAccess("connect");
+  });
+  byId("cancel-access").addEventListener("click", () => {
+    byId("access-password").value = "";
+    byId("access-dialog").close();
+  });
+  byId("access-dialog").addEventListener("cancel", () => { byId("access-password").value = ""; });
+  byId("access-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!event.currentTarget.reportValidity() || busy) return;
+    let password = byId("access-password").value;
+    byId("access-password").value = "";
+    byId("access-dialog").close();
+    busy = "authorize";
+    showMessage("Connecting to the service. It may take about a minute to wake up.", "info");
+    render();
+    try {
+      await authorize(password);
+      password = "";
+      showMessage("");
+      if (accessPurpose === "status" && state.connected && state.vehicle) {
+        acceptState(await api("/api/web/status"));
+      }
+    } catch (error) { showMessage(error.message); }
+    finally { password = ""; busy = ""; render(); schedulePoll(); }
+  });
 
   document.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -310,6 +390,7 @@
       byId("confirm-title").textContent = `${action.label}?`;
       byId("confirm-description").textContent = action.detail;
       byId("submit-command").textContent = action.label;
+      byId("command-website-password").value = "";
       byId("command-pin").value = "";
       byId("command-pin").required = state.pin_available === false;
       byId("command-pin-optional").textContent = state.pin_available === false ? "required" : "if not already entered";
@@ -321,6 +402,7 @@
     });
   });
   function closeCommandDialog() {
+    byId("command-website-password").value = "";
     byId("command-pin").value = "";
     byId("outdoors-confirmation").checked = false;
     byId("confirm-dialog").close();
@@ -328,6 +410,7 @@
   }
   byId("cancel-command").addEventListener("click", closeCommandDialog);
   byId("confirm-dialog").addEventListener("cancel", () => {
+    byId("command-website-password").value = "";
     byId("command-pin").value = "";
     byId("outdoors-confirmation").checked = false;
     chosenAction = null;
@@ -337,7 +420,8 @@
     event.preventDefault();
     if (!event.currentTarget.reportValidity() || busy || !chosenAction) return;
     const action = chosenAction;
-    const pin = byId("command-pin").value;
+    let pin = byId("command-pin").value;
+    let password = byId("command-website-password").value;
     const outdoors = byId("outdoors-confirmation").checked;
     closeCommandDialog();
     if (!state || !state.connected || commandInfo().pending || commandInfo().unresolved) return;
@@ -348,11 +432,14 @@
     render();
     let prepared = false;
     try {
-      const preparation = await api("/api/prepare", "POST", { action, confirmed: true, outdoors });
-      if (!preparation.request_id) throw new Error("The service could not prepare the command.");
+      if (!sessionToken) throw new Error("Reconnect private access before sending this command.");
+      const preparation = await api("/api/web/prepare", "POST", { action, confirmed: true, outdoors }, { "X-Command-Password": password });
+      if (!preparation.request_id || !preparation.command_guard) throw new Error("The service could not prepare the command.");
       prepared = true;
-      saveMarker({ ...marker, request_id: preparation.request_id });
-      const result = await api("/api/command", "POST", { request_id: preparation.request_id, ...(pin ? { pin } : {}) });
+      saveMarker({ ...marker, request_id: preparation.request_id, command_guard: preparation.command_guard });
+      const result = await api("/api/web/command", "POST", { request_id: preparation.request_id, ...(pin ? { pin } : {}) }, { "X-Command-Password": password });
+      password = "";
+      pin = "";
       if (!acceptState(result)) await reloadState();
     } catch (error) {
       if (!prepared) {
@@ -368,6 +455,8 @@
         showMessage(error.message || "The request's result is unavailable. Check the car before continuing.");
       }
     } finally {
+      password = "";
+      pin = "";
       busy = "";
       pollFailures = 0;
       render();
@@ -377,18 +466,26 @@
 
   byId("resolve-command").addEventListener("click", () => {
     byId("checked-car-confirmation").checked = false;
+    byId("resolve-password").value = "";
     byId("resolve-dialog").showModal();
   });
-  byId("cancel-resolve").addEventListener("click", () => byId("resolve-dialog").close());
+  byId("cancel-resolve").addEventListener("click", () => {
+    byId("resolve-password").value = "";
+    byId("resolve-dialog").close();
+  });
+  byId("resolve-dialog").addEventListener("cancel", () => { byId("resolve-password").value = ""; });
   byId("resolve-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!event.currentTarget.reportValidity() || busy) return;
+    let password = byId("resolve-password").value;
+    byId("resolve-password").value = "";
     byId("resolve-dialog").close();
     busy = "resolve";
     render();
     try {
+      if (!sessionToken) await authorize(password);
       if (commandInfo().pending) {
-        const checked = await api("/api/poll");
+        const checked = await api("/api/web/poll");
         acceptState(checked);
         if (commandInfo().pending) {
           localUncertain = false;
@@ -397,18 +494,31 @@
           return;
         }
       }
-      const result = await api("/api/resolve", "POST", { acknowledged: true });
+      const result = await api("/api/web/resolve", "POST", { acknowledged: true }, { "X-Command-Password": password });
+      password = "";
       saveMarker(null);
       localUncertain = false;
       showMessage("");
       if (!acceptState(result)) await reloadState();
     } catch (error) { showMessage(error.message); }
-    finally { busy = ""; render(); schedulePoll(); }
+    finally { password = ""; busy = ""; render(); schedulePoll(); }
   });
 
-  reloadState().catch((error) => {
-    showMessage(error.message);
-    byId("connection-label").textContent = "Unavailable";
-    byId("vehicle-detail").textContent = "Reload the page to try connecting again.";
-  });
+  async function initialize() {
+    state = publicState();
+    busy = "wake";
+    render();
+    showMessage("Waking the service. This can take about a minute.", "info");
+    try {
+      publicInfo = await api("/api/web/info", "GET");
+      state = publicState();
+      showMessage(publicInfo.configured ? "" : "The service still needs its private settings. Car commands are unavailable.");
+    } catch (error) {
+      showMessage("Could not reach the service. Check your connection and reload the page.");
+    } finally {
+      busy = "";
+      render();
+    }
+  }
+  initialize();
 })();

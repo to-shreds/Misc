@@ -62,13 +62,20 @@ def signin(app, client=None):
                            data={"password": PASSWORD, "csrf": login_csrf})
     assert response.status_code == 303
     page = client.get("/", base_url=ORIGIN)
-    csrf = re.search(r'name="csrf-token" content="([^\"]+)"', page.get_data(as_text=True)).group(1)
+    assert page.status_code == 200
+    # The GitHub-compatible UI uses a web token, so its template need not expose
+    # the legacy API's CSRF value. The signed cookie remains readable by its owner.
+    cookie = client.get_cookie(app.config["SESSION_COOKIE_NAME"], domain=HOST)
+    csrf = app.session_interface.get_signing_serializer(app).loads(cookie.value)["csrf"]
     return client, csrf
 
 
 def post(client, csrf, path, body=None, **headers):
+    defaults = {"Origin": ORIGIN, "X-CSRF-Token": csrf}
+    if path in {"/api/prepare", "/api/command", "/api/resolve"}:
+        defaults["X-Command-Password"] = PASSWORD
     return client.post(path, json=body or {}, base_url=ORIGIN,
-                       headers={"Origin": ORIGIN, "X-CSRF-Token": csrf, **headers})
+                       headers={**defaults, **headers})
 
 
 def ready(app):
@@ -172,6 +179,10 @@ def test_submission_replay_is_idempotent_and_secrets_stay_server_side(app):
     body = {"request_id": request_id, "pin": "1234"}
     first = post(client, csrf, "/api/command", body)
     assert first.status_code == 200
+    # Replay lookup must not bypass the fresh password requirement.
+    rejected = client.post("/api/command", json=body, base_url=ORIGIN,
+                           headers={"Origin": ORIGIN, "X-CSRF-Token": csrf})
+    assert rejected.status_code == 401
     second = post(client, csrf, "/api/command", body)
     assert second.status_code == 200
     assert len(command_calls(fake)) == 1
@@ -239,7 +250,7 @@ def test_tampered_journal_reblocks_finished_state(app):
 def test_malformed_and_oversized_requests_do_not_submit_controls(app):
     client, csrf, fake = ready(app)
     response = client.post("/api/prepare", base_url=ORIGIN, data="[]", content_type="application/json",
-                           headers={"Origin": ORIGIN, "X-CSRF-Token": csrf})
+                           headers={"Origin": ORIGIN, "X-CSRF-Token": csrf, "X-Command-Password": PASSWORD})
     assert response.status_code == 400
     response = post(client, csrf, "/api/prepare", {"action": "lock", "confirmed": True, "padding": "x" * 9000})
     assert response.status_code == 413

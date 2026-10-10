@@ -1,34 +1,22 @@
 # Emergency web controller verification
 
-Date: October 10, 2026. Source: `SantaFe/web`, deployed from commit `2d302454235f40a14b14ec95c355462606e34507`. No Hyundai account credentials were configured and no real Hyundai request was sent. The website password and signing secret are configured only in protected Render settings.
+Date: October 10, 2026. Revision: public GitHub Pages frontend plus Free Render backend with a separate password checked for every command. No real Hyundai credentials or vehicle were used.
 
-## Passed
+## Current revision passed
 
-- **54 Python tests**: 22 Hyundai-client fixture checks, 14 app checks, 16 independent adversarial security checks, and two tests using an actual local HTTP server.
-- Hyundai requests match the existing host/endpoints, vehicle identity mapping, temperature presets and `REMOTE_POLL` result checks. Intercepted replies cover successful/rejected/unknown commands, read reauthentication, malformed responses, redirects, invalid identities and unresolved-command guards.
-- Public login HTML contains no controller script or control markup. The server rejects unauthenticated controller styles/scripts and all account/control APIs. Incorrect passwords, missing CSRF, foreign/null Origin, spoofed forwarded IPs and oversized/malformed bodies are rejected.
-- Session cookies have Secure/HttpOnly/SameSite=Strict attributes in production settings, carry no Hyundai credentials or tokens, and expire/invalidate after restart. Login CSS receives the matching CSP nonce; private output uses no-store headers.
-- An actual HTTP test signs in, receives protected assets, connects to a fake Hyundai account, receives the prepared-command cookie before any control transmission, submits one control and checks successful completion. A second HTTP test rejects an unauthenticated cross-origin control.
-- Duplicate execution, second-browser interference, lost replies, logout/relogin, marker tampering and fresh process epochs do not silently replay a control. Reconnection is blocked while a command is pending; runtime Hyundai secrets stay out of cookies and API state.
-- JavaScript syntax checks pass for the control page and optional Playwright test.
-- Gunicorn validates its configuration: one worker, four threads, public port binding and bounded worker timeout.
-- The Blueprint YAML parses and describes one Free web service, with no database, disk or paid dependency. Server setup fails closed when required website secrets are absent or too short.
+- 78 Python tests: 22 confirmed-client fixtures, 23 application regressions, 16 independent security checks, two actual local HTTP tests, and 15 cross-domain web API tests.
+- A read session cannot prepare, execute or resolve a command without the separate password. Both web and legacy cookie endpoints enforce the check, including duplicate/replay lookup.
+- Cookie-free signed read sessions expire after 30 minutes and invalidate across process epochs. Exact-Origin CORS, preflight headers, forged/expired tokens, owner-bound signed guards, expired preparations and global failed-password rate limits are covered.
+- Single-use preparation is delivered before execution. The backend keeps one shared lock, bounded polling, no automatic control retries and conservative startup acknowledgment. The confirmed Hyundai client is unchanged.
+- 13 DOM scenarios execute the actual frontend source with synthetic fetch replies. They cover public load, account authorization, saved/manual account connection, fresh passwords for successive commands, wrong-password/rate-limit handling, cancel/Escape clearing, guard storage before send, lost preparation/execution, bounded polling, expired sessions and pending/manual recovery.
+- Passwords, PIN and read tokens stay out of WebStorage; only a signed guard and nonsecret recovery marker are stored. The real configured password is absent from every published source/test file.
+- JavaScript syntax, Gunicorn configuration and generated index/template agreement pass. The Blueprint parses and adds only the exact GitHub frontend Origin to the existing Free service.
+- The optional Playwright fixture now serves public frontend assets locally and rewrites the backend URL to its synthetic server, with no external requests permitted.
 
-## Hosted deployment passed
+## Deployment and acceptance
 
-- Jon confirmed Render's My Workspace. Service `srv-db591kt9fdbs73c1fdcg` is live at https://santa-fe-emergency.onrender.com/ on the **Free** Python plan in Virginia. Automatic deployments are disabled. No database, disk, worker or paid service was created.
-- Deployment `dep-db591ld9fdbs73c1ffh0` reports `live` on the source commit above. Dependencies installed and Gunicorn started successfully.
-- **17 real HTTPS checks passed**: login-only public HTML; matching login CSS nonce/CSP; blocked public controller assets/state; incorrect password rejection; configured password acceptance; Secure/HttpOnly/SameSite=Strict cookie; authenticated controller/assets/state; initially disconnected account; conservative startup guard; missing-CSRF and foreign-Origin rejection; logout and renewed API denial.
-- An independent unauthenticated review confirmed the public gate, blocked assets/API, no-store headers and `/healthz` with `configured: true`.
-- A cloud browser displayed the live sign-in form with readable styling. This checks the public login layout only, not the authenticated browser command flow.
-- Zero Hyundai requests and zero vehicle commands were sent by hosted checks.
+The prior same-origin Render build passed 17 hosted HTTPS checks and a public sign-in browser inspection. Those checks covered the earlier page-password gate and do not establish this revised cross-domain command flow. The revised frontend/backend now need their hosted checks after publication.
 
-## Not verified
+No Render CLI/API Blueprint validation was performed. Full authenticated Chromium integration could not run in this container because no browser executable is installed and its prior download was unusable. DOM tests do not claim browser layout verification.
 
-- Server-to-Hyundai authentication, vehicle enrollment/status and physical control outcomes still need hosted acceptance testing. Previous physical confirmation of the original API recipes is not a new cloud verification.
-- Full authenticated Chromium integration could not run in this container: no browser executable was installed and the browser download returned an unusable archive. The Playwright test fixture is included for the next available browser environment. The cloud browser check covered only the public sign-in layout.
-- No Render CLI/API Blueprint validation was performed. YAML parsing and documented field inspection are distinct from platform acceptance.
-
-## Next verification
-
-Sign in to the live service, connect to the real Hyundai account inside the protected page, and verify enrollment and cached status before any individually requested vehicle command. The site can accept runtime account details, so no Hyundai credentials need to be supplied in this conversation or placed in the repository.
+Real Render-to-Hyundai authentication, enrollment/status and physical control outcomes remain account-holder acceptance checks. Configure account credentials in Render Environment settings or enter them inside the authorized page. Verify vehicle and cached status before an individually requested car command.

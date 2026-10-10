@@ -63,7 +63,11 @@ def csrf(client):
 
 
 def post(client, path, data=None, **kwargs):
-    return client.post(path, json=data or {}, headers={"X-CSRF-Token": csrf(client)}, **kwargs)
+    headers = {"X-CSRF-Token": csrf(client)}
+    if path in {"/api/prepare", "/api/command", "/api/resolve"}:
+        headers["X-Command-Password"] = "long-test-passphrase"
+    headers.update(kwargs.pop("headers", {}))
+    return client.post(path, json=data or {}, headers=headers, **kwargs)
 
 
 def connect(client):
@@ -92,12 +96,36 @@ def test_gate_blocks_control_markup_assets_and_every_api(web):
     assert FakeHyundai.instances == []
 
 
-def test_setup_missing_or_short_password_fails_closed():
-    app = create_app({"TESTING": True, "SECRET_KEY": "x" * 32, "WEBSITE_PASSWORD": "1234", "REQUIRE_HTTPS": False}, FakeHyundai)
+@pytest.mark.parametrize("secret,password", [("x" * 32, ""), ("", "synthetic"), ("too-short", "synthetic")])
+def test_setup_missing_password_or_signing_secret_fails_closed(secret, password):
+    app = create_app({"TESTING": True, "SECRET_KEY": secret, "WEBSITE_PASSWORD": password, "REQUIRE_HTTPS": False}, FakeHyundai)
     client = app.test_client()
     assert client.get("/").status_code == 503
     assert client.get("/static/app.js").status_code == 503
     assert client.get("/healthz").json == {"status": "ok", "configured": False}
+
+
+def test_nonempty_website_password_is_valid_configuration():
+    app = create_app({"TESTING": True, "SECRET_KEY": "x" * 32, "WEBSITE_PASSWORD": "fake6!", "REQUIRE_HTTPS": False}, FakeHyundai)
+    assert app.test_client().get("/").status_code == 200
+    assert app.test_client().get("/healthz").json == {"status": "ok", "configured": True}
+
+
+@pytest.mark.parametrize("path,body", [
+    ("/api/prepare", {"action": "unlock", "confirmed": True}),
+    ("/api/command", {"request_id": "synthetic-request"}),
+    ("/api/resolve", {"acknowledged": True}),
+])
+@pytest.mark.parametrize("password", [None, "wrong"])
+def test_logged_in_session_does_not_replace_fresh_command_password(web, path, body, password):
+    app, client = web
+    ready(client)
+    headers = {"X-CSRF-Token": csrf(client)}
+    if password is not None:
+        headers["X-Command-Password"] = password
+    response = client.post(path, json=body, headers=headers)
+    assert response.status_code == 401
+    assert FakeHyundai.instances[-1].commands == []
 
 
 def test_login_needs_csrf_and_rate_limits_global(web):

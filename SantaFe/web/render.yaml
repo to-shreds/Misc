@@ -14,3 +14,5 @@ services:
         generateValue: true
       - key: WEBSITE_PASSWORD
         sync: false
+      - key: WEB_ORIGIN
+        value: https://to-shreds.github.io

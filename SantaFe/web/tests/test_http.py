@@ -51,12 +51,17 @@ def test_real_http_gate_cookies_assets_and_one_complete_fake_command():
         csrf = re.search(r'name="csrf" value="([^"]+)"', html).group(1)
         login = urllib.request.Request(base + "/login", data=urllib.parse.urlencode({"csrf": csrf, "password": "synthetic-http-password"}).encode())
         protected_html = opener.open(login).read().decode()
-        csrf = re.search(r'name="csrf-token" content="([^"]+)"', protected_html).group(1)
+        assert "/static/app.js" in protected_html
+        session_cookie = next(cookie for cookie in jar if cookie.name == app.config["SESSION_COOKIE_NAME"])
+        csrf = app.session_interface.get_signing_serializer(app).loads(session_cookie.value)["csrf"]
         assert opener.open(base + "/static/app.js").status == 200
 
-        def post(path, body):
+        def post(path, body, command_password=True):
+            headers = {"Content-Type": "application/json", "X-CSRF-Token": csrf, "Origin": base}
+            if command_password and path in {"/api/prepare", "/api/command", "/api/resolve"}:
+                headers["X-Command-Password"] = "synthetic-http-password"
             request = urllib.request.Request(base + path, data=json.dumps(body).encode(),
-                                             headers={"Content-Type": "application/json", "X-CSRF-Token": csrf, "Origin": base})
+                                             headers=headers)
             return json.load(opener.open(request))
 
         connected = post("/api/connect", {"email": "synthetic@example.test", "password": "synthetic-upstream", "pin": "1234"})
@@ -64,6 +69,12 @@ def test_real_http_gate_cookies_assets_and_one_complete_fake_command():
         post("/api/resolve", {"acknowledged": True})
         prepared = post("/api/prepare", {"action": "lock", "confirmed": True})
         assert any(cookie.name == "sf_command_guard" for cookie in jar)
+        assert not FakeHyundai.instances[-1].commands
+        try:
+            post("/api/command", {"request_id": prepared["request_id"]}, command_password=False)
+            raise AssertionError("A login cookie replaced the fresh command password")
+        except urllib.error.HTTPError as error:
+            assert error.code == 401
         assert not FakeHyundai.instances[-1].commands
         submitted = post("/api/command", {"request_id": prepared["request_id"]})
         assert submitted["command"]["state"] == "pending"
