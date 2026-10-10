@@ -1,6 +1,16 @@
 # Santa Fe handoff
 
-## Current state
+## Selected backup web architecture, 2026-10-10
+
+Jon wants a web control page that works without his phone, Join or Tasker. He selected Render's free web service because this is occasional emergency backup access; approximately one minute of cold-start delay is acceptable. Do not upgrade to paid hosting merely to remove that delay.
+
+Proposed flow: authenticated browser page -> restricted Render backend -> the previously confirmed Hyundai USA API recipes. Hosting both page and backend together is the simplest starting point. Hyundai account credentials belong in protected server-side settings, outside git, browser storage and logs. An idle shutdown can discard in-memory Hyundai tokens; the backend should establish a fresh session when needed. Opening or waking the page must not submit a vehicle command.
+
+The free backend is selected but has not been implemented, deployed or tested. Server-to-Hyundai authentication and cached-status access remain unverified. The next implementation milestone is a minimal read-only cloud proof using the existing recipes before rebuilding the controls. Preserve the existing APKs, Tasker projects and working request recipes. Backend authentication, restart-safe handling of ambiguous commands, and actual command completion still need implementation and verification; a timeout must never cause a blind resubmission.
+
+Jon reports that the old end-to-end web-to-Tasker version never reliably worked. Earlier source/UI tests and individual working Hyundai calls do not establish that full chain's usability. The legacy implementation below is retained for reference.
+
+## Preserved phone implementation
 
 Santa Fe Direct 1.2.0 implements Jon's browser-to-Join-to-phone architecture. GitHub Pages serves the controller at lowercase santafe/. The browser sends one Join push; Tasker on the phone executes the existing Hyundai USA API calls using its saved account. Amazfit is explicitly a separate future project and has no task, page or app in this release.
 
@@ -83,6 +93,6 @@ No guessed endpoints, challenge bypass, public credential relay, Termux:Tasker, 
 
 ## Next action
 
-Import Santa_Fe_Direct_1_2_0_JOIN_HTML.prj.xml, run SFD Verify Actions, then SFD Open. Check saved account settings. Enable Join commands on the phone, save the Join link once on the website, and use Test connection before a control. This offline ping operates no car. View execution results on the phone. Use manual Read car GPS before opting into periodic checks. No extra export, APK linkage or Amazfit work is required.
+Prepare a minimal free Render backend and verify Hyundai login, vehicle enrollment and cached status from that deployment. Do not claim the new phone-independent web version works until the hosted path is tested. No hosted code or deployment was created at this architecture-selection benchmark.
 
 Preserve API Lab assets/APKs, prior named downloads, bridge/simulator and unrelated projects. Keep phone HTML bundled locally and logs free of secrets/coordinates. Keep source/fixture evidence separate from account-holder physical confirmation.
