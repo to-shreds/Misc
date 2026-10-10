@@ -13,9 +13,19 @@ Date: October 10, 2026. Revision: public GitHub Pages frontend plus Free Render 
 - JavaScript syntax, Gunicorn configuration and generated index/template agreement pass. The Blueprint parses and adds only the exact GitHub frontend Origin to the existing Free service.
 - The optional Playwright fixture now serves public frontend assets locally and rewrites the backend URL to its synthetic server, with no external requests permitted.
 
-## Deployment and acceptance
+## Hosted deployment passed
 
-The prior same-origin Render build passed 17 hosted HTTPS checks and a public sign-in browser inspection. Those checks covered the earlier page-password gate and do not establish this revised cross-domain command flow. The revised frontend/backend now need their hosted checks after publication.
+Verified October 10, 2026.
+
+The revised frontend is live at https://to-shreds.github.io/Misc/SantaFe/web/. GitHub Pages run 38080938981 completed successfully on code commit 55ff968cbc37e1d38a757fd424772216333ee713. Render deployment dep-db59aqcs728c73ca3tv0 is live on that same commit, still on the Free plan in Virginia with automatic deployments disabled.
+
+20 hosted HTTPS checks passed: public page/assets without embedded secrets, minimal public backend information, exact GitHub CORS/preflight, foreign-Origin rejection, blocked unauthenticated state, incorrect-password rejection, correct configured-password authorization without cookies, authorized cached state, read-token-only denial of prepare/command/resolve, incorrect fresh-command-password rejection, retained read access after that error, and refusal to execute an unprepared command. These checks sent no Hyundai request and no vehicle command.
+
+An independent public review confirmed page/asset availability, absence of embedded credentials, minimal setup information, CORS, and both web/legacy unauthorized state rejection. A cloud browser showed the public GitHub controls with readable styling, private status hidden, and connection available after Render woke.
+
+The backend reports saved_account_available:false and connected:false. Hyundai email/password/PIN still need one-time private configuration or authorized runtime entry.
+
+## Not verified
 
 No Render CLI/API Blueprint validation was performed. Full authenticated Chromium integration could not run in this container because no browser executable is installed and its prior download was unusable. DOM tests do not claim browser layout verification.
 
