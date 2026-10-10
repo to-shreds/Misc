@@ -35,6 +35,7 @@ h2 { font-size: 19px; font-weight: 650; letter-spacing: -.025em; }
 .metric-label { color: #91aab6; font-size: 10px; display: block; margin-bottom: 7px; }
 .status-grid strong { display: block; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
 .status-footer { display: flex; justify-content: space-between; align-items: center; gap: 9px; padding-top: 17px; margin-top: 15px; border-top: 1px solid #36505c; font-size: 10px; color: #91aab6; }
+.status-note { margin-top: 10px; color: #91aab6; font-size: 11px; line-height: 1.5; }
 .text-button.small { font-size: 10px; min-height: 28px; padding: 2px 0 2px 5px; }
 .text-button.small .icon { width: 14px; height: 14px; }
 .card { border: 1px solid var(--border); border-radius: 18px; background: #14232f; padding: 23px; margin-bottom: 20px; }

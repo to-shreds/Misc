@@ -27,6 +27,12 @@
   let sessionToken = "";
   let publicInfo = { configured: false, saved_account_available: false };
   let accessPurpose = "connect";
+  let publicStatus = { availability: "loading", vehicle: null, status: null };
+  let publicStatusLoading = false;
+  let publicStatusSequence = 0;
+  let privateStatusVersion = 0;
+  let privateStatusSignature = "";
+  let statusSource = "public";
 
   function readMarker() {
     try {
@@ -71,8 +77,9 @@
   }
 
   async function api(path, method = "POST", body = {}, extraHeaders = {}) {
+    const publicRoute = path === "/api/web/info" || path === "/api/web/public-status";
     const abort = new AbortController();
-    const timeout = setTimeout(() => abort.abort(), 90000);
+    const timeout = setTimeout(() => abort.abort(), path === "/api/web/public-status" ? 180000 : 90000);
     const options = {
       method,
       credentials: "omit",
@@ -80,8 +87,8 @@
       signal: abort.signal,
       headers: {
         "Accept": "application/json",
-        ...(sessionToken ? { "X-Web-Session": sessionToken } : {}),
-        ...(marker && marker.command_guard ? { "X-Command-Guard": marker.command_guard } : {}),
+        ...(!publicRoute && sessionToken ? { "X-Web-Session": sessionToken } : {}),
+        ...(!publicRoute && marker && marker.command_guard ? { "X-Command-Guard": marker.command_guard } : {}),
         ...extraHeaders
       }
     };
@@ -98,7 +105,7 @@
         throw new Error("The service did not return a result. Please check your connection.");
       }
       if (!response.ok || data.ok === false) {
-        if (response.status === 401 && path !== "/api/web/session" && data.code !== "command_password_required") forgetAccess();
+        if (response.status === 401 && !publicRoute && path !== "/api/web/session" && data.code !== "command_password_required") forgetAccess();
         const error = new Error(errorText(data, "The request could not be completed."));
         error.data = data;
         error.status = response.status;
@@ -117,6 +124,12 @@
     const candidate = data && typeof data.state === "object" ? data.state : data;
     if (candidate && (Object.hasOwn(candidate, "connected") || Object.hasOwn(candidate, "command") || Object.hasOwn(candidate, "requires_resolution"))) {
       state = candidate;
+      const signature = JSON.stringify(candidate.status || null);
+      if (candidate.status && signature !== privateStatusSignature) {
+        privateStatusSignature = signature;
+        privateStatusVersion += 1;
+        statusSource = "private";
+      }
       render();
       schedulePoll();
       return true;
@@ -135,6 +148,7 @@
 
   function forgetAccess() {
     sessionToken = "";
+    statusSource = "public";
     byId("account-email").value = "";
     byId("account-password").value = "";
     byId("account-pin").value = "";
@@ -142,6 +156,34 @@
     pollTimer = null;
     state = publicState();
     render();
+  }
+
+  async function refreshPublicStatus() {
+    if (publicStatusLoading) return;
+    const sequence = ++publicStatusSequence;
+    const privateVersionAtStart = privateStatusVersion;
+    publicStatusLoading = true;
+    render();
+    try {
+      const data = await api("/api/web/public-status", "GET");
+      if (sequence !== publicStatusSequence) return;
+      const ready = data.availability === "ready" && data.status && typeof data.status === "object";
+      publicStatus = {
+        availability: ready ? "ready" : (data.availability === "unavailable" ? "unavailable" : "error"),
+        vehicle: data.vehicle && typeof data.vehicle.name === "string" ? { name: data.vehicle.name } : null,
+        status: ready ? data.status : null
+      };
+      if (privateStatusVersion === privateVersionAtStart) statusSource = "public";
+    } catch (_) {
+      if (sequence !== publicStatusSequence) return;
+      publicStatus = { availability: "error", vehicle: null, status: null };
+      if (privateStatusVersion === privateVersionAtStart) statusSource = "public";
+    } finally {
+      if (sequence === publicStatusSequence) {
+        publicStatusLoading = false;
+        render();
+      }
+    }
   }
 
   async function authorize(password) {
@@ -198,21 +240,27 @@
     const accountConnected = authorized && Boolean(state.connected);
     const connected = accountConnected && Boolean(state.vehicle);
     const info = commandInfo();
-    const vehicle = state.vehicle || {};
-    const status = state.status || {};
+    const privateStatusVisible = connected && statusSource === "private" && Boolean(state.status);
+    const vehicle = (connected ? state.vehicle : publicStatus.vehicle) || {};
+    const status = (privateStatusVisible ? state.status : publicStatus.status) || {};
+    const statusReady = privateStatusVisible || publicStatus.availability === "ready";
+    const loadingWithoutStatus = publicStatusLoading && !statusReady;
+    const placeholder = loadingWithoutStatus ? "Loading…" : "Unavailable";
     const vehicleName = vehicle.name || [vehicle.year, vehicle.model].filter(Boolean).join(" ") || "Santa Fe";
     byId("vehicle-name").textContent = vehicleName;
-    byId("connection-label").textContent = connected ? "Connected" : (accountConnected ? "Choose vehicle" : (authorized ? "Disconnected" : (busy === "wake" ? "Waking service" : "Private access")));
+    byId("connection-label").textContent = connected ? "Connected" : (accountConnected ? "Choose vehicle" : (loadingWithoutStatus ? "Loading status" : (statusReady ? "Cached status" : "Unavailable")));
     byId("connection-pill").classList.toggle("connected", connected);
-    byId("vehicle-detail").textContent = connected ? (vehicle.vin_last4 ? `VIN ending ${vehicle.vin_last4}` : "Bluelink account connected") : (accountConnected ? "Select a vehicle below" : (authorized ? "Connect your account to reach the car" : "Enter your website password to connect"));
-    byId("status-grid").hidden = !connected;
-    byId("status-footer").hidden = !connected;
-    byId("status-lock").textContent = boolText(firstValue(status, ["locked", "door_locked", "doorLock"]), "Locked", "Unlocked");
-    byId("status-engine").textContent = boolText(firstValue(status, ["engine_running", "engine_on", "engine"]), "Running", "Off");
-    byId("status-fuel").textContent = numberText(firstValue(status, ["fuel_percent", "fuel_level", "fuelLevel"]), "%");
+    byId("vehicle-detail").textContent = connected ? (vehicle.vin_last4 ? `VIN ending ${vehicle.vin_last4}` : "Bluelink account connected") : (accountConnected ? "Select a vehicle below" : "Status loads without a password. Commands require one.");
+    byId("status-grid").hidden = false;
+    byId("status-footer").hidden = false;
+    byId("status-lock").textContent = statusReady ? boolText(firstValue(status, ["locked", "door_locked", "doorLock"]), "Locked", "Unlocked") : placeholder;
+    byId("status-engine").textContent = statusReady ? boolText(firstValue(status, ["engine_running", "engine_on", "engine"]), "Running", "Off") : placeholder;
+    byId("status-fuel").textContent = statusReady ? numberText(firstValue(status, ["fuel_percent", "fuel_level", "fuelLevel"]), "%") : placeholder;
     const unit = status.odometer_unit ? ` ${String(status.odometer_unit)}` : "";
-    byId("status-odometer").textContent = numberText(firstValue(status, ["odometer", "odometer_value"]), unit);
-    byId("status-time").textContent = formattedTime(firstValue(status, ["updated_at", "last_updated", "timestamp"]));
+    byId("status-odometer").textContent = statusReady ? numberText(firstValue(status, ["odometer", "odometer_value"]), unit) : placeholder;
+    byId("status-time").textContent = statusReady ? `Cached · ${formattedTime(firstValue(status, ["updated_at", "last_updated", "timestamp"]))}` : (loadingWithoutStatus ? "Loading status…" : "Status unavailable");
+    byId("status-note").hidden = statusReady && !publicStatusLoading;
+    byId("status-note").textContent = publicStatusLoading ? "Loading status. The service may take about a minute to wake up." : (publicStatus.availability === "error" ? "Could not load status. Refresh to try again." : "Status is not available right now.");
     byId("connection-panel").hidden = connected;
     byId("controls-panel").hidden = false;
     byId("access-button").textContent = authorized ? "Forget access" : "Connect";
@@ -223,7 +271,7 @@
     const vehicles = Array.isArray(state.vehicles) ? state.vehicles : [];
     const chooseVehicle = accountConnected && !connected && vehicles.length > 0;
     byId("connection-title").textContent = !authorized ? "Private car access" : (chooseVehicle ? "Choose your vehicle" : "Connect your Bluelink account");
-    byId("connection-description").textContent = !authorized ? "The page is public. Vehicle details and commands require your website password." : (chooseVehicle ? "Select the car you want to control." : "Reconnect here if your account session has cleared.");
+    byId("connection-description").textContent = !authorized ? "Status is shown above. Enter your website password to connect the car controls." : (chooseVehicle ? "Select the car you want to control." : "Reconnect here if your account session has cleared.");
     byId("vehicle-select-form").hidden = !chooseVehicle;
     byId("connect-form").hidden = !authorized || chooseVehicle;
     if (chooseVehicle) {
@@ -239,13 +287,14 @@
       if ([...select.options].some((option) => option.value === previous)) select.value = previous;
     }
     document.querySelectorAll("[data-action]").forEach((button) => { button.disabled = Boolean(busy || info.pending || info.unresolved || !connected); });
-    ["refresh-status", "connect-button", "connect-saved", "access-button"].forEach((id) => { byId(id).disabled = Boolean(busy); });
+    ["connect-button", "connect-saved", "access-button"].forEach((id) => { byId(id).disabled = Boolean(busy); });
+    byId("refresh-status").disabled = publicStatusLoading;
     byId("disconnect-button").disabled = Boolean(busy || info.pending);
     byId("disconnect-button").hidden = !accountConnected;
     byId("resolve-command").disabled = Boolean(busy);
     byId("connect-button").textContent = busy === "connect" ? "Connecting…" : "Connect to car";
     byId("connect-saved").textContent = busy === "saved" ? "Connecting…" : "Use saved Bluelink account";
-    byId("refresh-status").lastChild.textContent = busy === "status" ? "Checking…" : "Refresh status";
+    byId("refresh-status").lastChild.textContent = publicStatusLoading ? "Checking…" : "Refresh status";
     renderCommand(info);
   }
 
@@ -347,7 +396,7 @@
     const id = Number(byId("vehicle-select").value);
     if (Number.isInteger(id)) ordinaryRequest("select", "/api/web/select", { vehicle_id: id });
   });
-  byId("refresh-status").addEventListener("click", () => ordinaryRequest("status", "/api/web/status", {}));
+  byId("refresh-status").addEventListener("click", refreshPublicStatus);
   byId("disconnect-button").addEventListener("click", () => {
     if (state && !commandInfo().pending) ordinaryRequest("disconnect", "/api/web/disconnect", {});
   });
@@ -509,12 +558,13 @@
     busy = "wake";
     render();
     showMessage("Waking the service. This can take about a minute.", "info");
+    refreshPublicStatus();
     try {
       publicInfo = await api("/api/web/info", "GET");
       state = publicState();
       showMessage(publicInfo.configured ? "" : "The service still needs its private settings. Car commands are unavailable.");
     } catch (error) {
-      showMessage("Could not reach the service. Check your connection and reload the page.");
+      showMessage("Could not check access for car commands. Reload the page to reconnect.");
     } finally {
       busy = "";
       render();

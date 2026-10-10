@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#0c1721">
   <meta name="backend-url" content="https://santa-fe-emergency.onrender.com">
   <title>Santa Fe · Emergency controls</title>
-  <link rel="stylesheet" href="./static/style.css?v=2">
-  <script src="./static/app.js?v=2" defer></script>
+  <link rel="stylesheet" href="./static/style.css?v=3">
+  <script src="./static/app.js?v=3" defer></script>
 </head>
 <body>
   <svg class="icon-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -29,14 +29,15 @@
     </header>
 
     <section class="vehicle-panel" aria-label="Vehicle connection">
-      <div class="vehicle-top"><div><p class="eyebrow">Your vehicle</p><h2 id="vehicle-name">Santa Fe</h2><p id="vehicle-detail" class="muted compact">Enter your password with each car command.</p></div><span id="connection-pill" class="pill"><span class="dot"></span><span id="connection-label">Checking service</span></span></div>
-      <div id="status-grid" class="status-grid" hidden>
-        <div><span class="metric-label">Doors</span><strong id="status-lock">Unknown</strong></div>
-        <div><span class="metric-label">Engine</span><strong id="status-engine">Unknown</strong></div>
-        <div><span class="metric-label">Fuel</span><strong id="status-fuel">Unknown</strong></div>
-        <div><span class="metric-label">Odometer</span><strong id="status-odometer">Unknown</strong></div>
+      <div class="vehicle-top"><div><p class="eyebrow">Your vehicle</p><h2 id="vehicle-name">Santa Fe</h2><p id="vehicle-detail" class="muted compact">Status loads automatically.</p></div><span id="connection-pill" class="pill"><span class="dot"></span><span id="connection-label">Loading status</span></span></div>
+      <div id="status-grid" class="status-grid" aria-live="polite">
+        <div><span class="metric-label">Doors</span><strong id="status-lock">Loading…</strong></div>
+        <div><span class="metric-label">Engine</span><strong id="status-engine">Loading…</strong></div>
+        <div><span class="metric-label">Fuel</span><strong id="status-fuel">Loading…</strong></div>
+        <div><span class="metric-label">Odometer</span><strong id="status-odometer">Loading…</strong></div>
       </div>
-      <div id="status-footer" class="status-footer" hidden><span id="status-time">No recent status</span><button id="refresh-status" type="button" class="text-button small"><svg class="icon" aria-hidden="true"><use href="#icon-refresh"/></svg>Refresh status</button></div>
+      <div id="status-footer" class="status-footer"><span id="status-time">Loading status…</span><button id="refresh-status" type="button" class="text-button small"><svg class="icon" aria-hidden="true"><use href="#icon-refresh"/></svg>Refresh status</button></div>
+      <p id="status-note" class="status-note" role="status">The service may take about a minute to wake up.</p>
     </section>
 
     <div id="message" class="notice" role="status" hidden><svg class="icon" aria-hidden="true"><use href="#icon-alert"/></svg><p id="message-text"></p><button type="button" id="dismiss-message" class="notice-close" aria-label="Dismiss message">×</button></div>

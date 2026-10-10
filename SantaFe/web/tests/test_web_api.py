@@ -1,5 +1,6 @@
 """Public GitHub frontend protocol tests using a fake Hyundai client only."""
 import time
+import threading
 
 import pytest
 from itsdangerous import URLSafeSerializer
@@ -18,12 +19,14 @@ class FakeHyundai:
         self.commands = []
         self.email, self.password, self.pin = email, password, pin
         self.acknowledgments = 0
+        self.reads = 0
         type(self).instances.append(self)
 
     def connect(self):
         return {"vehicles": [{"id": "0", "label": "Santa Fe", "vin_suffix": "1234", "selected": True}]}
 
     def cached_status(self):
+        self.reads += 1
         return {"door_locked": True, "engine_running": False, "vehicle_timestamp": "20261010120000"}
 
     def command(self, action, pin=None):
@@ -288,3 +291,168 @@ def test_public_web_aliases_preserve_business_logic_and_state_privacy(web):
     assert post(client, "disconnect", token, guard=first["command_guard"]).status_code == 409
     assert post(client, "poll", token, guard=first["command_guard"]).status_code == 200
     assert post(client, "disconnect", token, guard=first["command_guard"]).status_code == 200
+
+
+def test_public_status_cold_start_is_read_only_and_keeps_startup_guard(web):
+    app, client = web
+    controller = app.extensions["controller"]
+    command_before = dict(controller.command)
+    response = client.get("/api/web/public-status", headers={"Origin": ORIGIN})
+    assert response.status_code == 200
+    assert response.json["availability"] == "ready"
+    assert response.json["vehicle"] == {"name": "Santa Fe"}
+    assert response.json["status"]["locked"] is True
+    assert response.headers["Access-Control-Allow-Origin"] == ORIGIN
+    assert "Set-Cookie" not in response.headers
+    assert controller.command == command_before
+    assert controller.seen == {}
+    assert len(FakeHyundai.instances) == 1
+    assert FakeHyundai.instances[-1].commands == []
+    assert FakeHyundai.instances[-1].reads == 1
+    assert FakeHyundai.instances[-1].acknowledgments == 0
+    assert client.get("/api/web/state", headers={"Origin": ORIGIN}).status_code == 401
+    assert post(client, "prepare", "missing-token", {"action": "unlock", "confirmed": True}, password=PASSWORD).status_code == 401
+
+
+def test_public_status_strips_identifiers_nested_fields_and_untyped_data(web):
+    app, client = web
+    assert client.get("/api/web/public-status").json["availability"] == "ready"
+    controller = app.extensions["controller"]
+    controller.vehicle = {"name": "Santa Fe", "vin_last4": "4321", "vin": "private-full-vin", "pin": "9999"}
+    controller.status.update({"location": {"latitude": 42, "longitude": 71}, "access_token": "private-token",
+                              "email": "private-person@example.invalid", "pin": "9999", "command": "unlock",
+                              "range": {"value": 250, "unit": 1, "latitude": 42, "password": "private-password"},
+                              "fuel_percent": "private-person@example.invalid", "battery_percent": float("nan")})
+    response = client.get("/api/web/public-status")
+    assert set(response.json) == {"availability", "vehicle", "status"}
+    assert response.json["vehicle"] == {"name": "Santa Fe"}
+    assert response.json["status"]["range"] == {"value": 250, "unit": 1}
+    assert response.json["status"]["fuel_percent"] is None
+    assert response.json["status"]["battery_percent"] is None
+    text = response.get_data(as_text=True)
+    for private in ["4321", "private-full-vin", "9999", "latitude", "longitude", "private-token", "private-person", "private-password", "command"]:
+        assert private not in text
+
+
+def test_public_status_reuses_five_second_cache_and_refreshes_read_only(web):
+    app, client = web
+    first = client.get("/api/web/public-status")
+    assert first.json["availability"] == "ready"
+    instance = FakeHyundai.instances[-1]
+    for _ in range(6):
+        assert client.get("/api/web/public-status").json == first.json
+    assert instance.reads == 1
+    controller = app.extensions["controller"]
+    controller.read_at -= 6
+    controller.public_read_at -= 6
+    assert client.get("/api/web/public-status").json["availability"] == "ready"
+    assert instance.reads == 2
+    assert len(FakeHyundai.instances) == 1
+    assert instance.commands == []
+
+
+@pytest.mark.parametrize("command_state", ["prepared", "pending"])
+def test_public_status_during_command_never_touches_hyundai_client(web, command_state):
+    app, client = web
+    assert client.get("/api/web/public-status").json["availability"] == "ready"
+    controller = app.extensions["controller"]
+    instance = controller.client
+    controller.read_at = controller.public_read_at = 0
+    controller.command = {"state": command_state, "request_id": "private-request", "owner": "private-owner",
+                          "transaction_id": "private-transaction", "action": "unlock"}
+    controller.seen = {"private-request": command_state}
+    before = dict(controller.command)
+    response = client.get("/api/web/public-status", headers={"X-Command-Guard": "tampered"})
+    assert response.json["availability"] == "ready"
+    assert controller.client is instance
+    assert instance.reads == 1
+    assert instance.commands == []
+    assert controller.command == before
+    assert controller.seen == {"private-request": command_state}
+    controller.status = None
+    assert client.get("/api/web/public-status").json["availability"] == "unavailable"
+    assert instance.reads == 1
+
+
+def test_public_status_missing_config_account_or_vehicle_is_unavailable():
+    settings = {"TESTING": True, "SECRET_KEY": SECRET, "WEBSITE_PASSWORD": PASSWORD, "REQUIRE_HTTPS": False,
+                "HYUNDAI_EMAIL": "", "HYUNDAI_PASSWORD": "", "HYUNDAI_PIN": ""}
+    app = create_app(settings, FakeHyundai)
+    assert app.test_client().get("/api/web/public-status").json == {
+        "availability": "unavailable", "vehicle": None, "status": None,
+        "message": "Vehicle status is unavailable until the saved account is configured."}
+    settings["WEBSITE_PASSWORD"] = ""
+    unconfigured = create_app(settings, FakeHyundai)
+    assert unconfigured.test_client().get("/api/web/public-status").json["availability"] == "unavailable"
+
+    class MultipleHyundai(FakeHyundai):
+        def connect(self):
+            return {"vehicles": [{"id": "0", "label": "Santa Fe", "selected": False},
+                                 {"id": "1", "label": "Other Hyundai", "selected": False}]}
+    settings.update(WEBSITE_PASSWORD=PASSWORD, HYUNDAI_EMAIL="saved@example.invalid", HYUNDAI_PASSWORD="private-account-secret")
+    multiple = create_app(settings, MultipleHyundai)
+    response = multiple.test_client().get("/api/web/public-status")
+    assert response.json["availability"] == "unavailable"
+    assert response.json["vehicle"] is None
+    assert response.json["status"] is None
+    assert multiple.extensions["controller"].client.reads == 0
+
+
+def test_public_status_errors_are_generic_cached_and_preserve_existing_state(web):
+    app, client = web
+    token = ready(client)
+    controller = app.extensions["controller"]
+    instance = controller.client
+    original_command = dict(controller.command)
+    controller.read_at = 0
+    def fail_read():
+        instance.reads += 1
+        raise RuntimeError("private-token private-password private-vin")
+    instance.cached_status = fail_read
+    response = client.get("/api/web/public-status")
+    assert response.json == {"availability": "error", "vehicle": None, "status": None,
+                             "message": "Vehicle status could not be read. Try again later."}
+    for _ in range(3):
+        assert client.get("/api/web/public-status").json == response.json
+    assert instance.reads == 2
+    assert controller.client is instance
+    assert controller.command == original_command
+    assert controller.status is not None
+    assert "private" not in response.get_data(as_text=True)
+
+
+def test_public_status_rejects_unlisted_origin_before_any_car_read(web):
+    app, client = web
+    response = client.get("/api/web/public-status", headers={"Origin": "https://evil.example.invalid"})
+    assert response.status_code == 403
+    assert "Access-Control-Allow-Origin" not in response.headers
+    assert FakeHyundai.instances == []
+    assert client.get("/api/web/public-status", headers={"Origin": "http://localhost"}).status_code == 200
+
+
+def test_concurrent_public_status_loads_share_one_cold_start_read():
+    reading = threading.Event()
+    release = threading.Event()
+    class SlowHyundai(FakeHyundai):
+        def cached_status(self):
+            reading.set()
+            assert release.wait(2)
+            return super().cached_status()
+    settings = {"TESTING": True, "SECRET_KEY": SECRET, "WEBSITE_PASSWORD": PASSWORD, "REQUIRE_HTTPS": False,
+                "HYUNDAI_EMAIL": "saved@example.invalid", "HYUNDAI_PASSWORD": "private-account-secret", "HYUNDAI_PIN": "1234"}
+    app = create_app(settings, SlowHyundai)
+    results = []
+    def load():
+        results.append(app.test_client().get("/api/web/public-status").json)
+    first = threading.Thread(target=load)
+    second = threading.Thread(target=load)
+    first.start()
+    assert reading.wait(2)
+    second.start()
+    release.set()
+    first.join(2)
+    second.join(2)
+    assert not first.is_alive() and not second.is_alive()
+    assert len(results) == 2 and all(result["availability"] == "ready" for result in results)
+    assert app.extensions["controller"].client.reads == 1
+    assert app.extensions["controller"].client.commands == []

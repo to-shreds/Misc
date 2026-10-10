@@ -44,7 +44,13 @@ async function fixture(options = {}) {
   let hasSession = false;
   let activeGuard = null;
   const pollResults = [...(options.pollResults || [])];
+  const publicStatusResults = [...(options.publicStatusResults || [])];
   const errors = [];
+  let releaseInfo;
+  let releasePublicStatus;
+  const infoGate = options.delayInfo ? new Promise((resolve) => { releaseInfo = resolve; }) : null;
+  const publicStatusGate = options.delayPublicStatus ? new Promise((resolve) => { releasePublicStatus = resolve; }) : null;
+  const defaultPublicStatus = { availability: "ready", vehicle: { name: "2026 Santa Fe" }, status: vehicleState().status };
 
   w.AbortController = AbortController;
   w.setTimeout = (fn, delay) => { const id = ++nextTimer; timers.set(id, { fn, delay }); return id; };
@@ -65,7 +71,17 @@ async function fixture(options = {}) {
     if (pathname === "/api/web/info") {
       equal(request.method, "GET", "Public information is read only");
       ok(!call.headers["X-Web-Session"] && !call.headers["X-Command-Password"], "Public load sends no credentials");
+      if (infoGate) await infoGate;
+      if (options.infoError) throw new Error("Info network unavailable");
       return reply({ configured: true, saved_account_available: Boolean(options.savedAccount) });
+    }
+    if (pathname === "/api/web/public-status") {
+      equal(request.method, "GET", "Password-free status is read only");
+      ok(!body && !call.headers["X-Command-Password"], "Password-free status sends no password or command body");
+      ok(!call.headers["X-Web-Session"] && !call.headers["X-Command-Guard"], "Public status never sends private access or a command guard");
+      if (publicStatusGate) await publicStatusGate;
+      if (options.publicStatusError) throw new Error("Public status network unavailable");
+      return reply(publicStatusResults.shift() || options.publicStatus || defaultPublicStatus);
     }
     if (pathname === "/api/web/session") {
       if (body.password !== PASSWORD) return reply({ ok: false, error: "Incorrect website password" }, 401);
@@ -183,13 +199,102 @@ async function fixture(options = {}) {
   w.eval(source);
   await settle();
   return { w, calls, timers, id, action, count, click, submit, escape, authorize, connect, resolve, ready, command, runTimer, storageSafe, settle,
+    releaseInfo: async () => { if (releaseInfo) releaseInfo(); await settle(); },
+    releasePublicStatus: async () => { if (releasePublicStatus) releasePublicStatus(); await settle(); },
     finish: () => { equal(errors, [], "Actual frontend throws no DOM errors"); dom.window.close(); scenarios += 1; } };
 }
 
 (async () => {
   {
+    const f = await fixture({ delayInfo: true, delayPublicStatus: true });
+    equal(f.count("/api/web/info"), 1, "Initialization starts access-information request");
+    equal(f.count("/api/web/public-status"), 1, "Initialization independently starts password-free status request");
+    for (const metric of ["status-lock", "status-engine", "status-fuel", "status-odometer"]) {
+      equal(f.id(metric).textContent, "Loading…", "The public metric visibly loads until its status response arrives");
+    }
+    ok(!f.id("status-grid").hidden && !f.id("status-footer").hidden, "Loading metrics are visible without authorization");
+    ok(!f.id("status-note").hidden && f.id("status-note").textContent.includes("Loading"), "Loading status explains the service may wake up");
+    ok(f.id("refresh-status").disabled, "An in-flight status read disables duplicate refreshes");
+    await f.releaseInfo();
+    equal(f.id("status-lock").textContent, "Loading…", "Early access-information response cannot end status loading");
+    await f.releasePublicStatus();
+    equal(f.id("status-lock").textContent, "Locked", "Late public response renders the cached doors state");
+    equal(f.id("status-engine").textContent, "Off", "Public response renders the cached engine state");
+    equal(f.id("status-fuel").textContent, "55%", "Public response renders the cached fuel value");
+    equal(f.id("status-odometer").textContent, "101", "Public response renders the cached odometer without guessing a unit");
+    ok(f.id("status-time").textContent.includes("Cached") && f.id("status-time").textContent.includes("2026-10-10 15:00:00"), "Public status clearly labels Hyundai's cached timestamp");
+    ok(f.id("status-note").hidden, "Ready status ends the loading notice");
+    equal(f.count("/api/web/session"), 0, "Cached status displays without password authorization");
+    ok(f.action("unlock").disabled, "Public status cannot unlock command authorization");
+    f.storageSafe();
+    f.finish();
+  }
+  {
+    const f = await fixture({ delayInfo: true });
+    equal(f.id("status-lock").textContent, "Locked", "A fast status response displays while access information is still pending");
+    equal(f.id("status-fuel").textContent, "55%", "Access-information delay never blocks public fuel status");
+    await f.releaseInfo();
+    equal(f.id("status-lock").textContent, "Locked", "Late access-information response cannot erase cached public status");
+    ok(f.action("lock").disabled, "Public status never grants command access");
+    f.finish();
+  }
+  {
+    const f = await fixture({ infoError: true });
+    equal(f.id("status-lock").textContent, "Locked", "Access-information failure does not discard successful public status");
+    ok(!f.id("status-grid").hidden, "Cached status remains visible after an unrelated information error");
+    ok(f.id("message-text").textContent.includes("car commands"), "Information failure is scoped to command access");
+    equal(f.count("/api/web/session"), 0, "Information failure does not trigger automatic password authorization");
+    f.finish();
+  }
+  for (const options of [
+    { publicStatus: { availability: "unavailable", vehicle: null, status: null } },
+    { publicStatus: { availability: "error", vehicle: null, status: null } },
+    { publicStatusError: true }
+  ]) {
+    const f = await fixture(options);
+    equal(f.id("status-lock").textContent, "Unavailable", "Unavailable or failed public status renders an explicit placeholder");
+    equal(f.id("status-time").textContent, "Status unavailable", "Unavailable status has no fabricated cached timestamp");
+    ok(!f.id("status-note").hidden, "Public status failure or unavailability has visible feedback");
+    if (options.publicStatus?.availability === "unavailable") ok(f.id("status-note").textContent.includes("not available"), "Missing configured account is presented as unavailable");
+    else ok(f.id("status-note").textContent.includes("Could not load"), "Failed public status read offers a refresh retry");
+    ok(!f.id("refresh-status").disabled, "A completed failed read allows manual password-free refresh");
+    ok(f.action("unlock").disabled, "Unavailable status cannot enable car commands");
+    equal(f.count("/api/web/session"), 0, "Public failure asks for no automatic password authorization");
+    f.finish();
+  }
+  {
+    const initial = { availability: "ready", vehicle: { name: "2026 Santa Fe" }, status: vehicleState().status };
+    const newer = { availability: "ready", vehicle: { name: "2026 Santa Fe" }, status: { locked: false, engine_running: true, fuel_percent: 20, odometer: 105, updated_at: "20261010150500" } };
+    const f = await fixture({ publicStatusResults: [initial, newer] });
+    equal(f.id("status-lock").textContent, "Locked", "Initial password-free read displays its actual response");
+    await f.click("refresh-status");
+    equal(f.count("/api/web/public-status"), 2, "Public refresh performs another read-only status request");
+    equal(f.id("status-lock").textContent, "Unlocked", "Public refresh renders the latest cached doors response");
+    equal(f.id("status-engine").textContent, "Running", "Public refresh renders the latest cached engine response");
+    equal(f.id("status-fuel").textContent, "20%", "Public refresh renders the latest cached fuel response");
+    equal(f.count("/api/web/session"), 0, "Public refresh never asks for a website password");
+    ok(!f.id("access-dialog").hasAttribute("open"), "Public refresh opens no password dialog");
+    ok(f.action("lock").disabled, "A refreshed public result cannot authorize commands");
+    f.storageSafe();
+    f.finish();
+    const reload = await fixture({ publicStatus: newer });
+    equal(reload.count("/api/web/public-status"), 1, "A fresh page load always fetches status again");
+    equal(reload.id("status-lock").textContent, "Unlocked", "Reload renders current cached Hyundai response without prior authorization");
+    equal(reload.count("/api/web/session"), 0, "Reload does not reuse private authorization");
+    reload.finish();
+  }
+  {
+    const f = await fixture({ delayPublicStatus: true, publicStatus: { availability: "ready", vehicle: { name: "Santa Fe" }, status: { locked: false, fuel_percent: 5, updated_at: "20261010000000" } } });
+    await f.ready();
+    equal(f.id("status-fuel").textContent, "55%", "Connected private response can render while public read remains pending");
+    await f.releasePublicStatus();
+    equal(f.id("status-fuel").textContent, "55%", "An earlier in-flight public read cannot overwrite a newer private status response");
+    f.storageSafe();
+    f.finish();
+  }
+  {
     const f = await fixture();
-    equal(f.calls.map((call) => call.path), ["/api/web/info"], "A public page requests only non-sensitive availability");
+    equal(f.calls.map((call) => call.path).sort(), ["/api/web/info", "/api/web/public-status"].sort(), "A public page requests availability and read-only car status");
     ok(!f.id("controls-panel").hidden, "The public control page is visible");
     ok(f.id("connect-form").hidden, "Private account form starts hidden");
     for (const button of f.w.document.querySelectorAll("[data-action]")) ok(button.disabled, "Public commands start disabled");
@@ -205,7 +310,7 @@ async function fixture(options = {}) {
     await f.submit("access-form");
     equal(f.id("access-password").value, "", "Rejected access password is cleared");
     ok(f.id("connect-form").hidden, "Rejected access does not reveal the private account form");
-    equal(f.calls.filter((call) => !["/api/web/info", "/api/web/session"].includes(call.path)), [], "No privileged request occurs before authorization");
+    equal(f.calls.filter((call) => !["/api/web/info", "/api/web/public-status", "/api/web/session"].includes(call.path)), [], "No privileged request occurs before authorization");
     f.storageSafe();
     f.finish();
   }
@@ -261,7 +366,9 @@ async function fixture(options = {}) {
     equal(f.calls.filter((call) => ["/api/web/prepare", "/api/web/command"].includes(call.path)).map((call) => call.path), ["/api/web/prepare", "/api/web/command", "/api/web/prepare", "/api/web/command"], "Every execution follows its own preparation");
     f.storageSafe();
     await f.click("access-button");
-    ok(f.action("lock").disabled && f.id("status-grid").hidden, "Forgetting access hides status and disables commands");
+    ok(f.action("lock").disabled && !f.id("status-grid").hidden, "Forgetting access preserves public status and disables commands");
+    equal(f.id("status-lock").textContent, "Locked", "Forgetting access retains previously fetched public status data");
+    ok(!f.id("vehicle-detail").textContent.includes("VIN"), "Forgetting access removes private VIN detail");
     f.finish();
   }
   {
@@ -329,7 +436,7 @@ async function fixture(options = {}) {
     await f.command("unlock");
     await f.runTimer(5000);
     equal(f.count("/api/web/command"), 1, "Read-session expiry never repeats execution");
-    ok(f.action("lock").disabled && f.id("status-grid").hidden, "Read-session expiry removes private status and blocks commands");
+    ok(f.action("lock").disabled && !f.id("status-grid").hidden, "Read-session expiry preserves public status and blocks commands");
     ok(!f.id("resolve-command").hidden, "Expiry during pending execution preserves the physical-car recovery requirement");
     equal(f.id("access-button").textContent, "Connect", "Expired read session must be reauthorized");
     f.storageSafe();
@@ -415,7 +522,7 @@ async function fixture(options = {}) {
   {
     const f = await fixture({ marker: { action: "unlock", submitted_at: "2026-10-10T15:00:00Z", request_id: "old-request", command_guard: "old-guard" } });
     ok(f.action("lock").disabled && !f.id("resolve-command").hidden, "Reloaded unresolved marker blocks public car commands");
-    equal(f.calls.map((call) => call.path), ["/api/web/info"], "Reload does not auto-authorize or auto-execute from stored guard");
+    equal(f.calls.map((call) => call.path).sort(), ["/api/web/info", "/api/web/public-status"].sort(), "Reload reads public status but never auto-authorizes or executes from stored guard");
     f.storageSafe();
     f.finish();
   }

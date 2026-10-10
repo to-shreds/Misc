@@ -1,6 +1,9 @@
 """Independent adversarial checks using a fake Hyundai client, never a vehicle."""
+from concurrent.futures import ThreadPoolExecutor
 import json
 import re
+import threading
+import time
 
 import pytest
 
@@ -257,3 +260,103 @@ def test_malformed_and_oversized_requests_do_not_submit_controls(app):
     response = client.get("/api/command", base_url=ORIGIN)
     assert response.status_code == 405
     assert command_calls(fake) == []
+
+
+def test_public_status_cold_start_never_authorizes_or_resolves_a_command(app):
+    client = app.test_client()
+    controller = app.extensions["controller"]
+    original_command = dict(controller.command)
+    result = client.get("/api/web/public-status", base_url=ORIGIN)
+    assert result.status_code == 200
+    assert result.json["availability"] == "ready"
+    assert result.json["vehicle"] == {"name": "Santa Fe"}
+    assert "Set-Cookie" not in result.headers
+    assert controller.command == original_command
+    assert controller.client.calls == [("connect",), ("status",)]
+    assert client.get("/api/web/state", base_url=ORIGIN, headers={"Origin": ORIGIN}).status_code == 401
+    assert client.get("/api/state", base_url=ORIGIN).status_code == 401
+    assert command_calls(controller.client) == []
+
+
+def test_public_status_filters_nested_secrets_invalid_types_and_markup(app):
+    client, csrf, fake = ready(app)
+    controller = app.extensions["controller"]
+    controller.vehicle = {"name": "<script>private-account-secret</script>", "vin_last4": "private-vin", "latitude": "private-location"}
+    controller.status = {
+        "locked": "private-account-secret", "engine_running": True, "climate_on": False,
+        "fuel_percent": True, "battery_percent": float("nan"), "odometer": 42,
+        "range": {"value": 88, "unit": float("inf"), "vin": "private-vin", "latitude": "private-location"},
+        "updated_at": "private-auth-token", "read_at": "2026-10-10T13:44:00+00:00",
+        "email": SETTINGS["HYUNDAI_EMAIL"], "password": SETTINGS["HYUNDAI_PASSWORD"], "pin": "9876",
+        "coordinates": {"latitude": "private-location"},
+    }
+    controller.command.update(transaction_id="private-transaction", owner="private-owner")
+    controller.read_at = time.monotonic()
+    before = dict(controller.command)
+    response = client.get("/api/web/public-status", base_url=ORIGIN)
+    assert response.status_code == 200
+    assert set(response.json) == {"availability", "vehicle", "status"}
+    assert response.json["vehicle"] == {"name": "Hyundai"}
+    status = response.json["status"]
+    assert set(status) == {"locked", "engine_running", "climate_on", "fuel_percent", "battery_percent",
+                           "range", "odometer", "updated_at", "read_at", "cached"}
+    assert status["locked"] is None and status["engine_running"] is True
+    assert status["fuel_percent"] is None and status["battery_percent"] is None
+    assert status["updated_at"] is None
+    assert status["range"] == {"value": 88, "unit": None}
+    text = response.get_data(as_text=True)
+    for private in ("private-account-secret", "private-vin", "private-location", "private-auth-token",
+                    "private-transaction", "private-owner", "9876", SETTINGS["HYUNDAI_EMAIL"], SETTINGS["HYUNDAI_PASSWORD"]):
+        assert private not in text
+    assert controller.command == before
+    assert command_calls(fake) == []
+
+
+@pytest.mark.parametrize("execute_first", [False, True])
+def test_public_reads_preserve_prepared_or_pending_guard_without_client_calls(app, execute_first):
+    client, csrf, fake = ready(app)
+    request_id = prepare(client, csrf)
+    if execute_first:
+        assert post(client, csrf, "/api/command", {"request_id": request_id, "pin": "1234"}).status_code == 200
+    controller = app.extensions["controller"]
+    controller.read_at -= 10000
+    before_command, before_calls = dict(controller.command), list(fake.calls)
+    public = app.test_client()
+    response = public.get("/api/web/public-status", base_url=ORIGIN,
+                          headers={"X-Command-Guard": "tampered", "X-Command-Password": "wrong"})
+    assert response.status_code == 200 and response.json["availability"] == "ready"
+    assert controller.command == before_command
+    assert fake.calls == before_calls
+    assert "command" not in response.json
+    assert post(client, csrf, "/api/prepare", {"action": "unlock", "confirmed": True}).status_code == 409
+
+
+def test_concurrent_anonymous_cold_reads_share_one_read_only_connection():
+    entered = threading.Event()
+    release = threading.Event()
+    instances = []
+
+    class SlowFake(FakeHyundai):
+        def __init__(self, email, password, pin):
+            super().__init__(email, password, pin)
+            instances.append(self)
+
+        def connect(self):
+            entered.set()
+            assert release.wait(2)
+            return super().connect()
+
+    app = create_app(SETTINGS, client_factory=SlowFake)
+    original = dict(app.extensions["controller"].command)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        first = pool.submit(lambda: app.test_client().get("/api/web/public-status", base_url=ORIGIN))
+        try:
+            assert entered.wait(1)
+            second = pool.submit(lambda: app.test_client().get("/api/web/public-status", base_url=ORIGIN))
+        finally:
+            release.set()
+        assert first.result(timeout=3).json["availability"] == "ready"
+        assert second.result(timeout=3).json["availability"] == "ready"
+    assert len(instances) == 1
+    assert instances[0].calls == [("connect",), ("status",)]
+    assert app.extensions["controller"].command == original

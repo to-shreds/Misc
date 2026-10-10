@@ -4,7 +4,9 @@ from __future__ import annotations
 from collections import deque
 from datetime import datetime, timezone
 import hmac
+import math
 import os
+import re
 import secrets
 import threading
 import time
@@ -39,6 +41,9 @@ class Controller:
         self.seen = {}
         self.login_attempts = deque()
         self.read_at = 0.0
+        self.public_read_at = 0.0
+        self.public_read_client = None
+        self.public_read_result = None
 
     def state(self, saved_available=False):
         public_command = {k: v for k, v in self.command.items()
@@ -151,6 +156,31 @@ def create_app(settings=None, client_factory=HyundaiClient):
     def saved_available():
         return bool(app.config["HYUNDAI_EMAIL"] and app.config["HYUNDAI_PASSWORD"])
 
+    def public_status_result(availability, message=None):
+        """Keep public reads independent from private controller/session state."""
+        vehicle = None
+        status = None
+        if availability == "ready":
+            name = (controller.vehicle or {}).get("name")
+            vehicle = {"name": name if isinstance(name, str) and re.fullmatch(r"[A-Za-z0-9 ()+./_-]{1,60}", name) else "Hyundai"}
+            source = controller.status or {}
+            numeric = lambda value: value if type(value) in (int, float) and math.isfinite(value) else None
+            boolean = lambda value: value if type(value) is bool else None
+            timestamp = lambda value: value if isinstance(value, str) and len(value) <= 40 and re.fullmatch(r"[0-9TtZz:.+ /-]+", value) else None
+            range_data = source.get("range") if isinstance(source.get("range"), dict) else {}
+            status = {
+                "locked": boolean(source.get("locked")), "engine_running": boolean(source.get("engine_running")),
+                "climate_on": boolean(source.get("climate_on")), "fuel_percent": numeric(source.get("fuel_percent")),
+                "battery_percent": numeric(source.get("battery_percent")),
+                "range": {"value": numeric(range_data.get("value")), "unit": numeric(range_data.get("unit"))},
+                "odometer": numeric(source.get("odometer")), "updated_at": timestamp(source.get("updated_at")),
+                "read_at": timestamp(source.get("read_at")), "cached": True,
+            }
+        result = {"availability": availability, "vehicle": vehicle, "status": status}
+        if message:
+            result["message"] = message
+        return result
+
     def restore_guard():
         value = guard_value()
         if not value:
@@ -187,7 +217,7 @@ def create_app(settings=None, client_factory=HyundaiClient):
                 if requested_method not in {"GET", "POST"} or not requested_headers <= {"content-type", "x-web-session", "x-command-password", "x-command-guard"}:
                     abort(403)
                 return "", 204
-            if request.path == "/api/web/info" and request.method == "GET":
+            if request.path in {"/api/web/info", "/api/web/public-status"} and request.method == "GET":
                 return None
             if not origin:
                 abort(403)
@@ -300,6 +330,53 @@ def create_app(settings=None, client_factory=HyundaiClient):
     def web_info():
         return jsonify(configured=configured, saved_account_available=saved_available())
 
+    @app.get("/api/web/public-status")
+    def public_status():
+        with controller.lock:
+            if not configured:
+                return jsonify(public_status_result("unavailable", "Service setup is incomplete."))
+            # Public reads must never disturb a command's Hyundai session, account,
+            # selected vehicle, or guard. Its last cached observation remains usable.
+            if controller.command.get("state") in {"prepared", "pending"}:
+                if controller.vehicle and controller.status is not None:
+                    return jsonify(public_status_result("ready"))
+                return jsonify(public_status_result("unavailable", "Vehicle status is temporarily unavailable."))
+            now = time.monotonic()
+            if controller.vehicle and controller.status is not None and now - controller.read_at < 5:
+                return jsonify(public_status_result("ready"))
+            if (controller.public_read_result is not None and controller.public_read_client is controller.client
+                    and now - controller.public_read_at < 5):
+                return jsonify(controller.public_read_result)
+            try:
+                if controller.client is None:
+                    if not saved_available():
+                        result = public_status_result("unavailable", "Vehicle status is unavailable until the saved account is configured.")
+                    else:
+                        email, password, pin = (app.config[key] for key in ("HYUNDAI_EMAIL", "HYUNDAI_PASSWORD", "HYUNDAI_PIN"))
+                        client = controller.factory(email, password, pin)
+                        info = client.connect()
+                        safe_vehicle(client, info)
+                        controller.client = client
+                        controller.pin_available = bool(pin)
+                        result = None
+                else:
+                    result = None
+                if result is None:
+                    if not controller.vehicle:
+                        result = public_status_result("unavailable", "Select a vehicle after signing in to view its status.")
+                    else:
+                        controller.status = normalize_status(controller.client.cached_status())
+                        controller.read_at = time.monotonic()
+                        result = public_status_result("ready")
+            except Exception:
+                # Public responses never echo Hyundai/account errors or mutate the
+                # command guard merely because a read failed.
+                result = public_status_result("error", "Vehicle status could not be read. Try again later.")
+            controller.public_read_at = time.monotonic()
+            controller.public_read_client = controller.client
+            controller.public_read_result = result
+            return jsonify(result)
+
     @app.post("/api/web/session")
     def web_session():
         body = json_body()
@@ -375,6 +452,7 @@ def create_app(settings=None, client_factory=HyundaiClient):
                         vehicle["selected"] = vehicle["id"] == vehicle_id
                     controller.vehicle = {"name": selected["label"], "vin_last4": selected["vin_last4"]}
                 controller.status = normalize_status(controller.client.cached_status())
+                controller.read_at = time.monotonic()
             except HyundaiError as error:
                 return jsonify(error=error.message), 502
             return jsonify(controller.state(saved_available()))
