@@ -1,10 +1,10 @@
 # Sports Desk handoff
 
-Updated 2026-10-10T23:36:45.537Z. The code in `to-shreds/Misc`, directory `SportsDesk/`, controls implementation. `to-shreds/ProjectStatus/projects/sports-desk/STATUS.md` controls readiness and next steps.
+Updated 2026-10-10T23:40:27.429Z. The code in `to-shreds/Misc`, directory `SportsDesk/`, controls implementation. `to-shreds/ProjectStatus/projects/sports-desk/STATUS.md` controls readiness and next steps.
 
 ## Goal and fixed choices
 
-Independent GitHub-hosted HTML sports interface, editable Buffstreams source address, successful replacement of the saved event catalog, and no Render video bandwidth. Preserve all TorBox projects and other Misc applications. No scores or spoilers in the interface. No paid service or video relay.
+Independent GitHub-hosted HTML sports interface, editable Buffstreams source address, successful replacement of the saved event catalog, and no Render video bandwidth. Preserve all TorBox projects and other Misc applications. No scores or spoilers in the interface. No paid service or video relay. The user explicitly declined the paid Cloudflare relay on 2026-10-10; keep the free setup.
 
 ## Live entry points
 
@@ -51,7 +51,7 @@ The source homepage redirects to `/home6` and does not grant GitHub CORS reading
 
 The page is published and usable; no deployment blocker remains. Render and Pages HTTP/API checks passed. Full rendered UI acceptance and physical Android testing were not performed: the managed Sites environment lacked its required control-browser skill, so no alternate preview/browser-control path was improvised. JavaScript checks use a simulated DOM. Stream links can be offline, expired or changed by the provider; discovery is not an all-stream playback guarantee. Future source structure changes may require parser updates.
 
-The current release still opens the source player directly. The user's follow-up requests in-page playback. That enhancement is blocked pending a different source policy or an acceptable separate media relay, as described below. Update this handoff before finalizing ProjectStatus after future work.
+The current release still opens the source player directly and remains usable. The user's requested in-page playback remains unresolved under the current tested source restrictions. The user declined the proposed paid relay, so the free release stays unchanged. Update this handoff before finalizing ProjectStatus after future work.
 
 ## Embedded playback follow-up (2026-10-10T23:36:45.537Z)
 
@@ -66,4 +66,4 @@ Current source tests found nested HLS playlist HTTP 403 from the GitHub context 
 - Cloudflare's CDN-specific terms require appropriate Paid Services for video delivery; a free video-relay entitlement has not been established. Developer Platform is explicitly listed as a Paid Service in the CDN clause, while Developer Platform terms govern Workers separately. Do not promise that Free Workers or Sites offers a verified free video relay.
 - Terms: https://www.cloudflare.com/service-specific-terms-application-services/ and https://www.cloudflare.com/service-specific-terms-developer-platform/
 
-Next: ask whether the user accepts testing a separate paid Cloudflare relay (minimum $5/month). Current fixed scope is free, so do not create a paid service or change billing without that authorization. Cloudflare account access/deployment capability also remains unconfirmed. If approved, prepare a bounded provider-specific relay with short-lived signed resource URLs, fixed trusted discovery, range handling, CORS for the GitHub origin, and no arbitrary public URL proxy; verify playback before calling it ready. Preserve the working source-player fallback and the no-Render-video constraint.
+Decision on 2026-10-10: the user declined the paid Cloudflare relay. Keep the existing free release with direct source-player navigation. Do not create a paid relay, alter billing, or repeat the cost question. Free embedded playback remains unresolved under the current tested restrictions; no further implementation or deployment is scheduled. Revisit only if the user requests another approach or a compatible source policy becomes available. Preserve the working page and the no-Render-video constraint.
