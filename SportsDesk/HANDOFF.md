@@ -1,6 +1,6 @@
 # Sports Desk handoff
 
-Updated 2026-10-10T23:22:39Z. The code in `to-shreds/Misc`, directory `SportsDesk/`, controls implementation. `to-shreds/ProjectStatus/projects/sports-desk/STATUS.md` controls readiness and next steps.
+Updated 2026-10-10T23:36:45.537Z. The code in `to-shreds/Misc`, directory `SportsDesk/`, controls implementation. `to-shreds/ProjectStatus/projects/sports-desk/STATUS.md` controls readiness and next steps.
 
 ## Goal and fixed choices
 
@@ -51,4 +51,19 @@ The source homepage redirects to `/home6` and does not grant GitHub CORS reading
 
 The page is published and usable; no deployment blocker remains. Render and Pages HTTP/API checks passed. Full rendered UI acceptance and physical Android testing were not performed: the managed Sites environment lacked its required control-browser skill, so no alternate preview/browser-control path was improvised. JavaScript checks use a simulated DOM. Stream links can be offline, expired or changed by the provider; discovery is not an all-stream playback guarantee. Future source structure changes may require parser updates.
 
-No further deployment step is needed. The next user action is to open Sports Desk and select an event. Any specific phone or event failure should be investigated without routing video through Render. Update this handoff before finalizing ProjectStatus after future work.
+The current release still opens the source player directly. The user's follow-up requests in-page playback. That enhancement is blocked pending a different source policy or an acceptable separate media relay, as described below. Update this handoff before finalizing ProjectStatus after future work.
+
+## Embedded playback follow-up (2026-10-10T23:36:45.537Z)
+
+The user asked to keep the stream inside Sports Desk. Normal iframe embedding remains blocked by the source player's frame-ancestors allowlist, which excludes GitHub. A native video element with only a text-playlist relay was investigated before implementation. It is not a reliable solution for current Android/Chrome.
+
+Current source tests found nested HLS playlist HTTP 403 from the GitHub context and HTTP 200 from the original player context. One bounded 1KB Range GET to a signed R2 segment returned HTTP 206 and Content-Type text/plain, but no Access-Control-Allow-Origin for GitHub. Current Chromium HLS security code requires media/key/map resources either to allow the top frame origin through CORS or to share the actual media-playlist origin. Relaying the playlist through Render while media stays on R2 satisfies neither condition. Redirects are evaluated by their actual final origins. This is protocol/header and primary-source evidence, not a new browser playback test. Do not claim every Safari version is ruled out.
+
+- Primary browser source: https://chromium.googlesource.com/chromium/src/+/HEAD/media/filters/hls_network_access_impl.cc (MediaSegmentSecurityChecks).
+- A draft transport refactor was restored. Backend tests passed again (16). Server and frontend production source remain unchanged. No native-playback endpoint, new player UI, service or deployment was shipped.
+- A separate Cloudflare Worker is a plausible media-relay architecture that would keep video off Render while retaining the GitHub frontend. It would relay actual video, not only playlist text. It is not implemented or verified.
+- Workers Paid currently starts at $5 USD/month, includes 10 million requests and 30 million CPU milliseconds/month, and has no egress/bandwidth surcharge. Usage above included request/CPU allowances costs extra: https://developers.cloudflare.com/workers/platform/pricing/
+- Cloudflare's CDN-specific terms require appropriate Paid Services for video delivery; a free video-relay entitlement has not been established. Developer Platform is explicitly listed as a Paid Service in the CDN clause, while Developer Platform terms govern Workers separately. Do not promise that Free Workers or Sites offers a verified free video relay.
+- Terms: https://www.cloudflare.com/service-specific-terms-application-services/ and https://www.cloudflare.com/service-specific-terms-developer-platform/
+
+Next: ask whether the user accepts testing a separate paid Cloudflare relay (minimum $5/month). Current fixed scope is free, so do not create a paid service or change billing without that authorization. Cloudflare account access/deployment capability also remains unconfirmed. If approved, prepare a bounded provider-specific relay with short-lived signed resource URLs, fixed trusted discovery, range handling, CORS for the GitHub origin, and no arbitrary public URL proxy; verify playback before calling it ready. Preserve the working source-player fallback and the no-Render-video constraint.
