@@ -4,7 +4,7 @@
 
 ## YouTube downloads
 
-Choose **YouTube**, paste a single-video link, and leave **Prepare and download this YouTube video** enabled. The client normalizes watch, share, Shorts, live-video and embed links, starts the TorBox web download immediately, and follows the returned job until the file is actually present. Then choose **Download video** to save it through the browser. Keep the tab open while preparing. Failed or restricted videos show TorBox's error; **Check status** checks the existing item without adding another copy. Playlist-only and channel links are rejected rather than silently submitted.
+Choose **YouTube**, paste a single-video link, and leave **Prepare YouTube video for saving to this device** enabled. The client normalizes watch, share, Shorts, live-video and embed links, starts the TorBox web download immediately, and follows the returned job until the file is actually present. Then choose **Download video** to save it through the browser. Keep the tab open while preparing. Failed or restricted videos show TorBox's error; **Check status** checks the existing item without adding another copy. Playlist-only and channel links are rejected rather than silently submitted.
 
 YouTube uses TorBox's paid-plan web-download service. Accepting a URL is not treated as completing a download. Public GitHub Pages hosts only the client; the existing stateless relay forwards API calls and video bytes go directly from TorBox to your device. Availability still depends on TorBox and the particular video. Verification used controlled API responses and real fixture-byte browser downloads, not an authenticated live YouTube download.
 
