@@ -1,28 +1,56 @@
-name: Stage TorBox Drop web
+name: Verify live TorBox Drop
 on:
   push:
     branches: [publish/torbox-drop-youtube-2.1.4]
 permissions:
-  contents: write
+  contents: read
 jobs:
-  stage:
+  live:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/checkout@v7
         with:
-          repository: to-shreds/torbox
-          ref: 239668768dc723c697f3c47133b5133afa58fd67
-          path: _drop_source
           persist-credentials: false
-      - name: Copy the tested standalone client into both publication paths
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Verify both published pages against the tested source
         run: |
           set -euo pipefail
-          echo '48140ddb2f101ea3684be0fc011f2291060316b44ae74ba9cb2fe20b45993bac  _drop_source/web/index.html' | sha256sum -c -
-          cp _drop_source/web/index.html TorboxDrop/index.html
-          cp _drop_source/web/index.html TorboxDrop/TorBox-Drop.html
-          git add TorboxDrop/index.html TorboxDrop/TorBox-Drop.html
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Publish TorBox Drop web 2.1.4 with tracked YouTube downloads'
-          git push origin HEAD:refs/heads/publish/torbox-drop-youtube-2.1.4
+          mkdir evidence
+          for page in index.html TorBox-Drop.html; do
+            ok=0
+            for attempt in $(seq 1 12); do
+              curl --fail --location --silent --show-error "https://to-shreds.github.io/Misc/TorboxDrop/$page" -o "evidence/$page"
+              if echo "48140ddb2f101ea3684be0fc011f2291060316b44ae74ba9cb2fe20b45993bac  evidence/$page" | sha256sum -c -; then ok=1; break; fi
+              sleep 10
+            done
+            test "$ok" = 1
+          done
+          sha256sum evidence/*.html > evidence/SHA256SUMS.txt
+      - run: npm install --no-save --package-lock=false playwright@1.61.1
+      - run: npx playwright install --with-deps chromium
+      - name: Open the published client in a real mobile browser
+        run: |
+          node --input-type=module <<'JS'
+          import { chromium } from 'playwright';
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs/promises';
+          const browser = await chromium.launch();
+          const page = await browser.newPage({viewport:{width:390,height:844}});
+          const errors = []; page.on('pageerror', e => errors.push(String(e)));
+          await page.goto('https://to-shreds.github.io/Misc/TorboxDrop/', {waitUntil:'networkidle'});
+          assert.match(await page.locator('body').innerText(), /2\.1\.4/);
+          assert.equal(await page.locator('input[type=password]').isEnabled(), true);
+          assert.equal(await page.locator('meta[name=torbox-api]').getAttribute('content'), 'https://torbox-drop-api.onrender.com/api/');
+          assert.deepEqual(errors, []);
+          await page.screenshot({path:'evidence/live-login-mobile.png',fullPage:true});
+          await fs.writeFile('evidence/live.json', JSON.stringify({url:page.url(),version:'2.1.4',passwordEnabled:true,jsErrors:errors,authenticatedTorBoxTest:false,checkedAt:new Date().toISOString()}, null, 2));
+          await browser.close();
+          JS
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: torbox-drop-live-2.1.4
+          path: evidence/
