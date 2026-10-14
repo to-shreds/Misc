@@ -1,0 +1,28 @@
+name: Stage TorBox Drop web
+on:
+  push:
+    branches: [publish/torbox-drop-youtube-2.1.4]
+permissions:
+  contents: write
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: to-shreds/torbox
+          ref: 239668768dc723c697f3c47133b5133afa58fd67
+          path: _drop_source
+          persist-credentials: false
+      - name: Copy the tested standalone client into both publication paths
+        run: |
+          set -euo pipefail
+          echo '48140ddb2f101ea3684be0fc011f2291060316b44ae74ba9cb2fe20b45993bac  _drop_source/web/index.html' | sha256sum -c -
+          cp _drop_source/web/index.html TorboxDrop/index.html
+          cp _drop_source/web/index.html TorboxDrop/TorBox-Drop.html
+          git add TorboxDrop/index.html TorboxDrop/TorBox-Drop.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Publish TorBox Drop web 2.1.4 with tracked YouTube downloads'
+          git push origin HEAD:refs/heads/publish/torbox-drop-youtube-2.1.4
