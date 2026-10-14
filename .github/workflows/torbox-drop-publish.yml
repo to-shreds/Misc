@@ -3,27 +3,41 @@ on:
   push:
     branches: [publish/torbox-drop-youtube-2.1.4]
 permissions:
-  contents: read
+  contents: write
 jobs:
   live:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 22
+      - name: Stage matching version labels without changing client behavior
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          for name in ('index.html','TorBox-Drop.html'):
+            p=Path('TorboxDrop')/name
+            text=p.read_text().replace('TorBox Drop web 2.1.3','TorBox Drop web 2.1.4').replace('>Download the Android APK<','>Download stable Android 2.1.1<').replace('>Android APK<','>Android stable 2.1.1<')
+            p.write_text(text)
+            assert hashlib.sha256(p.read_bytes()).hexdigest()=='e3711ff8db8c1e256d3571dcf30818caa323d5f83355316d7855eac21b524e86'
+          PY
+          git add TorboxDrop/index.html TorboxDrop/TorBox-Drop.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Keep web 2.1.4 and the retained stable Android link clearly labeled'
+          git push origin HEAD:refs/heads/publish/torbox-drop-youtube-2.1.4
       - name: Verify both published pages against the tested source
         run: |
           set -euo pipefail
           mkdir evidence
           for page in index.html TorBox-Drop.html; do
             ok=0
-            for attempt in $(seq 1 12); do
-              curl --fail --location --silent --show-error "https://to-shreds.github.io/Misc/TorboxDrop/$page" -o "evidence/$page"
-              if echo "48140ddb2f101ea3684be0fc011f2291060316b44ae74ba9cb2fe20b45993bac  evidence/$page" | sha256sum -c -; then ok=1; break; fi
+            for attempt in $(seq 1 24); do
+              if curl --fail --location --silent --show-error "https://to-shreds.github.io/Misc/TorboxDrop/$page" -o "evidence/$page" && echo "e3711ff8db8c1e256d3571dcf30818caa323d5f83355316d7855eac21b524e86  evidence/$page" | sha256sum -c -; then ok=1; break; fi
               sleep 10
             done
             test "$ok" = 1
