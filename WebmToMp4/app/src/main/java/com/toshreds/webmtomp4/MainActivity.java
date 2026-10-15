@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -28,21 +29,18 @@ import com.arthenica.ffmpegkit.FFmpegKitConfig;
 import com.arthenica.ffmpegkit.FFmpegSession;
 import com.arthenica.ffmpegkit.ReturnCode;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class MainActivity extends Activity {
     private static final int OPEN_WEBM = 11, SAVE_MP4 = 12;
+    private static final String TAG = "WebMToMP4";
     private final Handler ui = new Handler(Looper.getMainLooper());
-    private final ExecutorService writer = Executors.newSingleThreadExecutor();
+    private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private Uri inputUri, outputUri;
     private String inputName = "";
-    private long durationMs = -1;
+    private volatile long durationMs = -1;
     private volatile FFmpegSession session;
     private volatile boolean busy, cancelled;
     private volatile String lastError = "";
@@ -56,8 +54,6 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
         makeUi();
-        File[] old = getCacheDirectory().listFiles((f,n) -> n.startsWith("webm-result-") && n.endsWith(".mp4"));
-        if (old != null) for (File f : old) f.delete();
     }
 
     private void makeUi() {
@@ -75,8 +71,7 @@ public final class MainActivity extends Activity {
         title.setTypeface(null,Typeface.BOLD);
         title.setTextColor(0xFF17213B);
         root.addView(title);
-        TextView subtitle = label("Local conversion. No uploads.",14);
-        root.addView(subtitle);
+        root.addView(label("Local conversion. No uploads.",14));
         space(root,32);
 
         fileLabel = label("No WebM selected",17);
@@ -141,7 +136,7 @@ public final class MainActivity extends Activity {
         status = label("Select a file to get started.",14);
         root.addView(status);
         space(root,25);
-        TextView note = label("Pick where to save your MP4. Keep the app open while it converts. Lossless MP4s can be very large and need plenty of free space.",12);
+        TextView note = label("Choose where to save the MP4. Keep the app open while converting. Lossless files may be enormous. Conversion writes straight to your chosen destination and never uploads the video.",12);
         note.setTextColor(Color.GRAY);
         root.addView(note);
         setContentView(scroll);
@@ -180,7 +175,6 @@ public final class MainActivity extends Activity {
         Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);
         i.addCategory(Intent.CATEGORY_OPENABLE);
         i.setType("*/*");
-        // Some providers label WebM as application/octet-stream.
         i.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"video/webm","video/x-matroska","application/octet-stream"});
         startActivityForResult(i,OPEN_WEBM);
     }
@@ -204,7 +198,11 @@ public final class MainActivity extends Activity {
             }
             inputUri=uri;
             inputName=name;
-            durationMs=duration(uri);
+            durationMs=-1;
+            worker.execute(() -> {
+                long length=duration(uri);
+                if(uri.equals(inputUri))durationMs=length;
+            });
             fileLabel.setText(name);
             convertButton.setEnabled(true);
             progress.setVisibility(View.GONE);
@@ -229,10 +227,6 @@ public final class MainActivity extends Activity {
         }catch(Exception ignored){return -1;}
         finally{try{m.release();}catch(Exception ignored){}}
     }
-    private File getCacheDirectory(){
-        File e=getExternalCacheDir();
-        return e==null?getCacheDir():e;
-    }
     private void setBusy(boolean work){
         busy=work;
         pickButton.setEnabled(!work);
@@ -248,64 +242,70 @@ public final class MainActivity extends Activity {
     private void start(){
         if(inputUri==null || outputUri==null || busy)return;
         cancelled=false;
+        session=null;
         lastError="";
         setBusy(true);
         progress.setProgress(0);
         progress.setIndeterminate(durationMs<=0);
         progress.setVisibility(View.VISIBLE);
-        status.setText("Converting…");
-        File temp=new File(getCacheDirectory(),"webm-result-"+System.currentTimeMillis()+".mp4");
-        Uri target=outputUri;
-        try{
-            String src=FFmpegKitConfig.getSafParameterForRead(this,inputUri);
-            if(src==null || src.isEmpty())throw new IllegalStateException("Source file cannot be read.");
-            String[] cmd=CommandBuilder.build(src,temp.getAbsolutePath(),lossless.isChecked(),crfSlider.getProgress());
-            session=FFmpegKit.executeWithArgumentsAsync(cmd, result -> {
-                session=null;
-                if(cancelled || ReturnCode.isCancel(result.getReturnCode()))
-                    complete("Cancelled.",false,temp,target);
-                else if(ReturnCode.isSuccess(result.getReturnCode()) && temp.length()>0)
-                    save(temp,target);
-                else complete("Conversion failed: "+(lastError.isEmpty()?"Unsupported codec or input.":lastError),false,temp,target);
-            }, log -> {
-                String s=log.getMessage();
-                if(s!=null && (s.contains("Error")||s.contains("error")||s.contains("failed")||s.contains("Invalid")))
-                    lastError=s.trim();
-            }, stats -> {
-                if(durationMs>0 && !cancelled){
-                    int p=(int)Math.min(99,Math.max(0,stats.getTime()*100L/durationMs));
-                    ui.post(() -> {
-                        if(busy && !cancelled){
-                            progress.setIndeterminate(false);
-                            progress.setProgress(p);
-                            status.setText("Converting… "+p+"%");
-                        }
-                    });
+        status.setText("Starting conversion…");
+        final Uri source=inputUri, target=outputUri;
+        final boolean useLossless=lossless.isChecked();
+        final int quality=crfSlider.getProgress();
+        // Never initialize FFmpeg's JNI libraries on Android's main/UI thread.
+        worker.execute(() -> {
+            try{
+                if(cancelled){complete("Cancelled.",false,target);return;}
+                String src=FFmpegKitConfig.getSafParameterForRead(getApplicationContext(),source);
+                String dst=FFmpegKitConfig.getSafParameterForWrite(getApplicationContext(),target);
+                if(src==null || src.isEmpty() || dst==null || dst.isEmpty()){
+                    complete("Unable to open the selected source or destination.",false,target);
+                    return;
                 }
-            });
-        }catch(Exception e){
-            complete("Cannot start: "+e.getMessage(),false,temp,target);
-        }
-    }
-    private void save(File temp,Uri dest){
-        ui.post(() -> {progress.setIndeterminate(true);status.setText("Saving MP4…");});
-        writer.execute(() -> {
-            boolean ok=false;
-            String reason="";
-            try(InputStream in=new FileInputStream(temp);
-                OutputStream out=getContentResolver().openOutputStream(dest,"w")){
-                if(out==null)throw new IllegalStateException("Cannot open output document.");
-                byte[] buf=new byte[1024*1024];
-                int n;
-                while((n=in.read(buf))!=-1){
-                    if(cancelled)throw new InterruptedException("Cancelled");
-                    if(n>0)out.write(buf,0,n);
-                }
-                if(cancelled)throw new InterruptedException("Cancelled");
-                out.flush();
-                ok=true;
-            }catch(Exception e){reason=e.getMessage();}
-            complete(ok?"MP4 saved successfully.":cancelled?"Cancelled.":"Could not save: "+reason,ok,temp,dest);
+                String[] args=CommandBuilder.build(src,dst,useLossless,quality);
+                if(cancelled){complete("Cancelled.",false,target);return;}
+                FFmpegSession running=FFmpegKit.executeWithArgumentsAsync(args, result -> {
+                    session=null;
+                    if(cancelled || ReturnCode.isCancel(result.getReturnCode())){
+                        complete("Cancelled.",false,target);
+                    }else if(ReturnCode.isSuccess(result.getReturnCode())){
+                        complete("MP4 saved successfully.",true,target);
+                    }else{
+                        String reason=lastError.isEmpty()?
+                            "This video, codec, or destination may be unsupported.":lastError;
+                        complete("Conversion failed: "+reason,false,target);
+                    }
+                }, log -> {
+                    String message=log.getMessage();
+                    if(message!=null && (message.contains("Error") || message.contains("error") ||
+                        message.contains("failed") || message.contains("Invalid"))){
+                        lastError=message.trim().replace('\n',' ');
+                        if(lastError.length()>210)lastError=lastError.substring(0,210);
+                    }
+                }, stats -> {
+                    long ms=durationMs;
+                    if(ms>0 && !cancelled){
+                        int percent=(int)Math.min(99,Math.max(0,stats.getTime()*100L/ms));
+                        ui.post(() -> {
+                            if(busy && !cancelled){
+                                progress.setIndeterminate(false);
+                                progress.setProgress(percent);
+                                status.setText("Converting… "+percent+"%");
+                            }
+                        });
+                    }else{
+                        ui.post(() -> {
+                            if(busy && !cancelled)status.setText("Converting…");
+                        });
+                    }
+                });
+                session=running;
+                if(cancelled && running!=null)FFmpegKit.cancel(running.getSessionId());
+            }catch(Throwable error){
+                Log.e(TAG,"Could not start FFmpeg conversion",error);
+                String msg=error.getMessage()==null?error.getClass().getSimpleName():error.getMessage();
+                complete("Unable to start conversion: "+msg,false,target);
+            }
         });
     }
     private void cancel(){
@@ -315,17 +315,16 @@ public final class MainActivity extends Activity {
         FFmpegSession running=session;
         if(running!=null)FFmpegKit.cancel(running.getSessionId());
     }
-    private void complete(String msg,boolean success,File temp,Uri dest){
+    private void complete(String message,boolean success,Uri target){
         if(!success){
-            try{DocumentsContract.deleteDocument(getContentResolver(),dest);}
-            catch(Exception ignored){}
+            try{DocumentsContract.deleteDocument(getContentResolver(),target);}
+            catch(Exception e){Log.w(TAG,"Could not remove partial MP4",e);}
         }
-        if(temp.exists())temp.delete();
         ui.post(() -> {
             setBusy(false);
             progress.setIndeterminate(false);
             progress.setProgress(success?100:0);
-            status.setText(msg);
+            status.setText(message);
         });
     }
 }
