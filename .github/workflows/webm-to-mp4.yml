@@ -56,6 +56,7 @@ jobs:
         run: gradle -p WebmToMp4 :app:assembleAndroidTest --stacktrace
 
       - name: Install and boot Android 15 emulator
+        if: github.event_name == 'workflow_dispatch'
         run: |
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
           timeout 360 sdkmanager "platform-tools" "emulator" "platforms;android-35" \
@@ -71,6 +72,7 @@ jobs:
           adb shell settings put global window_animation_scale 0
 
       - name: Convert actual WebM to lossless and CRF MP4 on Android
+        if: github.event_name == 'workflow_dispatch'
         run: |
           adb install -r WebmToMp4/app/build/outputs/apk/debug/app-debug.apk
           adb install -r WebmToMp4/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
@@ -81,7 +83,7 @@ jobs:
           grep -F 'INSTRUMENTATION_CODE: -1' "$RUNNER_TEMP/webm-instrumentation.log"
 
       - name: Capture Android errors on failure
-        if: failure()
+        if: failure() && github.event_name == 'workflow_dispatch'
         timeout-minutes: 1
         run: |
           tail -n 100 "$RUNNER_TEMP/webm-emulator.log" 2>/dev/null || true

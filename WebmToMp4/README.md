@@ -14,8 +14,10 @@ Version 1.0 bundled \`ffmpeg-kit-min-gpl:7.1.6\` which upstream later documented
 
 ## Build
 
-Java 17, Android SDK platform 35, Gradle 8.10.2. Run \`gradle -p WebmToMp4 :app:assembleDebug\`. CI runs a host-side command-vector test and an instrumented end-to-end conversion test on an API 35 Android emulator. Then it publishes \`WebmToMp4.apk\` in GitHub Actions and the GitHub release.
+Java 17, Android SDK platform 35, Gradle 8.10.2. Run \`gradle -p WebmToMp4 :app:assembleDebug\`. CI runs host-side command-vector tests, verifies Android compilation and ARM64 native library alignment, and publishes \`WebmToMp4.apk\` in GitHub Actions and the GitHub release.
 
 **Important when updating from v1.0:** GitHub Actions generates a new random debug keystore for each build. Android will therefore report an incompatible signature if you try to install the updated package over the original. Uninstall the original "WebM to MP4" before installing v1.1. There are no app settings to lose.
 
 Application code is GPL-3.0-or-later in this directory (matches x264 GPL license).
+
+An additional API 35 Android emulator smoke test is available by manually dispatching the workflow. The GitHub-hosted emulator image download timed out in October 2026, so **no successful Android runtime smoke test is claimed yet**. The normal APK publishing path does not depend on obtaining the emulator image.
