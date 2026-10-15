@@ -40,6 +40,7 @@ public final class MainActivity extends Activity {
     private volatile long durationMs = -1;
     private volatile boolean busy;
     private volatile boolean launchPending;
+    private long launchStartedMs;
     private Button pickButton, convertButton, cancelButton;
     private RadioButton lossless, crf;
     private LinearLayout crfControls;
@@ -279,11 +280,11 @@ public final class MainActivity extends Activity {
     private void showServiceState() {
         ConversionService.Snapshot current = ConversionService.snapshot();
         if (current.running) launchPending = false;
-        if (launchPending && !current.running &&
-            current.message.startsWith("Could not")) launchPending = false;
-        if (launchPending && !current.running &&
-            current.message.startsWith("Missing")) launchPending = false;
-        if (launchPending && !current.running) return;
+        if (launchPending && !current.running) {
+            if (android.os.SystemClock.elapsedRealtime() - launchStartedMs < 3000)
+                return;
+            launchPending = false;
+        }
         setBusy(current.running);
         if (!current.running && "Select a file to get started.".equals(current.message)
             && inputUri != null) return;
@@ -304,6 +305,7 @@ public final class MainActivity extends Activity {
         if (inputUri == null || outputUri == null ||
             ConversionService.snapshot().running || launchPending) return;
         launchPending = true;
+        launchStartedMs = android.os.SystemClock.elapsedRealtime();
         setBusy(true);
         progress.setVisibility(View.VISIBLE);
         progress.setIndeterminate(true);

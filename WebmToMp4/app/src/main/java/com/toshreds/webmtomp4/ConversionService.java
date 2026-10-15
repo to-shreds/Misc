@@ -1,6 +1,5 @@
 package com.toshreds.webmtomp4;
 
-import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -74,6 +73,12 @@ public final class ConversionService extends Service {
         new Snapshot(false, false, true, 0, "Select a file to get started.", "");
 
     public static Snapshot snapshot() { return state; }
+
+    public static void resetIfIdle() {
+        if (!state.running) {
+            state = new Snapshot(false, false, true, 0, "Select a file to get started.", "");
+        }
+    }
 
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final ExecutorService worker = Executors.newSingleThreadExecutor();

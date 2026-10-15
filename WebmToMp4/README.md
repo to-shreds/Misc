@@ -1,23 +1,26 @@
-# WebM to MP4 Android App
+# WebM to MP4 (Android v1.2)
 
-Offline, simple WebM to MP4 converter. Choose a local .webm file, select **Lossless** (default) or **CRF** 1–35 (default 18), tap Convert, select a destination in Android's file picker, and keep the app open during encoding.
+Choose a WebM, select Lossless (default) or CRF 1–35, tap Convert, and pick an MP4 output location. No internet or uploads.
 
-- **Lossless:** \`libx264 -qp 0\` for H.264 video and ALAC for audio. These are lossless encodes of decoded video/audio frames. Files may be *many times* larger than the original; some hardware video players do not handle lossless H.264.
-- **CRF:** H.264/yuv420p + AAC at 192 kb/s. CRF 18 is high quality but is not lossless.
-- **Storage:** Both source and output are streamed using Android Storage Access Framework (SAF). **No full-size intermediate copy is written.** A fragmented MP4 can be written to non-seekable SAF destinations. Some MP4 editors may require remuxing fragmented MP4 before editing. The selected destination must have enough free space; a lossless 3 GB WebM can result in an MP4 many times larger than 3 GB.
-- **Privacy:** No Internet or broad storage permissions.
-- **Cancellation:** FFmpeg is cancelled, and the app attempts to delete the partial output.
+## Background conversion
 
-## Crash fix in version 1.1
+Conversion is now owned by an Android foreground service and **continues when you press Home, switch apps, lock your phone, or remove the UI from Recents**, instead of relying on the Activity. A persistent progress notification provides a Cancel action and a shortcut back to the app. Opening the app shows the running progress. Android 13+ asks for notification permission. Even if denied, the conversion continues, although its notification may be hidden from the standard notification drawer.
 
-Version 1.0 bundled \`ffmpeg-kit-min-gpl:7.1.6\` which upstream later documented could not be loaded on some Android devices due to NDK r26c ELF RELRO protection problems. The 8.1.9 min-gpl replacement uses r27c and fixes loading. Library initialization now occurs off the UI thread, and linker failures become visible errors rather than immediate uncaught exceptions. Input metadata extraction is also off the UI thread.
+A partial CPU wake lock keeps processing while the screen is off. It is released when the service completes, fails, is cancelled or is destroyed. Android 15+ imposes an approximately six-hour total media-processing foreground-service budget per 24 hours. The app handles this time limit, but Android user force-stop, extreme memory pressure, or restrictive OEM battery controls can still terminate processing. It does not resume an interrupted encoding after process death.
 
-## Build
+Input and output use Android Storage Access Framework streams, so a 3 GB WebM does not need to be copied into the app's cache. Fragmented MP4 supports non-seekable destinations. Source file is never modified. A failed or cancelled conversion attempts to delete the partially written destination.
 
-Java 17, Android SDK platform 35, Gradle 8.10.2. Run \`gradle -p WebmToMp4 :app:assembleDebug\`. CI runs host-side command-vector tests, verifies Android compilation and ARM64 native library alignment, and publishes \`WebmToMp4.apk\` in GitHub Actions and the GitHub release.
+## Codec modes
 
-**Important when updating from v1.0:** GitHub Actions generates a new random debug keystore for each build. Android will therefore report an incompatible signature if you try to install the updated package over the original. Uninstall the original "WebM to MP4" before installing v1.1. There are no app settings to lose.
+- **Lossless:** H.264 at QP 0 with ALAC audio. Output may be many times the size of the input and not playable on some hardware players.
+- **CRF:** H.264/yuv420p video and AAC audio, CRF 1–35 with 18 as default; lower CRF means higher quality and larger MP4.
 
-Application code is GPL-3.0-or-later in this directory (matches x264 GPL license).
+## Build / testing
 
-An additional API 35 Android emulator smoke test is available by manually dispatching the workflow. The GitHub-hosted emulator image download timed out in October 2026, so **no successful Android runtime smoke test is claimed yet**. The normal APK publishing path does not depend on obtaining the emulator image.
+Java 17, Gradle 8.10.2, Android SDK 35. Build with gradle -p WebmToMp4 :app:assembleDebug. CI runs Java argument-vector tests, checks native 16 KB alignment, compiles Android instrumentation tests, signs the APK, and publishes to the repo release.
+
+Manual Android emulator conversion testing is defined in the GitHub Actions workflow but did not complete previously because Android SDK system image downloading timed out. Passing compilation does not establish that 3 GB background conversion has been empirically tested on a device.
+
+**Install updates:** CI uses ephemeral debug-signing keys. Uninstall the prior WebM to MP4 build if Android rejects the new APK due to an incompatible signature. No user settings are stored.
+
+Android app source in this directory is GPL-3.0-or-later.
