@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: build-webm-mp4
+  group: build-webm-mp4-retest
   cancel-in-progress: false
 
 jobs:
@@ -52,11 +52,14 @@ jobs:
           unzip -p "$RUNNER_TEMP/webm-apk/WebmToMp4.apk" lib/arm64-v8a/libswresample.so > "$RUNNER_TEMP/libswresample.so"
           readelf -lW "$RUNNER_TEMP/libswresample.so" | awk '$1=="LOAD" { n++; if ($NF != "0x4000") bad++ } END { if (n==0 || bad>0) exit 1; print "ARM64 native LOAD segments are 16 KB aligned" }'
 
+      - name: Compile Android instrumentation tests
+        run: gradle -p WebmToMp4 :app:assembleAndroidTest --stacktrace
+
       - name: Install and boot Android 15 emulator
         run: |
-          sdkmanager "platform-tools" "emulator" "platforms;android-35" \
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          timeout 360 sdkmanager "platform-tools" "emulator" "platforms;android-35" \
             "system-images;android-35;google_apis;x86_64"
-          gradle -p WebmToMp4 :app:assembleAndroidTest --stacktrace
           if [ -e /dev/kvm ]; then sudo chmod 666 /dev/kvm; fi
           printf 'no\n' | avdmanager create avd --force --name webm-smoke \
             --package "system-images;android-35;google_apis;x86_64" --device "pixel_6"
@@ -79,9 +82,10 @@ jobs:
 
       - name: Capture Android errors on failure
         if: failure()
+        timeout-minutes: 1
         run: |
           tail -n 100 "$RUNNER_TEMP/webm-emulator.log" 2>/dev/null || true
-          adb logcat -d -t 1500 2>/dev/null | grep -A 12 -B 5 -E "WebMToMP4|AndroidRuntime|FFmpegKit|ffmpeg-kit|libavcodec|libavformat|FATAL EXCEPTION" || true
+          timeout 15 adb logcat -d -t 1500 2>/dev/null | grep -A 12 -B 5 -E "WebMToMP4|AndroidRuntime|FFmpegKit|ffmpeg-kit|libavcodec|libavformat|FATAL EXCEPTION" || true
 
       - uses: actions/upload-artifact@v4
         with:
