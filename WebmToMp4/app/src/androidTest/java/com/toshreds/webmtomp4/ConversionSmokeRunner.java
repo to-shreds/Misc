@@ -12,7 +12,6 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.widget.RadioButton;
-import android.widget.TextView;
 
 import com.arthenica.ffmpegkit.FFmpegKitConfig;
 import com.arthenica.ffmpegkit.FFprobeKit;
@@ -82,20 +81,24 @@ public final class ConversionSmokeRunner extends Instrumentation {
             });
             if(launchError.get()!=null)throw new RuntimeException("Cannot start conversion",launchError.get());
 
-            String message="";
             long deadline=SystemClock.elapsedRealtime()+90_000;
-            while(SystemClock.elapsedRealtime()<deadline){
-                AtomicReference<String> current=new AtomicReference<>("");
-                runOnMainSync(() -> {
-                    try{current.set(((TextView)readField(activity,"status")).getText().toString());}
-                    catch(Exception ignored){}
-                });
-                message=current.get();
-                if(message.contains("successfully")||message.contains("failed")||
-                   message.contains("Unable")||message.contains("Cancelled"))break;
-                Thread.sleep(400);
+            ConversionService.Snapshot snap=ConversionService.snapshot();
+            while(!snap.running && !snap.succeeded &&
+                  SystemClock.elapsedRealtime()<deadline){
+                Thread.sleep(100);
+                snap=ConversionService.snapshot();
+                if(snap.message.contains("failed") || snap.message.contains("Unable"))break;
             }
-            check(message.contains("successfully"),(isLossless?"Lossless":"CRF")+" conversion: "+message);
+            // Simulate Home before the CRF conversion ends. It must be owned
+            // by the service, not by the no-longer-visible Activity.
+            if(!isLossless) runOnMainSync(() -> activity.moveTaskToBack(true));
+            while(snap.running && SystemClock.elapsedRealtime()<deadline){
+                Thread.sleep(350);
+                snap=ConversionService.snapshot();
+            }
+            check(!snap.running && snap.succeeded,
+                (isLossless?"Lossless":"CRF")+" conversion: "+snap.message);
+            check(snap.message.contains("successfully"),"Completion state was lost");
 
             String saf=FFmpegKitConfig.getSafParameterForRead(ctx,destination);
             FFprobeSession probe=FFprobeKit.executeWithArguments(new String[]{
