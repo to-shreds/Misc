@@ -1,0 +1,62 @@
+name: Build WebM to MP4 APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "WebmToMp4/**"
+      - ".github/workflows/webm-to-mp4.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-webm-mp4
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Test conversion options
+        run: |
+          mkdir -p "$RUNNER_TEMP/webm-unit"
+          javac -d "$RUNNER_TEMP/webm-unit" WebmToMp4/app/src/main/java/com/toshreds/webmtomp4/CommandBuilder.java WebmToMp4/tests/CommandBuilderTest.java
+          java -cp "$RUNNER_TEMP/webm-unit" com.toshreds.webmtomp4.CommandBuilderTest
+
+      - name: Build signed, installable APK
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          gradle -p WebmToMp4 :app:assembleDebug --stacktrace
+          mkdir -p "$RUNNER_TEMP/webm-apk"
+          cp WebmToMp4/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/webm-apk/WebmToMp4.apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$RUNNER_TEMP/webm-apk/WebmToMp4.apk"
+          unzip -l "$RUNNER_TEMP/webm-apk/WebmToMp4.apk" | grep -E 'lib.*/(libffmpegkit|libavcodec|libavformat).*so' | head
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WebmToMp4-APK
+          path: ${{ runner.temp }}/webm-apk/WebmToMp4.apk
+          retention-days: 30
+
+      - name: Publish public APK download
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view webm-to-mp4-v1 >/dev/null 2>&1 || \
+            gh release create webm-to-mp4-v1 \
+              --title "WebM to MP4 for Android" \
+              --notes "Offline converter, lossless H.264/ALAC by default, or adjustable H.264 CRF with AAC."
+          gh release upload webm-to-mp4-v1 "$RUNNER_TEMP/webm-apk/WebmToMp4.apk" --clobber
