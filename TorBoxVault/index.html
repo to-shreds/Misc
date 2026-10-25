@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>TorBox TV · Save your key once</title>
+<style>
+:root{font-family:system-ui,sans-serif;color-scheme:dark;background:#0b101b;color:#f1f3f9}
+*{box-sizing:border-box}body{max-width:610px;margin:0 auto;padding:28px 20px 65px}
+h1{font-size:clamp(26px,5vw,35px);letter-spacing:-.03em;margin:0 0 10px}
+h2{font-size:18px;margin:32px 0 11px}
+p,li{line-height:1.55;color:#bac6d8}a{color:#8fe3dd}
+label{display:block;font-weight:650;margin:22px 0 8px}
+input,button{font:inherit;border-radius:11px;min-height:50px;width:100%;border:1px solid #354156}
+input{background:#192336;color:white;padding:12px}
+button{cursor:pointer;background:#2f897e;border:0;color:#fff;font-weight:700;margin-top:24px}
+button:disabled{opacity:.55;cursor:default}
+small{color:#9aaec0;display:block;margin-top:8px}
+#status{min-height:24px;font-size:14px;margin-top:15px;color:#9be6d9}
+code{word-break:break-word;color:#eff1f8}
+</style></head><body>
+<h1>Save your TorBox key once</h1>
+<p>Create a small password-protected file so a newly installed TorBox TV app can recover your API key without you having to type it on the Firestick again.</p>
+<label for="key">TorBox API key</label>
+<input id="key" type="password" autocomplete="off" spellcheck="false" autocapitalize="off" aria-describedby="keyHelp">
+<small id="keyHelp">Paste your key from your TorBox account. It never leaves this page unencrypted.</small>
+<label for="password">Choose an app password</label>
+<input id="password" type="password" autocomplete="new-password" spellcheck="false" autocapitalize="off">
+<label for="confirm">Repeat your password</label>
+<input id="confirm" type="password" autocomplete="new-password" spellcheck="false" autocapitalize="off">
+<button id="generate">Download encrypted key file</button>
+<div id="status" role="status" aria-live="polite"></div>
+<h2>One-time setup</h2>
+<ol>
+<li>Enter the TorBox key and choose a password above. Download <code>torbox-tv.vault.json</code>.</li>
+<li><a href="https://github.com/to-shreds/apks/upload/main" rel="noreferrer">Upload that file to the root of your apks repository</a>. Replace the previous encrypted file if you are changing keys or passwords.</li>
+<li>On a new Firestick installation, select <strong>Unlock saved TorBox key</strong>, enter your password once, and you're connected.</li>
+</ol>
+<p>The file contains only encrypted data. The password isn't saved, and normal app updates keep using the key already stored on your Firestick. If you change your TorBox API key later, make a new file here and replace the old one.</p>
+<script type="module">
+import {encryptPortableKey} from "./vault.mjs";
+const key=document.getElementById("key"), password=document.getElementById("password"), confirm=document.getElementById("confirm"), status=document.getElementById("status"), button=document.getElementById("generate");
+button.addEventListener("click",async()=>{
+  if(password.value!==confirm.value){status.textContent="Passwords do not match.";return;}
+  button.disabled=true;status.textContent="Encrypting on this device…";
+  try{
+    const contents=await encryptPortableKey(key.value,password.value);
+    const file=new Blob([contents],{type:"application/json"});
+    const url=URL.createObjectURL(file);
+    const link=document.createElement("a");
+    link.href=url;link.download="torbox-tv.vault.json";
+    document.body.append(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),15000);
+    key.value="";password.value="";confirm.value="";
+    status.textContent="Encrypted file downloaded. Upload it to your apks repository using the link below.";
+  }catch(error){status.textContent=error.message||"Could not encrypt the key.";}
+  finally{button.disabled=false;}
+});
+</script></body></html>
