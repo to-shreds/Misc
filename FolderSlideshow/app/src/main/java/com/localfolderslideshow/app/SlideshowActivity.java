@@ -53,8 +53,8 @@ public class SlideshowActivity extends Activity {
     private final AtomicInteger loadGeneration = new AtomicInteger(0);
 
     private FrameLayout root;
-    private ImageView imageA;
-    private ImageView imageB;
+    private ZoomImageView imageA;
+    private ZoomImageView imageB;
     private LinearLayout controls;
     private TextView infoText;
     private TextView scanText;
@@ -64,6 +64,7 @@ public class SlideshowActivity extends Activity {
     private boolean firstDisplayed = false;
     private boolean paused = false;
     private boolean controlsVisible = true;
+    private boolean zoomHolding = false;
     private int currentIndex = 0;
     private int consecutiveErrors = 0;
 
@@ -79,6 +80,7 @@ public class SlideshowActivity extends Activity {
     private int regexTarget;
     private Pattern regexPattern;
     private String regexText;
+    private String selectionFile;
 
     private final Runnable nextRunnable = this::goNext;
     private final Runnable hideControlsRunnable = () -> setControlsVisible(false);
@@ -106,6 +108,7 @@ public class SlideshowActivity extends Activity {
         recursive = getIntent().getBooleanExtra("recursive", false);
         sortMode = getIntent().getIntExtra("sort_mode", 0);
         searchMode = getIntent().getBooleanExtra("search_mode", false);
+        selectionFile = getIntent().getStringExtra("selection_file");
         regexTarget = getIntent().getIntExtra("regex_target", 0);
         regexText = getIntent().getStringExtra("regex");
         if (regexText == null) regexText = "";
@@ -123,7 +126,11 @@ public class SlideshowActivity extends Activity {
         int fitMode = getIntent().getIntExtra("fit_mode", 0);
 
         buildUi(fitMode);
-        scanFolder();
+        if (selectionFile != null) {
+            loadSelection();
+        } else {
+            scanFolder();
+        }
     }
 
     private void buildUi(int fitMode) {
@@ -145,7 +152,7 @@ public class SlideshowActivity extends Activity {
         ProgressBar progress = new ProgressBar(this);
         loading.addView(progress);
         scanText = new TextView(this);
-        scanText.setText(searchMode ? "Searching for matching images…" : "Scanning folder…");
+        scanText.setText(selectionFile != null ? "Loading selected images…" : (searchMode ? "Searching for matching images…" : "Scanning folder…"));
         scanText.setTextColor(Color.WHITE);
         scanText.setTextSize(16);
         scanText.setGravity(Gravity.CENTER);
@@ -189,19 +196,69 @@ public class SlideshowActivity extends Activity {
         FrameLayout.LayoutParams controlsParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
         root.addView(controls, controlsParams);
 
-        photoLayer.setOnClickListener(v -> {
-            setControlsVisible(!controlsVisible);
-            if (controlsVisible) scheduleControlsHide();
-        });
-
         setContentView(root);
     }
 
-    private ImageView makeImageView(int fitMode) {
-        ImageView v = new ImageView(this);
+    private ZoomImageView makeImageView(int fitMode) {
+        ZoomImageView v = new ZoomImageView(this);
         v.setBackgroundColor(Color.BLACK);
-        v.setScaleType(fitMode == 1 ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER);
+        v.setCropMode(fitMode == 1);
+        v.setOnSingleTapListener(() -> {
+            setControlsVisible(!controlsVisible);
+            if (controlsVisible) scheduleControlsHide();
+        });
+        v.setOnZoomStateChangedListener(zoomed -> handleZoomState(v, zoomed));
         return v;
+    }
+
+    private void handleZoomState(ZoomImageView view, boolean zoomed) {
+        ZoomImageView current = showingA ? imageA : imageB;
+        if (view != current || view.getVisibility() != View.VISIBLE) return;
+        zoomHolding = zoomed;
+        if (zoomed) {
+            handler.removeCallbacks(nextRunnable);
+            handler.removeCallbacks(hideControlsRunnable);
+        } else if (!paused) {
+            scheduleNext();
+            scheduleControlsHide();
+        }
+    }
+
+    private void loadSelection() {
+        worker.execute(() -> {
+            try {
+                ArrayList<SelectionStore.Item> selected = SelectionStore.read(selectionFile);
+                for (SelectionStore.Item item : selected) {
+                    items.add(new MediaItem(item.uri, item.name, item.relativePath, item.modified));
+                }
+                if (shuffle) Collections.shuffle(items);
+
+                runOnUiThread(() -> {
+                    removeLoading();
+                    if (items.isEmpty()) {
+                        TextView empty = new TextView(this);
+                        empty.setText("No selected images were available.");
+                        empty.setTextColor(Color.WHITE);
+                        empty.setTextSize(18);
+                        empty.setGravity(Gravity.CENTER);
+                        empty.setPadding(dp(28), dp(28), dp(28), dp(28));
+                        root.addView(empty, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+                        infoText.setText("No images selected");
+                        setControlsVisible(true);
+                    } else {
+                        currentIndex = 0;
+                        showCurrent(false);
+                        scheduleControlsHide();
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    removeLoading();
+                    Toast.makeText(this, "Could not load the selected images.", Toast.LENGTH_LONG).show();
+                    finish();
+                });
+            }
+        });
     }
 
     private void scanFolder() {
@@ -450,7 +507,7 @@ public class SlideshowActivity extends Activity {
 
     private void scheduleNext() {
         handler.removeCallbacks(nextRunnable);
-        if (!paused && items.size() > 1) handler.postDelayed(nextRunnable, intervalMs);
+        if (!paused && !zoomHolding && items.size() > 1) handler.postDelayed(nextRunnable, intervalMs);
     }
 
     private void goNext() {
@@ -469,6 +526,7 @@ public class SlideshowActivity extends Activity {
             next = 0;
         }
         currentIndex = next;
+        zoomHolding = false;
         showCurrent(true);
     }
 
@@ -478,6 +536,7 @@ public class SlideshowActivity extends Activity {
         int previous = currentIndex - 1;
         if (previous < 0) previous = loop ? items.size() - 1 : 0;
         currentIndex = previous;
+        zoomHolding = false;
         showCurrent(true);
     }
 
