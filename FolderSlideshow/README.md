@@ -25,3 +25,5 @@ A small offline Android utility that plays a full-screen slideshow from a local 
 - Animated image support when supported by Android
 
 The selected folder is intentionally not persisted. Playback settings are remembered between app launches.
+
+Result lists display relative paths under the chosen search root so duplicate filenames remain distinguishable.
