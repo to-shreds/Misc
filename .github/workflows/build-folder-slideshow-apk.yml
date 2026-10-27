@@ -2,7 +2,7 @@ name: Build Folder Slideshow APK
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ main, chatgpt/folder-slideshow-regex-20261027 ]
   workflow_dispatch:
 
 jobs:
