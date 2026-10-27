@@ -237,7 +237,7 @@ public class MainActivity extends Activity {
         }
 
         saveSettings();
-        Intent intent = new Intent(this, SlideshowActivity.class);
+        Intent intent = new Intent(this, regexMode ? ResultsActivity.class : SlideshowActivity.class);
         intent.putExtra("root_uri", selectedFolder.toString());
         intent.putExtra("search_mode", regexMode);
         intent.putExtra("regex", regex);
