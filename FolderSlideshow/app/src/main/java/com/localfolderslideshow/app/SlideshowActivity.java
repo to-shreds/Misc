@@ -30,15 +30,19 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class SlideshowActivity extends Activity {
     private static class MediaItem {
         final Uri uri;
         final String name;
+        final String relativePath;
         final long modified;
-        MediaItem(Uri uri, String name, long modified) {
+        MediaItem(Uri uri, String name, String relativePath, long modified) {
             this.uri = uri;
             this.name = name == null ? "Image" : name;
+            this.relativePath = relativePath == null ? this.name : relativePath;
             this.modified = modified;
         }
     }
@@ -71,6 +75,10 @@ public class SlideshowActivity extends Activity {
     private boolean loop;
     private boolean recursive;
     private int sortMode;
+    private boolean searchMode;
+    private int regexTarget;
+    private Pattern regexPattern;
+    private String regexText;
 
     private final Runnable nextRunnable = this::goNext;
     private final Runnable hideControlsRunnable = () -> setControlsVisible(false);
@@ -97,6 +105,21 @@ public class SlideshowActivity extends Activity {
         loop = getIntent().getBooleanExtra("loop", true);
         recursive = getIntent().getBooleanExtra("recursive", false);
         sortMode = getIntent().getIntExtra("sort_mode", 0);
+        searchMode = getIntent().getBooleanExtra("search_mode", false);
+        regexTarget = getIntent().getIntExtra("regex_target", 0);
+        regexText = getIntent().getStringExtra("regex");
+        if (regexText == null) regexText = "";
+        if (searchMode) {
+            boolean caseSensitive = getIntent().getBooleanExtra("regex_case_sensitive", false);
+            int flags = caseSensitive ? 0 : Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+            try {
+                regexPattern = Pattern.compile(regexText, flags);
+            } catch (PatternSyntaxException e) {
+                Toast.makeText(this, "Invalid regular expression.", Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            }
+        }
         int fitMode = getIntent().getIntExtra("fit_mode", 0);
 
         buildUi(fitMode);
@@ -122,7 +145,7 @@ public class SlideshowActivity extends Activity {
         ProgressBar progress = new ProgressBar(this);
         loading.addView(progress);
         scanText = new TextView(this);
-        scanText.setText("Scanning folder…");
+        scanText.setText(searchMode ? "Searching for matching images…" : "Scanning folder…");
         scanText.setTextColor(Color.WHITE);
         scanText.setTextSize(16);
         scanText.setGravity(Gravity.CENTER);
@@ -185,14 +208,18 @@ public class SlideshowActivity extends Activity {
         worker.execute(() -> {
             try {
                 String rootId = DocumentsContract.getTreeDocumentId(treeUri);
-                scanChildren(rootId);
+                scanChildren(rootId, "");
 
                 if (sortMode == 1) {
                     items.sort((a, b) -> Long.compare(b.modified, a.modified));
                 } else if (sortMode == 2) {
                     items.sort(Comparator.comparingLong(a -> a.modified));
                 } else {
-                    items.sort((a, b) -> a.name.compareToIgnoreCase(b.name));
+                    items.sort((a, b) -> {
+                        String left = searchMode ? a.relativePath : a.name;
+                        String right = searchMode ? b.relativePath : b.name;
+                        return left.compareToIgnoreCase(right);
+                    });
                 }
                 if (shuffle) Collections.shuffle(items);
 
@@ -200,13 +227,17 @@ public class SlideshowActivity extends Activity {
                     removeLoading();
                     if (items.isEmpty()) {
                         TextView empty = new TextView(this);
-                        empty.setText("No supported image files were found in this folder" + (recursive ? " or its subfolders." : "."));
+                        if (searchMode) {
+                            empty.setText("No image files matched this regex in the selected search scope.");
+                        } else {
+                            empty.setText("No supported image files were found in this folder" + (recursive ? " or its subfolders." : "."));
+                        }
                         empty.setTextColor(Color.WHITE);
                         empty.setTextSize(18);
                         empty.setGravity(Gravity.CENTER);
                         empty.setPadding(dp(28), dp(28), dp(28), dp(28));
                         root.addView(empty, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-                        infoText.setText("No images found");
+                        infoText.setText(searchMode ? "No regex matches" : "No images found");
                         setControlsVisible(true);
                     } else {
                         currentIndex = 0;
@@ -229,7 +260,7 @@ public class SlideshowActivity extends Activity {
         });
     }
 
-    private void scanChildren(String parentDocumentId) {
+    private void scanChildren(String parentDocumentId, String relativeDir) {
         Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parentDocumentId);
         String[] columns = {
                 DocumentsContract.Document.COLUMN_DOCUMENT_ID,
@@ -250,18 +281,26 @@ public class SlideshowActivity extends Activity {
                 String name = cursor.getString(nameCol);
                 String mime = cursor.getString(mimeCol);
                 long modified = modifiedCol >= 0 && !cursor.isNull(modifiedCol) ? cursor.getLong(modifiedCol) : 0L;
+                String safeName = name == null ? "" : name;
+                String relativePath = relativeDir.isEmpty() ? safeName : relativeDir + "/" + safeName;
 
                 if (DocumentsContract.Document.MIME_TYPE_DIR.equals(mime)) {
                     if (recursive) {
-                        try { scanChildren(docId); } catch (Exception ignored) { }
+                        try { scanChildren(docId, relativePath); } catch (Exception ignored) { }
                     }
-                } else if (isImage(mime, name)) {
+                } else if (isImage(mime, name) && matchesSearch(name, relativePath)) {
                     Uri uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, docId);
-                    items.add(new MediaItem(uri, name, modified));
+                    items.add(new MediaItem(uri, name, relativePath, modified));
                 }
             }
         } catch (Exception ignored) {
         }
+    }
+
+    private boolean matchesSearch(String name, String relativePath) {
+        if (!searchMode || regexPattern == null) return true;
+        String candidate = regexTarget == 1 ? relativePath : (name == null ? "" : name);
+        return regexPattern.matcher(candidate).find();
     }
 
     private boolean isImage(String mime, String name) {
@@ -278,7 +317,8 @@ public class SlideshowActivity extends Activity {
         final int generation = loadGeneration.incrementAndGet();
         final MediaItem item = items.get(currentIndex);
         handler.removeCallbacks(nextRunnable);
-        infoText.setText(String.format(Locale.US, "%d / %d   %s", currentIndex + 1, items.size(), item.name));
+        String displayName = searchMode ? item.relativePath : item.name;
+        infoText.setText(String.format(Locale.US, "%d / %d   %s", currentIndex + 1, items.size(), displayName));
 
         worker.execute(() -> {
             try {
