@@ -7,6 +7,10 @@
         android:theme="@android:style/Theme.Material.NoActionBar">
 
         <activity
+            android:name=".ResultsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".SlideshowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
