@@ -1,0 +1,51 @@
+name: Video to Voice Android APK
+on:
+  push:
+    branches:
+      - voice-video-clone
+    paths:
+      - "VoiceVideoClonePatch/**"
+      - ".github/workflows/voicevideo-android.yml"
+  pull_request:
+    paths:
+      - "VoiceVideoClonePatch/**"
+      - ".github/workflows/voicevideo-android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install Android SDK
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006" "cmake;3.22.1"
+      - name: Checkout pinned VoiceStudio
+        run: git clone --depth 1 --branch v0.5.7 https://github.com/debpalash/VoiceStudio.git upstream
+      - name: Apply bounded video-reference patch
+        run: python3 VoiceVideoClonePatch/patch_voicestudio.py upstream
+      - name: Assemble APK
+        working-directory: upstream/mobile/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace assembleDebug
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-to-voice-android-debug
+          path: upstream/mobile/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
