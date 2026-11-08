@@ -5,7 +5,7 @@ This is a proposed modification to the open-source **VoiceStudio v0.5.7 Android 
 ## Use
 
 1. In the YouTube Studio app, find one of your uploaded videos under Content, open its three-dot menu, and tap **Save to device**.
-2. Install the patched VoiceStudio APK once the GitHub Actions build succeeds.
+2. Install the patched VoiceStudio APK from the verified GitHub Actions artifact or ChatGPT download link. The app is labeled **VoiceStudio Video Clone** and installs separately from official VoiceStudio.
 3. Open **Voices** and **Clone**, enter a voice name, confirm consent, choose **Pick File** and select your video.
 4. Move the start-time slider to a clean portion where only you speak. Tap **Use this voice sample**, listen to the preview, then **Clone**.
 5. Open **Speak**, select the new voice profile, enter text, and synthesize audio.
@@ -15,8 +15,8 @@ This is a proposed modification to the open-source **VoiceStudio v0.5.7 Android 
 - The selection is manual, not speaker detection. One good 5-to-15-second sample usually works better than feeding hours of talking into a zero-shot voice model.
 - The source video must have an AAC audio track. Its audio reference is extracted offline using Android MediaExtractor/MediaMuxer. Video is not uploaded to a server.
 - The app does not download video from YouTube links. Use the platform's own Save to device feature for your own uploads.
-- This builds a developer/test APK from the pinned upstream v0.5.7 source. It requires on-device model downloads separately and is not signed by upstream VoiceStudio.
-- Testing voice quality and device performance requires real Android hardware. A successful CI compilation alone does not prove the complete cloning flow works.
+- The GitHub Actions run [42514430937](https://github.com/to-shreds/Misc/actions/runs/42514430937) successfully built a developer/test APK from pinned upstream v0.5.7 source. The resulting APK has SHA-256 `31841c341e6c60bbb134cfc76a95db54b943fa3e7697ac33cad177a1982819bc` and package ID `sh.toshreds.voicevideoclone`. It requires on-device model downloads separately and is not signed by upstream VoiceStudio.
+- The APK was built successfully, its ZIP integrity was verified, and its compiled video-selection class and native OmniVoice libraries were found. Testing voice quality and device performance still requires real Android hardware. A successful CI compilation alone does not prove the full cloning flow works.
 
 ## Build
 
