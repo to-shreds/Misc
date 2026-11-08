@@ -79,4 +79,16 @@ for before, after in changes:
     source=source.replace(before, after, 1)
 screen.write_text(source)
 destination.write_text(base.joinpath("VideoSampleTools.kt").read_text())
-print("Patched", screen, "and", destination)
+
+# Use a distinct install identity and display name; don't overwrite the official VoiceStudio.
+gradle = root / "mobile/android/app/build.gradle.kts"
+gradle_source = gradle.read_text()
+for before, after in [
+    ('applicationId = "sh.voicestudio.mobile"', 'applicationId = "sh.toshreds.voicevideoclone"'),
+    ('val label = (en["app"] as Map<*, *>)["name"].toString()', 'val label = "VoiceStudio Video Clone"')
+]:
+    if gradle_source.count(before) != 1:
+        raise SystemExit(f"Patch aborted: Gradle anchor not unique: {before}")
+    gradle_source = gradle_source.replace(before, after, 1)
+gradle.write_text(gradle_source)
+print("Patched", screen, destination, "and", gradle)
