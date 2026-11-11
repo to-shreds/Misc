@@ -20,6 +20,12 @@ public final class PresetCoreTest {
         // We use real folders for all presets because each preview verifies accessible roots.
         Path sandbox=Files.createTempDirectory("pathshift-presets-");
         ok(PresetCore.sameVolume(sandbox,sandbox),"same filesystem check works on JVM");
+        ok(PresetCore.sameVolume(Paths.get("/storage/emulated/0/DCIM"), Paths.get("/storage/emulated/0/Download")),
+            "Android shared-storage mount recognized without getFileStore");
+        ok(!PresetCore.sameVolume(Paths.get("/storage/emulated/0/DCIM"), Paths.get("/storage/AB12-CD34/DCIM")),
+            "Android internal-to-SD move blocked without reading data");
+        ok(PresetCore.sameVolume(Paths.get("/storage/AB12-CD34/A"), Paths.get("/storage/AB12-CD34/B")),
+            "same SD card paths recognized");
         try {
             Path source=Files.createDirectory(sandbox.resolve("Source"));
             Path destination=Files.createDirectory(sandbox.resolve("Destination"));
