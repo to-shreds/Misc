@@ -498,8 +498,7 @@ public class MainActivity extends Activity {
 
     private void showMatchDetail(RenameCore.Entry entry) {
         File absolute = new File(folder, entry.path);
-        TextView path = label((entry.directory ? "Folder" : "File") + "
-" + absolute.getAbsolutePath(), 15, FG, false);
+        TextView path = label((entry.directory ? "Folder" : "File") + "\n" + absolute.getAbsolutePath(), 15, FG, false);
         path.setTextIsSelectable(true);
         path.setPadding(dp(16), dp(14), dp(16), dp(14));
         new AlertDialog.Builder(this)
