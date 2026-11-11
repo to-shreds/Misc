@@ -134,19 +134,27 @@ public final class PresetCore {
         return results;
     }
 
-    /** Android's java.nio.file.Files.getFileStore can throw UnsupportedOperationException.
-     * Fall back to the canonical Android storage-mount prefix without reading file data.
-     * If identity is unknown, reject the move rather than risk a cross-volume byte copy.
+    /** Android's NIO getFileStore can fail with IOException("getFileStore") even
+     * for accessible shared-storage folders. Recognize known mount roots first,
+     * without calling unsupported NIO methods or inspecting file contents.
+     * For other platforms, use the provider's FileStore when available.
+     * Reject unknown identities rather than silently copying across volumes.
      */
     public static boolean sameVolume(Path a, Path b) throws IOException {
+        String first = androidVolumeKey(a.toAbsolutePath().normalize().toString());
+        String second = androidVolumeKey(b.toAbsolutePath().normalize().toString());
+        if (first != null && second != null) return first.equals(second);
+        // /sdcard is often an alias for /storage/emulated/0.
+        first = androidVolumeKey(a.toFile().getCanonicalPath());
+        second = androidVolumeKey(b.toFile().getCanonicalPath());
+        if (first != null && second != null) return first.equals(second);
         try {
             return Files.getFileStore(a).equals(Files.getFileStore(b));
-        } catch (UnsupportedOperationException androidNioUnavailable) {
-            String first = androidVolumeKey(a.toFile().getCanonicalPath());
-            String second = androidVolumeKey(b.toFile().getCanonicalPath());
-            if (first == null || second == null)
-                throw new IOException("Cannot verify that both folders are on the same storage volume. Choose a location under Android shared storage (/storage).");
-            return first.equals(second);
+        } catch (UnsupportedOperationException unavailable) {
+            throw new IOException("Cannot identify the storage volumes for these folders. Choose a destination on the same Android shared storage.", unavailable);
+        } catch (IOException unavailable) {
+            throw new IOException("Cannot verify destination storage: " + unavailable.getMessage()
+                + ". Choose a folder on the same Android shared storage.", unavailable);
         }
     }
 
