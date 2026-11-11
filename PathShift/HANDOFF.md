@@ -1,27 +1,30 @@
 # PathShift handoff
 
-Goal: A real sideloadable Android APK supporting batch regex rename and moves (including full relative path and directory names), metadata-only scanning, full preview and explicit Save.
+## Purpose and controlling source
+PathShift is a sideloadable native Android app for finding and regex-renaming files or whole relative paths, including folders, under a user-selected working directory. The authoritative source is `to-shreds/Misc/PathShift`, with package `com.pathshift.app`. Its readiness record is `to-shreds/ProjectStatus/projects/pathshift/STATUS.md`.
 
-Source: `to-shreds/Misc/PathShift`, Java Android framework with no external libraries; `RenameCore` pure JVM planner, `BatchCommit` file operations, `MainActivity` native UI, `build.sh` Android SDK-only build.
+## Non-negotiable behavior
+- Never inspect file contents, thumbnails, or file bytes. Scan names and metadata using `Files.walkFileTree`.
+- Read-only **Find** mode is entirely separate from **Rename**. Find must never offer Save or call file-move operations.
+- Rename plans stay in memory until **Save changes** plus **Save now** confirmation. Before Save, preview selected old/new paths and **all affected paths**, including descendants of renamed folders.
+- On Save, reject stale scans, invalid paths, collisions and overwrites. Stage moves in a hidden same-root folder, perform best-effort automatic rollback after failure, and preserve unresolved stage files for recovery. A multi-file batch cannot be guaranteed atomic against device crashes.
+- No internet permission, analytics, cloud processing, third-party SDKs or runtime libraries. Android 11+ All files access is user-granted, and platform-protected directories remain restricted.
 
-Design commitments: no file contents read, no network permission, do not modify before Save + confirmation, no overwrite of unchanged files, validate every planned destination and detect duplicates, stage changed nodes deepest-first and restore parents first, error rather than silently proceeding on stale scan. Working paths must remain under selected root. Android 11+ broad file-management permission is prompted, never silently granted.
+## Architecture
+- `app/src/main/java/com/pathshift/app/MainActivity.java`: Native Find/Rename UI, working-folder picker, live result filtering, path copy/browse action, regex transfer to Rename, preview and explicit Save flow.
+- `app/src/main/java/com/pathshift/app/RenameCore.java`: Pure JVM metadata scanner, regex/literal Find matching and replacement planning, validation and collision checks.
+- `app/src/main/java/com/pathshift/app/BatchCommit.java`: Pre-save stale validation, staged filesystem moves and best-effort rollback.
+- `tests/RenameCoreTest.java`: Pure Java regression tests. `tests/android_smoke.py`: device Find/Preview/Save UI smoke test.
+- `build.sh`: Direct SDK JDK17 build without Gradle/Maven; release signing identity is external to the public repository.
 
-Verification: Run `bash tests/run-tests.sh` locally; build Android APK in GitHub Actions `.github/workflows/pathshift-android.yml`. Check GitHub CI result and signed APK before calling it ready. Real-device testing is still outstanding unless otherwise recorded.
+## Latest release: 0.1.4 (2026-11-11)
+Find tab provides regex or literal matching; filename or full relative path; recursive, include-files/folders and ignore-case switches; match-count list, in-results substring filtering, full-path copy, change working folder to the found item's location, and `Use in Rename` to transfer search pattern/options. The new Find feature does not require a replacement and has no Save control. Rename remains backward-compatible, including `View all affected paths` and explicit Save confirmation.
 
-Known limitations: All-files permission is broad; storage provider/volume restrictions apply. Filesystem move batches are best-effort with staged rollback, not atomic. Preserve private signing key/ password to update installation. A failed rollback leaves `.pathshift-stage-*` recovery folder. Empty original source folders are retained by default.
+Validated 49 pure JVM test assertions on local source and successful Android SDK build, APK version 0.1.4 (versionCode 5), sign and package checks in private GitHub Actions run `42978452858`. Signed APK SHA-256: `4b5d8fd3e002d6e97b062db17fc584892cdc3842ec068ecdb28c0b4fa198fecb`. Verified the exact private signing keystore matches v0.1.3, so 0.1.4 upgrades from 0.1.3 and 0.1.2. Earlier 0.1.0 used a different signer and cannot be updated in place. Source revision for the v0.1.4 Android release: `to-shreds/Misc` commit `edd608fe649ff4b7b966d3c157bb5eb2b12016b7`. Android 15 window-insets handling was added to keep Find, Rename, Preview and Save controls clear of the status/navigation bars and keyboard.
 
-Latest verified release: v0.1.1, built from source commit `bfcf49f029693a2ae87f52dc74b1252008ef35b5` in private ProjectStatus Actions run `42973306864`. Its 38 JVM assertions pass, private APK signature verification passes, and the signed APK, current source ZIP, and private signing backup are available in ChatGPT File Library `/PathShift`. The app includes a complete all-affected-paths preview. The v0.1.0 public-CI build is superseded; its original signing identity must not be used for future releases. Public CI must never publish a signing key or password.
+APK and complete source ZIP should be uploaded to ChatGPT File Library `/PathShift/` and privately archived under `to-shreds/ProjectStatus/projects/pathshift/artifacts/`. Private signing backup should remain under `/PathShift/private-signing/`, never in the public Misc repository or a public build artifact.
 
-Device QA: Android 15 emulator runs `42971369014` and `42973646895` failed because ADB/Pixel Launcher or the disposable test fixture failed before the application was exercised. A new AOSP emulator smoke test `42974111620` was pending at this handoff; consult its actual result. No physical-device behavior has been verified.
+## Remaining verification / next steps
+Android 15 emulator CI run `42978410563` **PASSED** the full read-only Find -> transfer expression into Rename -> preview -> confirmed Save workflow. The fixture file remained unchanged during Find and Preview, and was renamed only after Save. The test also asserted that Find results do not show Save, captured screenshots and checked AndroidRuntime for fatal exceptions. The 0.1.4 system-bar insets fix was visibly validated. No physical-phone test has yet been performed; Android vendor/device storage restrictions and interrupted-batch recovery remain areas to verify with disposable test folders. Do not describe a successful emulator or physical-device test without confirming its actual output. Test on disposable folders before important files. Some Android removable-storage or restricted directory operations may fail; staged rollback is best-effort.
 
-Next: Verify launch, folder permissions, preview and Save on a disposable folder on a real Android device. Reuse the private v0.1.1 signing backup from the Library for future upgrades. Update `ProjectStatus/projects/pathshift/STATUS.md` last.
-
-Preview v0.1.1 includes a button to view all affected before-and-after paths, including children inherited from a renamed folder.
-
-Android emulator smoke script `tests/android_smoke.py` installs the signed APK, grants All files access via appops, browses to a disposable folder, enters a regex, checks Preview leaves the file unchanged, then confirms Save renames it. CI `android-emulator-smoke` uploads screenshots and UI hierarchy. Do not claim success until its GitHub run completes.
-
-
-Android emulator discovery: 0.1.1 folder picker combined AlertDialog `setMessage` with `setItems`, causing the directory list to be hidden. Removed the message in 0.1.2, and put the path into the dialog title so the list can render. Treat 0.1.1 as superseded. Latest runtime QA requires the 0.1.2 emulator run; earlier run `42974111620` exposed this bug. Reuse the private 0.1.1 release signer so 0.1.2 upgrades cleanly.
-
-
-Final 0.1.2 delivery: Private signing run `42974761100` succeeded with 38 core assertions and verified APK signing. The v0.1.2 APK SHA-256 is `a3de81eb77efe9dcbe3d2ef07503611a9a04ba563f41bd48d1ab75394a9f10f2`; released APK, source ZIP and latest private signer backup are stored and verified in ChatGPT File Library `/PathShift`. The v0.1.2 signer is byte-identical to v0.1.1, so upgrading from 0.1.1 should preserve installation identity; v0.1.0 uses a different key and must be uninstalled before upgrading. The Android 15 emulator run `42974686005` demonstrated folder navigation after the picker fix, but stopped at a case-sensitive test-button label; run `42974843308` failed because the emulator's Quickstep launcher was unresponsive before the app launched. Thus end-to-end device Preview/Save is unverified, not a verified failure. Before broader use, test preview, folder moves, file swaps, Save and recovery using a disposable folder on a real device. Do not publish any signing keys in the public repo. Update ProjectStatus STATUS.md last.
+After this release, update the project STATUS.md as the final persistence step, with the verified CI run, Library artifacts, remaining device QA and plain-English status.
