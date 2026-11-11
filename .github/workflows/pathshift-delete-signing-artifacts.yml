@@ -1,0 +1,26 @@
+name: Remove accidental CI signing bundles
+on:
+  push:
+    paths:
+      - '.github/workflows/pathshift-delete-signing-artifacts.yml'
+  workflow_dispatch:
+permissions:
+  actions: write
+  contents: read
+jobs:
+  scrub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete ephemeral PathShift signing artifacts from all builds
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --paginate \
+            --jq '.artifacts[] | select(.name == "PathShift-signing-backup-KEEP-PRIVATE") | .id' \
+            | while read -r artifact_id; do
+                test -n "$artifact_id" || continue
+                gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id"
+                echo "Deleted ephemeral signing artifact ID $artifact_id"
+              done
