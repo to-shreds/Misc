@@ -29,6 +29,29 @@ def adb(*args, check=True):
     return x.stdout.strip()
 
 
+def wait_for_shared_storage(folder):
+    """Emulator boot_completed can precede the shared-storage FUSE mount."""
+    end=time.time()+150
+    while time.time()<end:
+        boot=adb('shell','getprop','sys.boot_completed',check=False)
+        mounted=subprocess.run(['adb','shell','ls','/sdcard/Download'],capture_output=True,text=True,timeout=20)
+        if boot.strip()=='1' and mounted.returncode==0:
+            subprocess.run(['adb','shell','mkdir','-p',folder],capture_output=True,timeout=20)
+            probe=subprocess.run(['adb','shell','ls',folder],capture_output=True,timeout=20)
+            if probe.returncode==0:return
+        time.sleep(3)
+    raise RuntimeError('Android emulator shared storage was not usable after boot')
+
+
+def push_fixture(local,remote):
+    last=''
+    for attempt in range(10):
+        result=subprocess.run(['adb','push',str(local),remote],capture_output=True,text=True,timeout=30)
+        if result.returncode==0:return
+        last=(result.stdout+' '+result.stderr).strip()
+        time.sleep(2)
+    raise RuntimeError('Could not write emulator fixture after retries: '+last)
+
 def xml():
     adb('shell','uiautomator','dump','/sdcard/window.xml')
     raw=adb('exec-out','cat','/sdcard/window.xml')
@@ -81,10 +104,10 @@ def capture(name):
 print('Install/launch')
 adb('install','-r',str(ROOT/'dist'/'PathShift-0.2.0.apk'))
 adb('shell','appops','set','com.pathshift.app','MANAGE_EXTERNAL_STORAGE','allow')
-adb('shell','mkdir','-p','/sdcard/Download/PathShiftSmoke')
+wait_for_shared_storage('/sdcard/Download/PathShiftSmoke')
 fixture=OUTPUT/'ps_test_file.txt'
 fixture.write_text('test-fixture')
-adb('push',str(fixture),'/sdcard/Download/PathShiftSmoke/ps_test_file.txt')
+push_fixture(fixture,'/sdcard/Download/PathShiftSmoke/ps_test_file.txt')
 adb('shell','am','start','-W','-n','com.pathshift.app/.MainActivity')
 by_text('Rename by regex')
 capture('01-editor.png')
@@ -147,7 +170,7 @@ assert 'FATAL EXCEPTION' not in log, log[-5000:]
 print('Preset: choose destination outside source root; preview without changing files')
 fixture2=OUTPUT/'preset_file.txt'
 fixture2.write_text('separate-test-fixture')
-adb('push',str(fixture2),'/sdcard/Download/PathShiftSmoke/preset_file.txt')
+push_fixture(fixture2,'/sdcard/Download/PathShiftSmoke/preset_file.txt')
 by_text('Rename by regex')
 tap(by_text('Presets'))
 by_text('Quick actions')
