@@ -43,7 +43,7 @@ def by_text(text,wait=18):
     while time.time()<end:
         root=xml()
         visible=[n.attrib.get('text','') for n in nodes(root)]
-        hits=[n for n in nodes(root) if n.attrib.get('text','')==text]
+        hits=[n for n in nodes(root) if n.attrib.get('text','').casefold()==text.casefold()]
         if hits:return hits[0]
         if any(('Launcher' in t or 'System UI' in t) and 'responding' in t for t in visible):
             wait=[n for n in nodes(root) if n.attrib.get('text')=='Wait']
