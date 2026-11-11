@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
     private Switch switchFolders, switchFiles, switchRecursive, switchCase, switchAll;
     private LinearLayout rootView;
     private TextView summary, issue, folderStatus;
-    private Button saveButton, previewButton;
+    private Button saveButton, previewButton, allPathsButton;
     private ListView resultsList;
     private CandidateAdapter adapter;
     private String findValue = "";
@@ -292,6 +292,9 @@ public class MainActivity extends Activity {
         issue = label("", 12, DANGER, false);
         pad(issue, dp(6), 0, 0, dp(6));
         rootView.addView(issue);
+        allPathsButton = smallButton("View all affected paths", false);
+        rootView.addView(allPathsButton, spacing(dp(2), dp(3)));
+        allPathsButton.setOnClickListener(v -> showAllAffectedPaths());
 
         LinearLayout actionRow = horizontal();
         Button all = smallButton("Select all", false);
@@ -366,6 +369,46 @@ public class MainActivity extends Activity {
             issue.setText("All selected changes are already covered by their parent folder changes.");
         } else issue.setText("");
         saveButton.setEnabled(!busy && plan.okay());
+        if (allPathsButton != null) {
+            allPathsButton.setText("View all " + plan.changedPaths + " affected paths");
+            allPathsButton.setEnabled(!busy && plan.changedPaths > 0);
+        }
+    }
+
+    /** Read-only full plan, including files whose paths change through a renamed parent. */
+    private void showAllAffectedPaths() {
+        if (busy || currentPlan == null) return;
+        final RenameCore.Plan viewPlan = currentPlan;
+        final List<RenameCore.Entry> affected = new ArrayList<>();
+        for (RenameCore.Entry entry : snapshot) {
+            String target = viewPlan.destinations.get(entry.path);
+            if (target != null && !target.equals(entry.path)) affected.add(entry);
+        }
+        ListView list = new ListView(this);
+        list.setBackgroundColor(BG);
+        list.setDivider(null);
+        list.setDividerHeight(dp(6));
+        list.setFastScrollEnabled(true);
+        list.setPadding(dp(9), dp(7), dp(9), dp(7));
+        list.setAdapter(new BaseAdapter() {
+            @Override public int getCount() { return affected.size(); }
+            @Override public Object getItem(int position) { return affected.get(position); }
+            @Override public long getItemId(int position) { return position; }
+            @Override public View getView(int position, View recycled, ViewGroup container) {
+                RenameCore.Entry entry = affected.get(position);
+                LinearLayout block = card();
+                block.addView(label((entry.directory ? "FOLDER  ·  " : "") + entry.path,
+                    12, MUTED, false));
+                block.addView(label("→  " + viewPlan.destinations.get(entry.path),
+                    13, ACCENT, true), spacing(dp(4), 0));
+                return block;
+            }
+        });
+        new AlertDialog.Builder(this)
+            .setTitle("All affected paths (" + affected.size() + ")")
+            .setView(list)
+            .setPositiveButton("Back to review", null)
+            .show();
     }
 
     private void editCandidate(RenameCore.Candidate c) {

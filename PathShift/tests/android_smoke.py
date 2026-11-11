@@ -12,7 +12,7 @@ OUTPUT.mkdir(exist_ok=True)
 
 
 def adb(*args, check=True):
-    x=subprocess.run(['adb',*args],capture_output=True,text=True,check=check,timeout=45)
+    x=subprocess.run(['adb',*args],capture_output=True,text=True,check=check,timeout=180 if args[0]=='install' else 60)
     return x.stdout.strip()
 
 
@@ -55,7 +55,7 @@ def capture(name):
 
 
 print('Install/launch')
-adb('install','-r',str(ROOT/'dist'/'PathShift-0.1.0.apk'))
+adb('install','-r',str(ROOT/'dist'/'PathShift-0.1.1.apk'))
 adb('shell','appops','set','com.pathshift.app','MANAGE_EXTERNAL_STORAGE','allow')
 adb('shell','mkdir','-p','/sdcard/Download/PathShiftSmoke')
 adb('shell','sh','-c','printf test-fixture > /sdcard/Download/PathShiftSmoke/ps_test_file.txt')
@@ -82,6 +82,7 @@ tap(edits[1]);adb('shell','input','text','renamed')
 adb('shell','input','keyevent','4')
 tap(by_text('Preview changes'))
 by_text('Review changes')
+by_text('View all 1 affected paths')
 by_text('→  renamed_file.txt')
 assert 'ps_test_file.txt' in adb('shell','ls','/sdcard/Download/PathShiftSmoke'), 'Preview modified files!'
 capture('02-preview.png')

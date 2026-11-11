@@ -34,6 +34,13 @@ public class RenameCoreTest {
         eq("C",plan.destinations.get("A"),"parent rename");
         eq("C/IMG_03.jpg",plan.destinations.get("A/IMG_03.jpg"),"child inherits");
         eq(1,plan.moves.size(),"child does not move twice");
+        RenameCore.Options justFolders=opts(false);
+        justFolders.includeFiles=false;
+        List<RenameCore.Candidate> folderOnly=RenameCore.preview(es,"^A$","C",justFolders);
+        eq(1,folderOnly.size(),"only the folder matches");
+        RenameCore.Plan inherited=RenameCore.plan(es,folderOnly);
+        eq(2,inherited.changedPaths,"all affected paths include inherited child paths");
+        eq("C/IMG_03.jpg",inherited.destinations.get("A/IMG_03.jpg"),"inherited child path is visible in plan");
         p=RenameCore.preview(es,"^A","B",o);
         plan=RenameCore.plan(es,p);
         yes(!plan.okay(),"collision with untouched B");
