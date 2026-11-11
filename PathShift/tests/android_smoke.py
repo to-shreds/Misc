@@ -51,16 +51,23 @@ def tap(n):
     time.sleep(0.4)
 
 
-def by_text(text,wait=18):
+def by_text(text,wait=35):
     end=time.time()+wait
     while time.time()<end:
         root=xml()
         visible=[n.attrib.get('text','') for n in nodes(root)]
         hits=[n for n in nodes(root) if n.attrib.get('text','').casefold()==text.casefold()]
         if hits:return hits[0]
-        if any(('Launcher' in t or 'System UI' in t) and 'responding' in t for t in visible):
-            wait=[n for n in nodes(root) if n.attrib.get('text')=='Wait']
-            if wait: tap(wait[0]); continue
+        if any("isn't responding" in t or "not responding" in t for t in visible):
+            # Android emulator system launcher occasionally ANRs before PathShift draws.
+            close=[n for n in nodes(root) if n.attrib.get('text')=='Close app']
+            if close:
+                tap(close[0])
+                adb('shell','am','start','-W','-n','com.pathshift.app/.MainActivity',check=False)
+                time.sleep(1)
+                continue
+            wait_nodes=[n for n in nodes(root) if n.attrib.get('text')=='Wait']
+            if wait_nodes: tap(wait_nodes[0]); continue
         time.sleep(1)
     text_seen=[n.attrib.get('text','') for n in nodes(xml()) if n.attrib.get('text')]
     raise AssertionError(f'Could not find {text!r}. Visible text: {text_seen[:50]}')
