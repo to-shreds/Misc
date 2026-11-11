@@ -42,8 +42,12 @@ def by_text(text,wait=18):
     end=time.time()+wait
     while time.time()<end:
         root=xml()
+        visible=[n.attrib.get('text','') for n in nodes(root)]
         hits=[n for n in nodes(root) if n.attrib.get('text','')==text]
         if hits:return hits[0]
+        if any(('Launcher' in t or 'System UI' in t) and 'responding' in t for t in visible):
+            wait=[n for n in nodes(root) if n.attrib.get('text')=='Wait']
+            if wait: tap(wait[0]); continue
         time.sleep(1)
     text_seen=[n.attrib.get('text','') for n in nodes(xml()) if n.attrib.get('text')]
     raise AssertionError(f'Could not find {text!r}. Visible text: {text_seen[:50]}')
