@@ -58,6 +58,29 @@ public class RenameCoreTest {
         o.ignoreCase=true;
         p=RenameCore.preview(es,"img_(\\d+)","photo_$1",o);
         eq(1,p.size(),"case insensitive");
+        // Find-only operations return metadata and never plan a rename.
+        RenameCore.Options look = opts(false);
+        look.ignoreCase = true;
+        List<RenameCore.Entry> found = RenameCore.find(es, "img_\\d+", look, true);
+        eq(1, found.size(), "find filename by regex");
+        eq("A/IMG_03.jpg", found.get(0).path, "find returns existing relative path");
+        eq(2, RenameCore.find(es, "\\.jpg$", look, true).size(), "find multiple extensions");
+        look.includeFolders = false;
+        eq(0, RenameCore.find(es, "^A$", look, true).size(), "find excludes folders");
+        look.includeFolders = true;
+        eq(1, RenameCore.find(es, "^A$", look, true).size(), "find includes folders");
+        look.fullPath = true;
+        eq(1, RenameCore.find(es, "^A/IMG", look, true).size(), "find entire relative path");
+        eq(0, RenameCore.find(es, "IMG_\\d+", look, false).size(), "literal search treats regex markers as text");
+        eq(1, RenameCore.find(es, "IMG_03.jpg", look, false).size(), "find exact literal path fragment");
+        look.recursive = false;
+        eq(0, RenameCore.find(es, "jpg", look, false).size(), "find excludes subdirectories when not recursive");
+        eq(1, RenameCore.find(es, "^A$", look, true).size(), "find still sees top-level folders");
+        look.recursive = true;
+        boolean invalidSearch = false;
+        try { RenameCore.find(es, "[", look, true); }
+        catch (java.util.regex.PatternSyntaxException ex) { invalidSearch = true; }
+        yes(invalidSearch, "invalid find regex reported without modifying files");
         // Verify real moves and rollback without reading a file's contents in the engine.
         Path root=Files.createTempDirectory("pathshift-test-");
         try {

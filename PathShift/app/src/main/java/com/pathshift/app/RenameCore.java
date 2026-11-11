@@ -118,6 +118,22 @@ public final class RenameCore {
         return entries;
     }
 
+    /** Search paths by regex or literal text without planning any mutation. */
+    public static List<Entry> find(List<Entry> entries, String expression, Options opts, boolean regex) {
+        if (expression == null || expression.isEmpty())
+            throw new IllegalArgumentException("Enter a filename or pattern to find.");
+        int flags = opts.ignoreCase ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0;
+        Pattern pattern = Pattern.compile(regex ? expression : Pattern.quote(expression), flags);
+        ArrayList<Entry> matches = new ArrayList<>();
+        for (Entry entry : entries) {
+            if (entry.directory ? !opts.includeFolders : !opts.includeFiles) continue;
+            if (!opts.recursive && entry.path.indexOf('/') >= 0) continue;
+            String target = opts.fullPath ? entry.path : name(entry.path);
+            if (pattern.matcher(target).find()) matches.add(entry);
+        }
+        return matches;
+    }
+
     public static List<Candidate> preview(List<Entry> entries, String find, String replacement, Options opts) {
         if (find == null || find.isEmpty()) throw new IllegalArgumentException("Enter a regular expression to find.");
         int flags = opts.ignoreCase ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0;

@@ -2,6 +2,8 @@ package com.pathshift.app;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -15,6 +17,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.text.InputType;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +46,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -60,7 +65,20 @@ public class MainActivity extends Activity {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final AtomicBoolean cancelScan = new AtomicBoolean(false);
     private boolean busy = false;
+    private enum Mode { FIND, RENAME }
+    private Mode mode = Mode.RENAME;
     private boolean viewingPreview = false;
+    private boolean viewingFindResults = false;
+    private final RenameCore.Options findOptions = new RenameCore.Options();
+    private String searchValue = "";
+    private boolean searchRegex = true;
+    private List<RenameCore.Entry> matches = new ArrayList<>();
+    private List<RenameCore.Entry> visibleMatches = new ArrayList<>();
+    private int pathsScanned = 0;
+    private long filterRevision = 0;
+    private MatchAdapter matchAdapter;
+    private TextView matchCount;
+    private Switch switchRegex;
     private File folder;
     private RenameCore.Options options = new RenameCore.Options();
     private List<RenameCore.Entry> snapshot = new ArrayList<>();
@@ -78,6 +96,8 @@ public class MainActivity extends Activity {
     private CandidateAdapter adapter;
     private String findValue = "";
     private String replaceValue = "";
+
+    { findOptions.includeFolders = true; findOptions.ignoreCase = true; }
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -97,7 +117,7 @@ public class MainActivity extends Activity {
 
     @Override public void onBackPressed() {
         if (busy) { Toast.makeText(this, "Finish the current operation first.", Toast.LENGTH_SHORT).show(); return; }
-        if (viewingPreview) { showEditor(); return; }
+        if (viewingPreview || viewingFindResults) { showEditor(); return; }
         super.onBackPressed();
     }
 
@@ -122,8 +142,45 @@ public class MainActivity extends Activity {
             }).show();
     }
 
+    /** Keep text and search options when the user switches modes. */
+    private void rememberEditor() {
+        if (findInput == null || scopeGroup == null) return;
+        RenameCore.Options active = mode == Mode.FIND ? findOptions : options;
+        if (mode == Mode.FIND) searchValue = findInput.getText().toString();
+        else {
+            findValue = findInput.getText().toString();
+            if (replaceInput != null) replaceValue = replaceInput.getText().toString();
+        }
+        active.fullPath = scopeGroup.getCheckedRadioButtonId() == scopeGroup.getChildAt(1).getId();
+        active.includeFiles = switchFiles.isChecked();
+        active.includeFolders = switchFolders.isChecked();
+        active.recursive = switchRecursive.isChecked();
+        active.ignoreCase = switchCase.isChecked();
+        if (mode == Mode.FIND && switchRegex != null) searchRegex = switchRegex.isChecked();
+        if (mode == Mode.RENAME && switchAll != null) active.replaceAll = switchAll.isChecked();
+    }
+
+    private RenameCore.Options copyOptions(RenameCore.Options from) {
+        RenameCore.Options copy = new RenameCore.Options();
+        copy.fullPath = from.fullPath;
+        copy.includeFiles = from.includeFiles;
+        copy.includeFolders = from.includeFolders;
+        copy.recursive = from.recursive;
+        copy.ignoreCase = from.ignoreCase;
+        copy.replaceAll = from.replaceAll;
+        return copy;
+    }
+
+    private void chooseMode(Mode next) {
+        if (busy || mode == next) return;
+        rememberEditor();
+        mode = next;
+        showEditor();
+    }
+
     private void showEditor() {
         viewingPreview = false;
+        viewingFindResults = false;
         rootView = vertical();
         rootView.setBackgroundColor(BG);
         setContentView(rootView);
@@ -138,10 +195,23 @@ public class MainActivity extends Activity {
         TextView brand = label("PATHSHIFT", 13, ACCENT, true);
         brand.setLetterSpacing(.22f);
         body.addView(brand);
-        TextView title = label("Rename by regex", 28, FG, true);
+        LinearLayout modes = horizontal();
+        Button findTab = smallButton("Find", mode == Mode.FIND);
+        Button renameTab = smallButton("Rename", mode == Mode.RENAME);
+        modes.addView(findTab, new LinearLayout.LayoutParams(0, dp(45), 1));
+        LinearLayout.LayoutParams renameTabParams = new LinearLayout.LayoutParams(0, dp(45), 1);
+        renameTabParams.leftMargin = dp(9);
+        modes.addView(renameTab, renameTabParams);
+        findTab.setOnClickListener(v -> chooseMode(Mode.FIND));
+        renameTab.setOnClickListener(v -> chooseMode(Mode.RENAME));
+        body.addView(modes, spacing(dp(13), dp(12)));
+
+        TextView title = label(mode == Mode.FIND ? "Find files & folders" : "Rename by regex", 27, FG, true);
         pad(title, 0, dp(4), 0, dp(2));
         body.addView(title);
-        body.addView(label("Search filenames, rewrite entire paths, preview before saving.", 13, MUTED, false));
+        body.addView(label(mode == Mode.FIND
+            ? "Search names or entire paths. Find mode is read-only."
+            : "Rewrite filenames or entire paths. Review everything before saving.", 13, MUTED, false));
 
         LinearLayout folderCard = card();
         LinearLayout.LayoutParams cp = spacing(dp(18), dp(12));
@@ -159,15 +229,22 @@ public class MainActivity extends Activity {
         folderCard.addView(folderStatus);
         updateFolderStatus();
 
-        TextView findLabel = label("FIND  ·  REGULAR EXPRESSION", 12, MUTED, true);
+        boolean finding = mode == Mode.FIND;
+        RenameCore.Options active = finding ? findOptions : options;
+        TextView findLabel = label(finding ? "SEARCH FOR" : "FIND  ·  REGULAR EXPRESSION", 12, MUTED, true);
         body.addView(findLabel);
-        findInput = edit(findValue, "e.g. ^IMG_(\\d+)\\.jpg$");
-        findInput.setImeOptions(EditorInfo.IME_ACTION_NEXT);
+        findInput = edit(finding ? searchValue : findValue,
+            finding ? "e.g. \\.jpg$ or vacation" : "e.g. ^IMG_(\\d+)\\.jpg$");
+        findInput.setImeOptions(finding ? EditorInfo.IME_ACTION_SEARCH : EditorInfo.IME_ACTION_NEXT);
         body.addView(findInput, spacing(dp(6), dp(13)));
-        body.addView(label("REPLACE WITH", 12, MUTED, true));
-        replaceInput = edit(replaceValue, "e.g. Photo_$1.jpg");
-        replaceInput.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        body.addView(replaceInput, spacing(dp(6), dp(14)));
+        if (finding) {
+            replaceInput = null;
+        } else {
+            body.addView(label("REPLACE WITH", 12, MUTED, true));
+            replaceInput = edit(replaceValue, "e.g. Photo_$1.jpg");
+            replaceInput.setImeOptions(EditorInfo.IME_ACTION_DONE);
+            body.addView(replaceInput, spacing(dp(6), dp(14)));
+        }
 
         body.addView(label("APPLY PATTERN TO", 12, MUTED, true));
         scopeGroup = new RadioGroup(this);
@@ -178,24 +255,32 @@ public class MainActivity extends Activity {
         paths.setId(View.generateViewId());
         scopeGroup.addView(names);
         scopeGroup.addView(paths);
-        scopeGroup.check(options.fullPath ? paths.getId() : names.getId());
+        scopeGroup.check(active.fullPath ? paths.getId() : names.getId());
         body.addView(scopeGroup, spacing(dp(4), dp(8)));
-        body.addView(label("Full paths use / and start inside the chosen folder. Use $1, $2, etc. for capture groups.", 12, MUTED, false));
+        body.addView(label(finding
+            ? "Full paths use / separators and are relative to the selected folder."
+            : "Full paths use /. Use $1, $2, etc. for regex capture groups.", 12, MUTED, false));
 
         LinearLayout toggles = card();
         body.addView(toggles, spacing(dp(16), dp(6)));
-        switchFiles = createToggle(toggles, "Include files", options.includeFiles);
-        switchFolders = createToggle(toggles, "Include folders", options.includeFolders);
-        switchRecursive = createToggle(toggles, "Search subfolders", options.recursive);
-        switchCase = createToggle(toggles, "Ignore case", options.ignoreCase);
-        switchAll = createToggle(toggles, "Replace every match per path", options.replaceAll);
+        switchFiles = createToggle(toggles, "Include files", active.includeFiles);
+        switchFolders = createToggle(toggles, "Include folders", active.includeFolders);
+        switchRecursive = createToggle(toggles, "Search subfolders", active.recursive);
+        switchCase = createToggle(toggles, "Ignore case", active.ignoreCase);
+        if (finding) {
+            switchRegex = createToggle(toggles, "Use regular expression", searchRegex);
+            switchAll = null;
+        } else {
+            switchRegex = null;
+            switchAll = createToggle(toggles, "Replace every match per path", active.replaceAll);
+        }
 
         LinearLayout bottom = horizontal();
         bottom.setPadding(dp(20), dp(10), dp(20), dp(18));
         Button access = smallButton("File access", false);
         bottom.addView(access);
         access.setOnClickListener(v -> requestAccess());
-        previewButton = smallButton("Preview changes", true);
+        previewButton = smallButton(finding ? "Find matches" : "Preview changes", true);
         LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, dp(51), 1);
         bp.leftMargin = dp(10);
         bottom.addView(previewButton, bp);
@@ -214,18 +299,14 @@ public class MainActivity extends Activity {
         if (busy) return;
         if (!hasFileAccess()) { requestAccess(); return; }
         if (folder == null || !folder.isDirectory()) { toast("Choose an accessible folder."); return; }
-        findValue = findInput.getText().toString();
-        replaceValue = replaceInput.getText().toString();
-        if (findValue.trim().isEmpty()) { findInput.setError("Enter a regex pattern."); return; }
-        options.fullPath = scopeGroup.getCheckedRadioButtonId() == scopeGroup.getChildAt(1).getId();
-        options.includeFiles = switchFiles.isChecked();
-        options.includeFolders = switchFolders.isChecked();
-        options.recursive = switchRecursive.isChecked();
-        options.ignoreCase = switchCase.isChecked();
-        options.replaceAll = switchAll.isChecked();
-        if (!options.includeFiles && !options.includeFolders) { toast("Enable files, folders, or both."); return; }
-        final RenameCore.Options captured = options;
-        final String find = findValue, replace = replaceValue;
+        rememberEditor();
+        final boolean finding = mode == Mode.FIND;
+        final RenameCore.Options captured = copyOptions(finding ? findOptions : options);
+        final String find = finding ? searchValue : findValue;
+        final String replace = replaceValue;
+        final boolean regex = searchRegex;
+        if (find.trim().isEmpty()) { findInput.setError(finding ? "Enter a name or pattern." : "Enter a regex pattern."); return; }
+        if (!captured.includeFiles && !captured.includeFolders) { toast("Enable files, folders, or both."); return; }
         final Path selectedRoot = folder.toPath().toAbsolutePath().normalize();
         busy = true;
         cancelScan.set(false);
@@ -234,38 +315,212 @@ public class MainActivity extends Activity {
         previewButton.setOnClickListener(v -> cancelScan.set(true));
         final TextView dialogText = label("Scanning filenames and folders…", 15, FG, false);
         dialogText.setPadding(dp(22), dp(25), dp(22), dp(25));
-        final AlertDialog progress = new AlertDialog.Builder(this).setTitle("Creating preview")
+        final AlertDialog progress = new AlertDialog.Builder(this).setTitle(finding ? "Finding matches" : "Creating preview")
             .setView(dialogText).setNegativeButton("Cancel", (d, w) -> cancelScan.set(true)).create();
         progress.setCanceledOnTouchOutside(false);
         progress.show();
         worker.execute(() -> {
             try {
-                BatchCommit.ensureNoUnfinishedBatch(selectedRoot);
+                if (!finding) BatchCommit.ensureNoUnfinishedBatch(selectedRoot);
                 List<RenameCore.Entry> entries = RenameCore.scan(selectedRoot, cancelScan,
                     count -> main.post(() -> dialogText.setText("Scanned " + count + " paths…")));
                 if (cancelScan.get()) throw new IOException("Scan canceled.");
-                List<RenameCore.Candidate> found = RenameCore.preview(entries, find, replace, captured);
-                RenameCore.Plan plan = RenameCore.plan(entries, found);
-                main.post(() -> {
-                    busy = false;
-                    progress.dismiss();
-                    snapshot = entries;
-                    candidates = found;
-                    currentPlan = plan;
-                    planRevision++;
-                    showPreview();
-                });
+                if (finding) {
+                    List<RenameCore.Entry> found = RenameCore.find(entries, find, captured, regex);
+                    if (cancelScan.get()) throw new IOException("Scan canceled.");
+                    main.post(() -> {
+                        busy = false;
+                        progress.dismiss();
+                        pathsScanned = entries.size();
+                        matches = found;
+                        visibleMatches = new ArrayList<>(found);
+                        showFindResults();
+                    });
+                } else {
+                    List<RenameCore.Candidate> found = RenameCore.preview(entries, find, replace, captured);
+                    RenameCore.Plan plan = RenameCore.plan(entries, found);
+                    main.post(() -> {
+                        busy = false;
+                        progress.dismiss();
+                        snapshot = entries;
+                        candidates = found;
+                        currentPlan = plan;
+                        planRevision++;
+                        showPreview();
+                    });
+                }
             } catch (Exception error) {
                 main.post(() -> {
                     busy = false;
                     progress.dismiss();
                     previewButton.setEnabled(true);
-                    previewButton.setText("Preview changes");
+                    previewButton.setText(finding ? "Find matches" : "Preview changes");
                     previewButton.setOnClickListener(v -> preview());
                     if (!cancelScan.get()) errorDialog("Could not preview", error.getMessage());
                 });
             }
         });
+    }
+
+    /** Read-only results; there is deliberately no Save or file-operation action on this screen. */
+    private void showFindResults() {
+        viewingFindResults = true;
+        viewingPreview = false;
+        filterRevision++;
+        rootView = vertical();
+        rootView.setBackgroundColor(BG);
+        rootView.setPadding(dp(12), dp(8), dp(12), dp(10));
+        setContentView(rootView);
+
+        LinearLayout toolbar = horizontal();
+        Button back = smallButton("‹ Search", false);
+        back.setOnClickListener(v -> showEditor());
+        toolbar.addView(back);
+        TextView note = label("FIND  ·  READ-ONLY", 12, ACCENT, true);
+        note.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
+        toolbar.addView(note, new LinearLayout.LayoutParams(0, dp(44), 1));
+        rootView.addView(toolbar);
+
+        TextView title = label("Search results", 23, FG, true);
+        rootView.addView(title, spacing(dp(8), dp(3)));
+        matchCount = label("", 13, MUTED, false);
+        rootView.addView(matchCount, spacing(dp(4), dp(8)));
+        TextView message = label("No files or folders have been changed.", 12, ACCENT, false);
+        rootView.addView(message, spacing(0, dp(10)));
+
+        EditText refine = edit("", "Filter results by text");
+        refine.setSingleLine(true);
+        rootView.addView(refine, spacing(0, dp(10)));
+        refine.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterResults(s.toString());
+            }
+            @Override public void afterTextChanged(Editable editable) {}
+        });
+
+        TextView empty = label("No matching paths. Try another pattern or clear the result filter.", 14, MUTED, false);
+        empty.setGravity(Gravity.CENTER);
+        empty.setPadding(dp(14), dp(22), dp(14), dp(22));
+        rootView.addView(empty);
+
+        ListView results = new ListView(this);
+        results.setCacheColorHint(Color.TRANSPARENT);
+        results.setDivider(null);
+        results.setDividerHeight(dp(7));
+        results.setFastScrollEnabled(true);
+        results.setClipToPadding(false);
+        results.setPadding(dp(2), dp(5), dp(2), dp(5));
+        matchAdapter = new MatchAdapter();
+        results.setAdapter(matchAdapter);
+        rootView.addView(results, new LinearLayout.LayoutParams(-1, 0, 1));
+        results.setEmptyView(empty);
+        updateMatchCount();
+
+        LinearLayout footer = horizontal();
+        footer.setPadding(0, dp(9), 0, 0);
+        Button again = smallButton("New search", false);
+        again.setOnClickListener(v -> showEditor());
+        footer.addView(again);
+        Button use = smallButton("Use in Rename", true);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(52), 1);
+        lp.leftMargin = dp(10);
+        footer.addView(use, lp);
+        use.setOnClickListener(v -> {
+            findValue = searchRegex ? searchValue : java.util.regex.Pattern.quote(searchValue);
+            options = copyOptions(findOptions);
+            mode = Mode.RENAME;
+            showEditor();
+        });
+        rootView.addView(footer);
+    }
+
+    /** Refines already found paths in memory, without another filesystem traversal. */
+    private void filterResults(String text) {
+        final long token = ++filterRevision;
+        final String query = text.toLowerCase(Locale.ROOT);
+        final List<RenameCore.Entry> source = matches;
+        worker.execute(() -> {
+            List<RenameCore.Entry> subset = new ArrayList<>();
+            for (RenameCore.Entry entry : source) {
+                if (query.isEmpty() || entry.path.toLowerCase(Locale.ROOT).contains(query))
+                    subset.add(entry);
+            }
+            main.post(() -> {
+                if (!viewingFindResults || token != filterRevision) return;
+                visibleMatches = subset;
+                if (matchAdapter != null) matchAdapter.notifyDataSetChanged();
+                updateMatchCount();
+            });
+        });
+    }
+
+    private void updateMatchCount() {
+        if (matchCount == null) return;
+        int total = matches.size(), shown = visibleMatches.size();
+        matchCount.setText((total == shown ? total + " matches" : shown + " of " + total + " matches")
+            + "  ·  " + pathsScanned + " paths scanned");
+    }
+
+    private final class MatchAdapter extends BaseAdapter {
+        @Override public int getCount() { return visibleMatches.size(); }
+        @Override public Object getItem(int position) { return visibleMatches.get(position); }
+        @Override public long getItemId(int position) { return position; }
+        @Override public View getView(int position, View recycled, ViewGroup parent) {
+            final RenameCore.Entry entry = visibleMatches.get(position);
+            LinearLayout block;
+            MatchHolder holder;
+            if (recycled instanceof LinearLayout && recycled.getTag() instanceof MatchHolder) {
+                block = (LinearLayout)recycled;
+                holder = (MatchHolder)recycled.getTag();
+            } else {
+                block = card();
+                block.setPadding(dp(14), dp(11), dp(14), dp(11));
+                holder = new MatchHolder();
+                holder.type = label("", 11, ACCENT, true);
+                holder.path = label("", 14, FG, false);
+                holder.path.setSingleLine(false);
+                block.addView(holder.type);
+                block.addView(holder.path, spacing(dp(4), 0));
+                block.setTag(holder);
+            }
+            holder.type.setText(entry.directory ? "FOLDER" : "FILE");
+            holder.path.setText(entry.path);
+            block.setOnClickListener(v -> showMatchDetail(entry));
+            return block;
+        }
+    }
+
+    private static final class MatchHolder {
+        TextView type;
+        TextView path;
+    }
+
+    private void showMatchDetail(RenameCore.Entry entry) {
+        File absolute = new File(folder, entry.path);
+        TextView path = label((entry.directory ? "Folder" : "File") + "
+" + absolute.getAbsolutePath(), 15, FG, false);
+        path.setTextIsSelectable(true);
+        path.setPadding(dp(16), dp(14), dp(16), dp(14));
+        new AlertDialog.Builder(this)
+            .setTitle("Found path")
+            .setView(path)
+            .setNegativeButton("Close", null)
+            .setNeutralButton("Copy path", (d, w) -> {
+                ClipboardManager clipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+                if (clipboard != null) {
+                    clipboard.setPrimaryClip(ClipData.newPlainText("File path", absolute.getAbsolutePath()));
+                    toast("Path copied.");
+                }
+            })
+            .setPositiveButton("Work in folder", (d, w) -> {
+                File next = entry.directory ? absolute : absolute.getParentFile();
+                if (next == null || !next.isDirectory()) { toast("That folder is no longer available."); return; }
+                folder = next;
+                getPreferences(MODE_PRIVATE).edit().putString("folder", next.getAbsolutePath()).apply();
+                showEditor();
+            })
+            .show();
     }
 
     private void showPreview() {

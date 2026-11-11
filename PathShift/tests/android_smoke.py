@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise actual regex preview and Save on a disposable Android emulator."""
+"""Exercise read-only Find, then regex Preview and Save on a disposable Android emulator."""
 import pathlib
 import re
 import subprocess
@@ -59,7 +59,7 @@ def capture(name):
 
 
 print('Install/launch')
-adb('install','-r',str(ROOT/'dist'/'PathShift-0.1.2.apk'))
+adb('install','-r',str(ROOT/'dist'/'PathShift-0.1.3.apk'))
 adb('shell','appops','set','com.pathshift.app','MANAGE_EXTERNAL_STORAGE','allow')
 adb('shell','mkdir','-p','/sdcard/Download/PathShiftSmoke')
 fixture=OUTPUT/'ps_test_file.txt'
@@ -77,13 +77,28 @@ tap(by_text('Download/'))
 tap(by_text('PathShiftSmoke/'))
 tap(by_text('Use this folder'))
 
-print('Enter regex and replacement')
+print('Search without changing files')
+tap(by_text('Find'))
+by_text('Find files & folders')
 page=xml()
 edits=[n for n in nodes(page) if n.attrib.get('class')=='android.widget.EditText']
-assert len(edits)>=2, f'Expected 2 regex edit fields; found {len(edits)}'
+assert len(edits)>=1, 'Expected Find expression field'
 tap(edits[0]);adb('shell','input','text','ps_test')
+adb('shell','input','keyevent','4')
+tap(by_text('Find matches'))
+by_text('Search results')
+by_text('ps_test_file.txt')
+assert not any(n.attrib.get('text','') == 'Save changes' for n in nodes(xml())), 'Find unexpectedly shows Save'
+assert 'ps_test_file.txt' in adb('shell','ls','/sdcard/Download/PathShiftSmoke'), 'Find modified files!'
+capture('02-find.png')
+
+print('Transfer regex to Rename, then preview')
+tap(by_text('Use in Rename'))
+by_text('Rename by regex')
 page=xml()
 edits=[n for n in nodes(page) if n.attrib.get('class')=='android.widget.EditText']
+assert len(edits)>=2, f'Expected 2 rename edit fields; found {len(edits)}'
+assert edits[0].attrib.get('text') == 'ps_test', 'Find expression was not transferred to Rename'
 tap(edits[1]);adb('shell','input','text','renamed')
 adb('shell','input','keyevent','4')
 tap(by_text('Preview changes'))
@@ -91,7 +106,7 @@ by_text('Review changes')
 by_text('View all 1 affected paths')
 by_text('→  renamed_file.txt')
 assert 'ps_test_file.txt' in adb('shell','ls','/sdcard/Download/PathShiftSmoke'), 'Preview modified files!'
-capture('02-preview.png')
+capture('03-preview.png')
 
 print('Confirm Save')
 tap(by_text('Save changes'))
@@ -100,10 +115,10 @@ by_text('Saved')
 files=adb('shell','ls','/sdcard/Download/PathShiftSmoke')
 assert 'renamed_file.txt' in files, files
 assert 'ps_test_file.txt' not in files, files
-capture('03-saved.png')
+capture('04-saved.png')
 
 print('Check AndroidRuntime fatal errors')
 log=adb('logcat','-d','-s','AndroidRuntime:E')
 (OUTPUT/'android-runtime.txt').write_text(log)
 assert 'FATAL EXCEPTION' not in log, log[-5000:]
-print('PASS: launch, folder selection, regex preview does not mutate, Save renames')
+print('PASS: find-only, no Save in results, regex transfer, rename preview, explicit Save')
