@@ -1,7 +1,6 @@
 package com.pathshift.app;
 
 import java.io.IOException;
-import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -39,7 +38,6 @@ public final class PresetCommit {
                 (!e.directory && (now.size != e.size || now.modified != e.modified)))
                 throw new IOException("Files have changed since preview: " + e.path);
         }
-        FileStore store = Files.getFileStore(base);
         // Check every destination before staging. Same volume is essential to avoid
         // content-copy/delete behavior for a cross-volume Files.move implementation.
         for (PresetCore.Proposal item : plan.moves) {
@@ -47,7 +45,7 @@ public final class PresetCommit {
             Path cursor = dest.getParent();
             while (cursor != null && !Files.exists(cursor, LinkOption.NOFOLLOW_LINKS)) cursor=cursor.getParent();
             if (cursor == null || !Files.isDirectory(cursor)) throw new IOException("Destination folder is unavailable: " + dest);
-            if (!store.equals(Files.getFileStore(cursor)))
+            if (!PresetCore.sameVolume(base,cursor))
                 throw new IOException("Moving between storage volumes is not supported without copying file contents. Choose a destination on the same volume.");
         }
         PresetCore.Plan fresh = PresetCore.plan(base,recent,plan.moves);

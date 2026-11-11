@@ -71,7 +71,7 @@ public final class PresetCore {
                 RenameCore.validateRelative(s.newFolder) != null)
                 throw new IOException("Enter a valid single new-folder name without / or \\.");
             destination = s.destinationParent.toAbsolutePath().normalize().resolve(s.newFolder);
-            if (!Files.getFileStore(root).equals(Files.getFileStore(s.destinationParent)))
+            if (!sameVolume(root,s.destinationParent))
                 throw new IOException("The destination is on another storage volume. PathShift moves filenames without copying file contents, so choose a folder on the same storage volume.");
             if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS))
                 throw new IOException("A folder named '" + s.newFolder + "' already exists here. Choose a new name.");
@@ -132,6 +132,38 @@ public final class PresetCore {
             if (!source.equals(target)) results.add(new Proposal(entry, target));
         }
         return results;
+    }
+
+    /** Android's java.nio.file.Files.getFileStore can throw UnsupportedOperationException.
+     * Fall back to the canonical Android storage-mount prefix without reading file data.
+     * If identity is unknown, reject the move rather than risk a cross-volume byte copy.
+     */
+    public static boolean sameVolume(Path a, Path b) throws IOException {
+        try {
+            return Files.getFileStore(a).equals(Files.getFileStore(b));
+        } catch (UnsupportedOperationException androidNioUnavailable) {
+            String first = androidVolumeKey(a.toFile().getCanonicalPath());
+            String second = androidVolumeKey(b.toFile().getCanonicalPath());
+            if (first == null || second == null)
+                throw new IOException("Cannot verify that both folders are on the same storage volume. Choose a location under Android shared storage (/storage).");
+            return first.equals(second);
+        }
+    }
+
+    static String androidVolumeKey(String fullPath) {
+        String path = fullPath.replace('\\','/');
+        String[] parts = path.split("/");
+        // Android mounts: /storage/emulated/0, /storage/<SD-ID>,
+        // /mnt/user/<user>/primary, /mnt/media_rw/<SD-ID>.
+        if (parts.length >= 4 && parts[1].equals("storage") && parts[2].equals("emulated"))
+            return "/storage/emulated/"+parts[3];
+        if (parts.length >= 3 && parts[1].equals("storage"))
+            return "/storage/"+parts[2];
+        if (parts.length >= 5 && parts[1].equals("mnt") && parts[2].equals("user"))
+            return "/mnt/user/"+parts[3]+"/"+parts[4];
+        if (parts.length >= 4 && parts[1].equals("mnt") && parts[2].equals("media_rw"))
+            return "/mnt/media_rw/"+parts[3];
+        return null;
     }
 
     public static String stem(String name) {

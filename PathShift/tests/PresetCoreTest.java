@@ -19,6 +19,7 @@ public final class PresetCoreTest {
         Path virtual = Paths.get(System.getProperty("java.io.tmpdir"));
         // We use real folders for all presets because each preview verifies accessible roots.
         Path sandbox=Files.createTempDirectory("pathshift-presets-");
+        ok(PresetCore.sameVolume(sandbox,sandbox),"same filesystem check works on JVM");
         try {
             Path source=Files.createDirectory(sandbox.resolve("Source"));
             Path destination=Files.createDirectory(sandbox.resolve("Destination"));
