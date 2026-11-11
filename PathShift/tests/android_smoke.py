@@ -72,7 +72,7 @@ def capture(name):
 
 
 print('Install/launch')
-adb('install','-r',str(ROOT/'dist'/'PathShift-0.1.4.apk'))
+adb('install','-r',str(ROOT/'dist'/'PathShift-0.2.0.apk'))
 adb('shell','appops','set','com.pathshift.app','MANAGE_EXTERNAL_STORAGE','allow')
 adb('shell','mkdir','-p','/sdcard/Download/PathShiftSmoke')
 fixture=OUTPUT/'ps_test_file.txt'
@@ -135,4 +135,29 @@ print('Check AndroidRuntime fatal errors')
 log=adb('logcat','-d','-s','AndroidRuntime:E')
 (OUTPUT/'android-runtime.txt').write_text(log)
 assert 'FATAL EXCEPTION' not in log, log[-5000:]
-print('PASS: find-only, no Save in results, regex transfer, rename preview, explicit Save')
+
+print('Preset: choose destination outside source root; preview without changing files')
+fixture2=OUTPUT/'preset_file.txt'
+fixture2.write_text('separate-test-fixture')
+adb('push',str(fixture2),'/sdcard/Download/PathShiftSmoke/preset_file.txt')
+by_text('Rename by regex')
+tap(by_text('Presets'))
+by_text('Quick actions')
+tap(by_text('Move into a new folder'))
+by_text('Move into a new folder')
+tap(by_text('Choose folder'))
+tap(by_text('..   Go up'))
+tap(by_text('Use this folder'))
+capture('05-preset-editor.png')
+tap(by_text('Preview changes'))
+by_text('Review preset changes')
+assert 'preset_file.txt' in adb('shell','ls','/sdcard/Download/PathShiftSmoke'), 'Preset preview moved a file!'
+capture('06-preset-preview.png')
+tap(by_text('Save changes'))
+tap(by_text('Save now'))
+by_text('Saved')
+assert 'preset_file.txt' not in adb('shell','ls','/sdcard/Download/PathShiftSmoke'), 'Preset Save did not move file'
+new_path=adb('shell','find','/sdcard/Download','-name','preset_file.txt')
+assert 'New folder/preset_file.txt' in new_path, new_path
+capture('07-preset-saved.png')
+print('PASS: read-only Find, regex Rename, and external-destination folder preset with preview and Save')

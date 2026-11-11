@@ -40,6 +40,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -65,7 +66,7 @@ public class MainActivity extends Activity {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final AtomicBoolean cancelScan = new AtomicBoolean(false);
     private boolean busy = false;
-    private enum Mode { FIND, RENAME }
+    private enum Mode { FIND, RENAME, PRESETS }
     private Mode mode = Mode.RENAME;
     private boolean viewingPreview = false;
     private boolean viewingFindResults = false;
@@ -81,17 +82,30 @@ public class MainActivity extends Activity {
     private Switch switchRegex;
     private File folder;
     private RenameCore.Options options = new RenameCore.Options();
+    private PresetCore.Kind presetKind = null; // null means recipe chooser
+    private PresetCore.Settings presetSettings = new PresetCore.Settings();
+    private boolean viewingPresetPreview = false;
+    private List<RenameCore.Entry> presetSnapshot = new ArrayList<>();
+    private List<PresetCore.Proposal> presetProposals = new ArrayList<>();
+    private PresetCore.Plan presetPlan;
+    private PresetAdapter presetAdapter;
+    private Button presetSaveButton, presetFixButton, presetCollisionsButton;
+    private TextView presetSummary, presetProblem, presetDestinationLabel;
+    private EditText presetFolderInput, presetFilterInput, presetTextInput, presetReplacementInput,
+        presetStartInput, presetDigitsInput;
+    private Switch presetRecursiveSwitch, presetPreserveSwitch, presetIgnoreSwitch,
+        presetRegexSwitch, presetPathSwitch;
     private List<RenameCore.Entry> snapshot = new ArrayList<>();
     private List<RenameCore.Candidate> candidates = new ArrayList<>();
     private RenameCore.Plan currentPlan;
     private long planRevision = 0;
 
     private EditText findInput, replaceInput;
-    private RadioGroup scopeGroup;
+    private RadioGroup scopeGroup, replacementModeGroup;
     private Switch switchFolders, switchFiles, switchRecursive, switchCase, switchAll;
     private LinearLayout rootView;
     private TextView summary, issue, folderStatus;
-    private Button saveButton, previewButton, allPathsButton;
+    private Button saveButton, previewButton, allPathsButton, collisionButton, autoNumberButton;
     private ListView resultsList;
     private CandidateAdapter adapter;
     private String findValue = "";
@@ -117,6 +131,10 @@ public class MainActivity extends Activity {
 
     @Override public void onBackPressed() {
         if (busy) { Toast.makeText(this, "Finish the current operation first.", Toast.LENGTH_SHORT).show(); return; }
+        if (viewingPresetPreview) { showPresetEditor(); return; }
+        if (mode == Mode.PRESETS && presetKind != null) {
+            rememberPresetForm(); presetKind = null; showPresetsHome(); return;
+        }
         if (viewingPreview || viewingFindResults) { showEditor(); return; }
         super.onBackPressed();
     }
@@ -144,6 +162,7 @@ public class MainActivity extends Activity {
 
     /** Keep text and search options when the user switches modes. */
     private void rememberEditor() {
+        if (mode == Mode.PRESETS) { rememberPresetForm(); return; }
         if (findInput == null || scopeGroup == null) return;
         RenameCore.Options active = mode == Mode.FIND ? findOptions : options;
         if (mode == Mode.FIND) searchValue = findInput.getText().toString();
@@ -156,6 +175,9 @@ public class MainActivity extends Activity {
         active.includeFolders = switchFolders.isChecked();
         active.recursive = switchRecursive.isChecked();
         active.ignoreCase = switchCase.isChecked();
+        if (mode == Mode.RENAME && replacementModeGroup != null)
+            active.destinationTemplate = replacementModeGroup.getCheckedRadioButtonId()
+                == replacementModeGroup.getChildAt(1).getId();
         if (mode == Mode.FIND && switchRegex != null) searchRegex = switchRegex.isChecked();
         if (mode == Mode.RENAME && switchAll != null) active.replaceAll = switchAll.isChecked();
     }
@@ -168,6 +190,7 @@ public class MainActivity extends Activity {
         copy.recursive = from.recursive;
         copy.ignoreCase = from.ignoreCase;
         copy.replaceAll = from.replaceAll;
+        copy.destinationTemplate = from.destinationTemplate;
         return copy;
     }
 
@@ -194,6 +217,13 @@ public class MainActivity extends Activity {
     }
 
     private void showEditor() {
+        if (mode == Mode.PRESETS) {
+            if (presetKind == null) showPresetsHome(); else showPresetEditor();
+            return;
+        }
+        viewingPresetPreview = false;
+        presetFolderInput = null;
+        presetTextInput = null;
         viewingPreview = false;
         viewingFindResults = false;
         rootView = vertical();
@@ -210,16 +240,7 @@ public class MainActivity extends Activity {
         TextView brand = label("PATHSHIFT", 13, ACCENT, true);
         brand.setLetterSpacing(.22f);
         body.addView(brand);
-        LinearLayout modes = horizontal();
-        Button findTab = smallButton("Find", mode == Mode.FIND);
-        Button renameTab = smallButton("Rename", mode == Mode.RENAME);
-        modes.addView(findTab, new LinearLayout.LayoutParams(0, dp(45), 1));
-        LinearLayout.LayoutParams renameTabParams = new LinearLayout.LayoutParams(0, dp(45), 1);
-        renameTabParams.leftMargin = dp(9);
-        modes.addView(renameTab, renameTabParams);
-        findTab.setOnClickListener(v -> chooseMode(Mode.FIND));
-        renameTab.setOnClickListener(v -> chooseMode(Mode.RENAME));
-        body.addView(modes, spacing(dp(13), dp(12)));
+        addModeTabs(body);
 
         TextView title = label(mode == Mode.FIND ? "Find files & folders" : "Rename by regex", 27, FG, true);
         pad(title, 0, dp(4), 0, dp(2));
@@ -258,7 +279,21 @@ public class MainActivity extends Activity {
             body.addView(label("REPLACE WITH", 12, MUTED, true));
             replaceInput = edit(replaceValue, "e.g. Photo_$1.jpg");
             replaceInput.setImeOptions(EditorInfo.IME_ACTION_DONE);
-            body.addView(replaceInput, spacing(dp(6), dp(14)));
+            body.addView(replaceInput, spacing(dp(6), dp(10)));
+            body.addView(label("HOW TO USE THE REPLACEMENT", 12, MUTED, true));
+            replacementModeGroup = new RadioGroup(this);
+            replacementModeGroup.setOrientation(LinearLayout.VERTICAL);
+            RadioButton replacePart = optionRadio("Replace only the matched text");
+            replacePart.setId(View.generateViewId());
+            RadioButton setDest = optionRadio("Set the complete resulting name/path");
+            setDest.setId(View.generateViewId());
+            replacementModeGroup.addView(replacePart);
+            replacementModeGroup.addView(setDest);
+            replacementModeGroup.check(options.destinationTemplate ? setDest.getId() : replacePart.getId());
+            body.addView(replacementModeGroup, spacing(dp(6), dp(5)));
+            body.addView(label("Use the second option to move matching files while preserving their original names.", 12, MUTED, false), spacing(0, dp(8)));
+            body.addView(label("INSERT ORIGINAL NAME / PATH", 12, MUTED, true));
+            addTemplateHelpers(body);
         }
 
         body.addView(label("APPLY PATTERN TO", 12, MUTED, true));
@@ -274,7 +309,7 @@ public class MainActivity extends Activity {
         body.addView(scopeGroup, spacing(dp(4), dp(8)));
         body.addView(label(finding
             ? "Full paths use / separators and are relative to the selected folder."
-            : "Full paths use /. Use $1, $2, etc. for regex capture groups.", 12, MUTED, false));
+            : "Filename scope builds the destination beside the file's current folder. Full relative path scope starts at the working folder. $0 is the regex match, not the filename.", 12, MUTED, false));
 
         LinearLayout toggles = card();
         body.addView(toggles, spacing(dp(16), dp(6)));
@@ -283,6 +318,7 @@ public class MainActivity extends Activity {
         switchRecursive = createToggle(toggles, "Search subfolders", active.recursive);
         switchCase = createToggle(toggles, "Ignore case", active.ignoreCase);
         if (finding) {
+            replacementModeGroup = null;
             switchRegex = createToggle(toggles, "Use regular expression", searchRegex);
             switchAll = null;
         } else {
@@ -301,6 +337,464 @@ public class MainActivity extends Activity {
         bottom.addView(previewButton, bp);
         previewButton.setOnClickListener(v -> preview());
         rootView.addView(bottom);
+    }
+
+    private void addModeTabs(LinearLayout parent) {
+        LinearLayout tabs = horizontal();
+        Mode[] modes = new Mode[]{Mode.FIND, Mode.RENAME, Mode.PRESETS};
+        String[] titles = new String[]{"Find", "Rename", "Presets"};
+        for (int i = 0; i < modes.length; i++) {
+            final Mode next = modes[i];
+            Button tab = smallButton(titles[i], mode == next);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(45), 1);
+            if (i > 0) lp.leftMargin = dp(7);
+            tabs.addView(tab, lp);
+            tab.setOnClickListener(v -> chooseMode(next));
+        }
+        parent.addView(tabs, spacing(dp(13), dp(12)));
+    }
+
+    private void addTemplateHelpers(LinearLayout body) {
+        LinearLayout first = horizontal();
+        String[][] pairs = new String[][]{{"Filename", "${filename}"}, {"Stem", "${basename}"}, {"Ext", "${ext}"}};
+        for (int i=0;i<pairs.length;i++) {
+            String name=pairs[i][0], token=pairs[i][1];
+            Button button=smallButton(name,false);
+            LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(42),1);
+            if(i>0)lp.leftMargin=dp(7);
+            first.addView(button,lp);
+            button.setOnClickListener(v->insertReplacementToken(token));
+        }
+        body.addView(first, spacing(dp(6),dp(6)));
+        LinearLayout second=horizontal();
+        String[][] more=new String[][]{{"Folder", "${folder}"},{"Relative path", "${path}"},{"Regex match", "$0"}};
+        for (int i=0;i<more.length;i++) {
+            String name=more[i][0],token=more[i][1];
+            Button button=smallButton(name,false);
+            LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(42),1);
+            if(i>0)lp.leftMargin=dp(7);
+            second.addView(button,lp);
+            button.setOnClickListener(v->insertReplacementToken(token));
+        }
+        body.addView(second,spacing(0,dp(9)));
+        body.addView(label("${filename} = entire filename; ${basename} = name before extension; ${ext} = extension; ${folder} = original relative parent; ${path} = complete relative path. $1, $2 = capture groups.",11,MUTED,false));
+    }
+
+    private void insertReplacementToken(String token) {
+        if (replaceInput == null) return;
+        int cursor = Math.max(0, replaceInput.getSelectionStart());
+        replaceInput.getText().insert(cursor, token);
+        replaceInput.requestFocus();
+    }
+
+    private String presetTitle(PresetCore.Kind kind) {
+        switch(kind) {
+            case MOVE_NEW: return "Move into a new folder";
+            case SORT_EXTENSION: return "Sort by file extension";
+            case PREFIX: return "Add a filename prefix";
+            case SUFFIX: return "Add a filename suffix";
+            case NUMBER: return "Number filenames";
+            case REPLACE_TEXT: return "Find and replace text";
+            case LOWERCASE: return "Lowercase filenames";
+            case CLEAN_SPACES: return "Change spaces to underscores";
+            default: return "Preset";
+        }
+    }
+    private String presetDescription(PresetCore.Kind kind) {
+        switch(kind) {
+            case MOVE_NEW: return "Choose where to create a new folder. Move all files, or just matching names, while keeping the original filenames.";
+            case SORT_EXTENSION: return "Choose a destination and create JPG, PNG, PDF, and other extension folders inside a new parent folder.";
+            case PREFIX: return "Add text to the beginning of each filename.";
+            case SUFFIX: return "Add text before the extension without changing the extension.";
+            case NUMBER: return "Give files stable, sequential numbers, such as 001_photo.jpg.";
+            case REPLACE_TEXT: return "Use plain text, not regex, to rename matching parts of filenames.";
+            case LOWERCASE: return "Make filenames lowercase, including extensions.";
+            case CLEAN_SPACES: return "Replace runs of whitespace in filenames with underscores.";
+            default: return "";
+        }
+    }
+    private void showPresetsHome() {
+        viewingPresetPreview = false;
+        viewingPreview = false;
+        viewingFindResults = false;
+        findInput = null; scopeGroup = null; replacementModeGroup = null;
+        presetFolderInput = null; presetTextInput = null;
+        rootView = vertical();rootView.setBackgroundColor(BG);
+        displayRoot(0,0,0,0);
+        ScrollView scroll=new ScrollView(this);
+        rootView.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+        LinearLayout body=vertical();body.setPadding(dp(20),dp(20),dp(20),dp(25));
+        scroll.addView(body);
+        body.addView(label("PATHSHIFT",13,ACCENT,true));
+        addModeTabs(body);
+        body.addView(label("Quick actions",27,FG,true));
+        body.addView(label("Choose an action, select the files and destination, then review everything before saving. No preset changes files until Save.",13,MUTED,false),spacing(dp(4),dp(14)));
+        PresetCore.Kind[] kinds=new PresetCore.Kind[]{PresetCore.Kind.MOVE_NEW,
+            PresetCore.Kind.SORT_EXTENSION,PresetCore.Kind.PREFIX,PresetCore.Kind.SUFFIX,
+            PresetCore.Kind.NUMBER,PresetCore.Kind.REPLACE_TEXT,
+            PresetCore.Kind.LOWERCASE,PresetCore.Kind.CLEAN_SPACES};
+        for(PresetCore.Kind kind:kinds) {
+            LinearLayout block=card();
+            body.addView(block,spacing(dp(6),dp(6)));
+            LinearLayout top=horizontal();
+            LinearLayout copy=vertical();
+            copy.addView(label(presetTitle(kind),16,FG,true));
+            copy.addView(label(presetDescription(kind),12,MUTED,false),spacing(dp(3),0));
+            top.addView(copy,new LinearLayout.LayoutParams(0,-2,1));
+            Button use=smallButton("Choose",false);
+            top.addView(use);
+            block.addView(top);
+            use.setOnClickListener(v->openPreset(kind));
+            block.setOnClickListener(v->openPreset(kind));
+        }
+        body.addView(label("Advanced regex and whole-path folder renaming remain available in Rename.",12,MUTED,false),spacing(dp(15),0));
+    }
+    private void openPreset(PresetCore.Kind kind) {
+        presetKind=kind;
+        presetSettings=new PresetCore.Settings();
+        presetSettings.kind=kind;
+        presetSettings.destinationParent=folder == null ? Environment.getExternalStorageDirectory().toPath() : folder.toPath();
+        if(kind==PresetCore.Kind.MOVE_NEW) presetSettings.newFolder="New folder";
+        if(kind==PresetCore.Kind.SORT_EXTENSION) presetSettings.newFolder="Sorted by type";
+        if(kind==PresetCore.Kind.NUMBER) {presetSettings.startNumber=1;presetSettings.numberDigits=3;}
+        showPresetEditor();
+    }
+    private void rememberPresetForm() {
+        if (presetKind==null) return;
+        if (presetFolderInput!=null) presetSettings.newFolder=presetFolderInput.getText().toString().trim();
+        if (presetFilterInput!=null) presetSettings.filter=presetFilterInput.getText().toString();
+        if (presetTextInput!=null) presetSettings.text=presetTextInput.getText().toString();
+        if (presetReplacementInput!=null) presetSettings.replacement=presetReplacementInput.getText().toString();
+        if (presetStartInput!=null) try {presetSettings.startNumber=Integer.parseInt(presetStartInput.getText().toString());}
+            catch(Exception ignored){presetSettings.startNumber=-1;}
+        if (presetDigitsInput!=null) try {presetSettings.numberDigits=Integer.parseInt(presetDigitsInput.getText().toString());}
+            catch(Exception ignored){presetSettings.numberDigits=-1;}
+        if (presetRecursiveSwitch!=null) presetSettings.recursive=presetRecursiveSwitch.isChecked();
+        if (presetPreserveSwitch!=null) presetSettings.preserveSubfolders=presetPreserveSwitch.isChecked();
+        if (presetIgnoreSwitch!=null) presetSettings.ignoreCase=presetIgnoreSwitch.isChecked();
+        if (presetRegexSwitch!=null) presetSettings.filterRegex=presetRegexSwitch.isChecked();
+        if (presetPathSwitch!=null) presetSettings.filterFullPath=presetPathSwitch.isChecked();
+    }
+    private PresetCore.Settings copyPresetSettings() {
+        PresetCore.Settings s=new PresetCore.Settings();
+        s.kind=presetSettings.kind;s.destinationParent=presetSettings.destinationParent;
+        s.newFolder=presetSettings.newFolder;s.recursive=presetSettings.recursive;
+        s.preserveSubfolders=presetSettings.preserveSubfolders;
+        s.ignoreCase=presetSettings.ignoreCase;s.filterRegex=presetSettings.filterRegex;
+        s.filterFullPath=presetSettings.filterFullPath;
+        s.filter=presetSettings.filter;s.text=presetSettings.text;
+        s.replacement=presetSettings.replacement;s.startNumber=presetSettings.startNumber;
+        s.numberDigits=presetSettings.numberDigits;
+        return s;
+    }
+    private void showPresetEditor() {
+        if(presetKind==null) {showPresetsHome();return;}
+        viewingPresetPreview=false;viewingPreview=false;viewingFindResults=false;
+        findInput=null;scopeGroup=null;replacementModeGroup=null;
+        presetFolderInput=null;presetFilterInput=null;presetTextInput=null;
+        presetReplacementInput=null;presetStartInput=null;presetDigitsInput=null;
+        presetRecursiveSwitch=null;presetPreserveSwitch=null;presetIgnoreSwitch=null;
+        presetRegexSwitch=null;presetPathSwitch=null;
+        rootView=vertical();rootView.setBackgroundColor(BG);
+        displayRoot(0,0,0,0);
+        ScrollView scroll=new ScrollView(this);
+        rootView.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+        LinearLayout body=vertical();body.setPadding(dp(20),dp(16),dp(20),dp(24));
+        scroll.addView(body);
+        body.addView(label("PATHSHIFT",13,ACCENT,true));
+        addModeTabs(body);
+        Button back=smallButton("‹ All presets",false);
+        back.setOnClickListener(v->{rememberPresetForm();presetKind=null;showPresetsHome();});
+        body.addView(back,spacing(0,dp(8)));
+        body.addView(label(presetTitle(presetKind),24,FG,true));
+        body.addView(label(presetDescription(presetKind),12,MUTED,false),spacing(dp(5),dp(15)));
+        LinearLayout source=card();body.addView(source,spacing(0,dp(15)));
+        LinearLayout top=horizontal();
+        top.addView(label("FILES TO PROCESS",12,MUTED,true),new LinearLayout.LayoutParams(0,-2,1));
+        Button sourceBrowse=smallButton("Browse",false);
+        top.addView(sourceBrowse);
+        source.addView(top);
+        folderStatus=label("",13,FG,false);folderStatus.setTextIsSelectable(true);
+        source.addView(folderStatus,spacing(dp(7),0));updateFolderStatus();
+        sourceBrowse.setOnClickListener(v->browseFolders(folder,selected->{
+            folder=selected;getPreferences(MODE_PRIVATE).edit().putString("folder",folder.getAbsolutePath()).apply();
+            presetSnapshot=new ArrayList<>();presetProposals=new ArrayList<>();presetPlan=null;
+            updateFolderStatus();
+        }));
+        if(presetKind==PresetCore.Kind.MOVE_NEW || presetKind==PresetCore.Kind.SORT_EXTENSION) {
+            LinearLayout destination=card();body.addView(destination,spacing(0,dp(13)));
+            LinearLayout pick=horizontal();
+            pick.addView(label("CREATE NEW FOLDER INSIDE",12,MUTED,true),new LinearLayout.LayoutParams(0,-2,1));
+            Button choose=smallButton("Choose folder",false);
+            pick.addView(choose);destination.addView(pick);
+            presetDestinationLabel=label(presetSettings.destinationParent.toString(),13,FG,false);
+            presetDestinationLabel.setTextIsSelectable(true);
+            destination.addView(presetDestinationLabel,spacing(dp(7),dp(10)));
+            choose.setOnClickListener(v->browseFolders(presetSettings.destinationParent.toFile(),selected->{
+                presetSettings.destinationParent=selected.toPath();
+                presetDestinationLabel.setText(selected.getAbsolutePath());
+            }));
+            destination.addView(label("NEW FOLDER NAME",12,MUTED,true));
+            presetFolderInput=edit(presetSettings.newFolder,"e.g. Mag or Collected");
+            destination.addView(presetFolderInput,spacing(dp(5),dp(5)));
+            destination.addView(label("The new folder is created only when Save succeeds. Its name must not already exist at the destination.",11,MUTED,false));
+            body.addView(label("OPTIONAL: ONLY INCLUDE FILES MATCHING",12,MUTED,true),spacing(dp(11),0));
+            presetFilterInput=edit(presetSettings.filter,"Leave empty to include every file");
+            body.addView(presetFilterInput,spacing(dp(5),dp(7)));
+            LinearLayout filterToggles=card();body.addView(filterToggles);
+            presetRegexSwitch=createToggle(filterToggles,"Use regex for the filter",presetSettings.filterRegex);
+            presetIgnoreSwitch=createToggle(filterToggles,"Ignore case",presetSettings.ignoreCase);
+            presetPathSwitch=createToggle(filterToggles,"Match full relative path",presetSettings.filterFullPath);
+        } else if(presetKind==PresetCore.Kind.PREFIX || presetKind==PresetCore.Kind.SUFFIX) {
+            body.addView(label(presetKind==PresetCore.Kind.PREFIX ? "TEXT TO ADD BEFORE NAME" : "TEXT TO ADD BEFORE EXTENSION",12,MUTED,true));
+            presetTextInput=edit(presetSettings.text,"e.g. Edited_");
+            body.addView(presetTextInput,spacing(dp(6),dp(9)));
+        } else if(presetKind==PresetCore.Kind.REPLACE_TEXT) {
+            body.addView(label("FIND THIS TEXT",12,MUTED,true));
+            presetTextInput=edit(presetSettings.text,"Text in a filename");
+            body.addView(presetTextInput,spacing(dp(6),dp(9)));
+            body.addView(label("REPLACE WITH",12,MUTED,true));
+            presetReplacementInput=edit(presetSettings.replacement,"Leave empty to remove the text");
+            body.addView(presetReplacementInput,spacing(dp(6),dp(9)));
+            LinearLayout toggles=card();body.addView(toggles);
+            presetIgnoreSwitch=createToggle(toggles,"Ignore case",presetSettings.ignoreCase);
+        } else if(presetKind==PresetCore.Kind.NUMBER) {
+            body.addView(label("START NUMBER",12,MUTED,true));
+            presetStartInput=edit(Integer.toString(presetSettings.startNumber),"1");
+            presetStartInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+            body.addView(presetStartInput,spacing(dp(5),dp(9)));
+            body.addView(label("MINIMUM NUMBER OF DIGITS",12,MUTED,true));
+            presetDigitsInput=edit(Integer.toString(presetSettings.numberDigits),"3");
+            presetDigitsInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+            body.addView(presetDigitsInput,spacing(dp(5),dp(8)));
+            body.addView(label("Examples: 001_photo.jpg, 002_photo.jpg. Files are numbered alphabetically by their relative paths.",11,MUTED,false));
+        }
+        LinearLayout flags=card();body.addView(flags,spacing(dp(14),dp(10)));
+        presetRecursiveSwitch=createToggle(flags,"Include files in subfolders",presetSettings.recursive);
+        if(presetKind==PresetCore.Kind.MOVE_NEW || presetKind==PresetCore.Kind.SORT_EXTENSION) {
+            presetPreserveSwitch=createToggle(flags,"Keep original subfolder structure",presetSettings.preserveSubfolders);
+            flags.addView(label("If you flatten files from subfolders, same-named files may collide. You can number duplicates in the preview.",11,MUTED,false));
+        }
+        body.addView(label("Presets only change files, not entire folder names. Use Rename for changing folders themselves.",12,MUTED,false));
+        LinearLayout footer=horizontal();footer.setPadding(dp(20),dp(6),dp(20),dp(14));
+        Button access=smallButton("File access",false);footer.addView(access);access.setOnClickListener(v->requestAccess());
+        Button next=smallButton("Preview changes",true);
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(53),1);lp.leftMargin=dp(10);
+        footer.addView(next,lp);next.setOnClickListener(v->previewPreset());
+        rootView.addView(footer);
+    }
+    private void previewPreset() {
+        if(busy)return;
+        if(!hasFileAccess()){requestAccess();return;}
+        if(folder==null || !folder.isDirectory()){toast("Choose a working folder.");return;}
+        rememberPresetForm();
+        PresetCore.Settings settings=copyPresetSettings();
+        final Path sourceRoot=folder.toPath().toAbsolutePath().normalize();
+        cancelScan.set(false);busy=true;
+        TextView message=label("Checking filenames and folders…",15,FG,false);
+        message.setPadding(dp(18),dp(20),dp(18),dp(20));
+        AlertDialog progress=new AlertDialog.Builder(this).setTitle("Building preset preview")
+            .setView(message).setNegativeButton("Cancel",(d,w)->cancelScan.set(true)).create();
+        progress.setCanceledOnTouchOutside(false);progress.show();
+        worker.execute(()->{
+            try {
+                BatchCommit.ensureNoUnfinishedBatch(sourceRoot);
+                List<RenameCore.Entry> entries=RenameCore.scan(sourceRoot,cancelScan,
+                    count->main.post(()->message.setText("Scanned " + count + " paths…")));
+                if(cancelScan.get())throw new IOException("Scan canceled.");
+                List<PresetCore.Proposal> proposals=PresetCore.preview(sourceRoot,entries,settings);
+                PresetCore.Plan plan=PresetCore.plan(sourceRoot,entries,proposals);
+                if(cancelScan.get())throw new IOException("Scan canceled.");
+                main.post(()->{
+                    busy=false;progress.dismiss();presetSnapshot=entries;
+                    presetProposals=proposals;presetPlan=plan;
+                    showPresetPreview();
+                });
+            }catch(Exception ex){main.post(()->{
+                busy=false;progress.dismiss();
+                if(!cancelScan.get())errorDialog("Cannot preview preset",ex.getMessage());
+            });}
+        });
+    }
+    private void showPresetPreview() {
+        viewingPresetPreview=true;viewingFindResults=false;viewingPreview=false;
+        rootView=vertical();rootView.setBackgroundColor(BG);
+        displayRoot(dp(12),dp(8),dp(12),dp(9));
+        LinearLayout toolbar=horizontal();
+        Button back=smallButton("‹ Adjust preset",false);
+        toolbar.addView(back);back.setOnClickListener(v->showPresetEditor());
+        TextView note=label("PREVIEW · NOTHING SAVED",12,ACCENT,true);
+        note.setGravity(Gravity.CENTER_VERTICAL|Gravity.RIGHT);
+        toolbar.addView(note,new LinearLayout.LayoutParams(0,dp(45),1));
+        rootView.addView(toolbar);
+        rootView.addView(label("Review preset changes",23,FG,true),spacing(dp(9),dp(4)));
+        presetSummary=label("",13,MUTED,false);rootView.addView(presetSummary);
+        presetProblem=label("",12,DANGER,false);rootView.addView(presetProblem,spacing(dp(7),dp(6)));
+        LinearLayout actions=horizontal();
+        presetCollisionsButton=smallButton("Review conflicts",false);
+        presetFixButton=smallButton("Number duplicates",false);
+        actions.addView(presetCollisionsButton,new LinearLayout.LayoutParams(0,dp(43),1));
+        LinearLayout.LayoutParams rlp=new LinearLayout.LayoutParams(0,dp(43),1);
+        rlp.leftMargin=dp(9);actions.addView(presetFixButton,rlp);
+        rootView.addView(actions,spacing(dp(3),dp(7)));
+        presetCollisionsButton.setOnClickListener(v->showPresetCollisions());
+        presetFixButton.setOnClickListener(v->{
+            int fixed=PresetCore.numberConflicts(folder.toPath(),presetSnapshot,presetProposals);
+            if(fixed==0){toast("No duplicate filenames could be numbered. Review any remaining errors.");return;}
+            presetAdapter.notifyDataSetChanged();replanPreset();
+        });
+        LinearLayout selects=horizontal();
+        Button all=smallButton("Select all",false),none=smallButton("Select none",false);
+        selects.addView(all);LinearLayout.LayoutParams np=new LinearLayout.LayoutParams(-2,dp(42));np.leftMargin=dp(8);
+        selects.addView(none,np);rootView.addView(selects,spacing(dp(3),dp(7)));
+        all.setOnClickListener(v->{for(PresetCore.Proposal p:presetProposals)p.selected=true;presetAdapter.notifyDataSetChanged();replanPreset();});
+        none.setOnClickListener(v->{for(PresetCore.Proposal p:presetProposals)p.selected=false;presetAdapter.notifyDataSetChanged();replanPreset();});
+        ListView results=new ListView(this);results.setDivider(null);results.setDividerHeight(dp(7));
+        results.setFastScrollEnabled(true);results.setClipToPadding(false);
+        presetAdapter=new PresetAdapter();results.setAdapter(presetAdapter);
+        rootView.addView(results,new LinearLayout.LayoutParams(-1,0,1));
+        LinearLayout footer=horizontal();
+        Button adjust=smallButton("Edit settings",false);footer.addView(adjust);
+        adjust.setOnClickListener(v->showPresetEditor());
+        presetSaveButton=smallButton("Save changes",true);
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(52),1);lp.leftMargin=dp(8);
+        footer.addView(presetSaveButton,lp);
+        presetSaveButton.setOnClickListener(v->confirmPresetSave());
+        rootView.addView(footer,spacing(dp(8),0));
+        displayPresetPlan();
+    }
+    private void replanPreset() {
+        if(!viewingPresetPreview || busy)return;
+        // The plan is metadata-only and recomputes collision groups immediately.
+        presetPlan=PresetCore.plan(folder.toPath(),presetSnapshot,presetProposals);
+        displayPresetPlan();
+        if(presetAdapter!=null)presetAdapter.notifyDataSetChanged();
+    }
+    private void displayPresetPlan() {
+        if(presetPlan==null || presetSummary==null)return;
+        int selected=presetPlan.moves.size();
+        presetSummary.setText(presetSnapshot.size()+" paths checked · " + presetProposals.size()
+            +" proposed · "+selected+" selected");
+        int groups=presetPlan.conflicts.size();
+        if(presetPlan.totalErrors>0) {
+            presetProblem.setTextColor(DANGER);
+            presetProblem.setText((groups>0 ? groups+" duplicate destination group(s). " : "")
+                +presetPlan.totalErrors+" blocked item(s). No files will be overwritten. "
+                +"Edit, deselect or number conflicts before saving.\n"
+                +(presetPlan.issues.isEmpty()?"":presetPlan.issues.get(0)));
+        }else if(selected==0){presetProblem.setTextColor(MUTED);presetProblem.setText("No changes selected. Adjust settings or choose files.");}
+        else {presetProblem.setTextColor(ACCENT);presetProblem.setText("All selected destinations are available. Files will move only after Save.");}
+        presetCollisionsButton.setVisibility(groups>0?View.VISIBLE:View.GONE);
+        presetFixButton.setVisibility(presetPlan.totalErrors>0?View.VISIBLE:View.GONE);
+        presetSaveButton.setEnabled(!busy && presetPlan.okay());
+    }
+    private void showPresetCollisions() {
+        if(presetPlan==null)return;
+        StringBuilder msg=new StringBuilder();int i=0;
+        for(java.util.Map.Entry<String,List<String>> item:presetPlan.conflicts.entrySet()) {
+            if(i++>=18){msg.append("\nAdditional groups are shown in the preview.");break;}
+            msg.append("\n\nDESTINATION\n").append(item.getKey()).append("\n");
+            for(String source:item.getValue())msg.append("  • ").append(source).append("\n");
+        }
+        new AlertDialog.Builder(this).setTitle("Duplicate filenames ("+presetPlan.conflicts.size()+" groups)")
+            .setMessage(msg.toString().trim())
+            .setNegativeButton("Back",null)
+            .setPositiveButton("Number duplicates",(d,w)->{
+                int n=PresetCore.numberConflicts(folder.toPath(),presetSnapshot,presetProposals);
+                if(n==0)toast("No duplicates could be numbered.");
+                replanPreset();
+            }).show();
+    }
+    private class PresetAdapter extends BaseAdapter {
+        @Override public int getCount(){return presetProposals.size();}
+        @Override public Object getItem(int p){return presetProposals.get(p);}
+        @Override public long getItemId(int p){return p;}
+        @Override public View getView(int pos,View recycled,ViewGroup parent){
+            PresetCore.Proposal p=presetProposals.get(pos);
+            LinearLayout row=horizontal();row.setBackground(round(PANEL,BORDER,dp(11)));
+            row.setPadding(dp(6),dp(12),dp(8),dp(12));
+            CheckBox selected=new CheckBox(MainActivity.this);
+            selected.setButtonTintList(android.content.res.ColorStateList.valueOf(ACCENT));
+            selected.setChecked(p.selected);row.addView(selected);
+            selected.setOnCheckedChangeListener((view,checked)->{p.selected=checked;replanPreset();});
+            LinearLayout names=vertical();
+            names.addView(label(p.entry.path,12,MUTED,false));
+            TextView dest=label("→ " + p.target,13,p.selected?ACCENT:MUTED,true);
+            dest.setSingleLine(false);names.addView(dest,spacing(dp(4),0));
+            String issue=presetPlan==null?null:presetPlan.itemErrors.get(p.entry.path);
+            if(issue!=null)names.addView(label("! "+issue,12,DANGER,false),spacing(dp(4),0));
+            row.addView(names,new LinearLayout.LayoutParams(0,-2,1));
+            Button edit=smallButton("Edit",false);row.addView(edit);
+            edit.setOnClickListener(v->editPresetTarget(p));
+            names.setOnClickListener(v->editPresetTarget(p));
+            return row;
+        }
+    }
+    private void editPresetTarget(PresetCore.Proposal item) {
+        EditText name=edit(item.target.getFileName().toString(),"New filename");
+        LinearLayout panel=vertical();panel.setPadding(dp(18),dp(8),dp(18),0);
+        panel.addView(label("ORIGINAL\n"+item.entry.path+"\n\nDESTINATION FOLDER\n"+item.target.getParent()
+            +"\n\nNEW FILENAME",12,MUTED,false));
+        panel.addView(name,spacing(dp(8),dp(5)));
+        AlertDialog dialog=new AlertDialog.Builder(this).setTitle("Change destination filename")
+            .setView(panel).setNegativeButton("Cancel",null)
+            .setNeutralButton("Reset",null).setPositiveButton("Update preview",null).create();
+        dialog.setOnShowListener(d->{
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
+                String proposed=name.getText().toString().trim();
+                if(proposed.indexOf('/')>=0 || proposed.indexOf('\\')>=0 ||
+                    RenameCore.validateRelative(proposed)!=null) {
+                    name.setError("Enter a valid filename only. Folders are chosen separately.");return;
+                }
+                item.target=item.target.resolveSibling(proposed);item.selected=true;
+                dialog.dismiss();replanPreset();
+            });
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v->{
+                item.target=item.originalTarget;item.selected=true;dialog.dismiss();replanPreset();
+            });
+        });
+        dialog.show();
+    }
+    private void confirmPresetSave() {
+        if(busy || presetPlan==null || !presetPlan.okay())return;
+        PresetCore.Plan committing=presetPlan;
+        new AlertDialog.Builder(this).setTitle("Save " + committing.moves.size() + " file changes?")
+            .setMessage("This will rename/move the selected files and create destination folders as needed. "
+                +"No files will be overwritten.\n\nThis is the FIRST step that modifies storage. "
+                +"A batch cannot be guaranteed atomic if Android shuts down during Save.")
+            .setNegativeButton("Keep reviewing",null)
+            .setPositiveButton("Save now",(d,w)->savePreset(committing)).show();
+    }
+    private void savePreset(PresetCore.Plan committing) {
+        busy=true;presetSaveButton.setEnabled(false);
+        TextView message=label("Checking files…",14,FG,false);
+        message.setPadding(dp(20),dp(20),dp(20),dp(20));
+        AlertDialog progress=new AlertDialog.Builder(this).setTitle("Saving preset")
+            .setMessage("Do not close this app while saving.").setView(message).setCancelable(false).create();
+        progress.show();
+        Path selectedRoot=folder.toPath();List<RenameCore.Entry> original=presetSnapshot;
+        worker.execute(()->{
+            try {
+                PresetCommit.Result result=PresetCommit.commit(selectedRoot,original,committing,
+                    text->main.post(()->message.setText(text)));
+                main.post(()->{
+                    busy=false;progress.dismiss();presetPlan=null;prettyResetPresetResults();
+                    showPresetEditor();
+                    new AlertDialog.Builder(this).setTitle("Saved")
+                        .setMessage(result.changed+" file(s) moved or renamed successfully.")
+                        .setPositiveButton("Done",null).show();
+                });
+            } catch(Exception ex) {
+                main.post(()->{
+                    busy=false;progress.dismiss();presetSaveButton.setEnabled(false);
+                    errorDialog("Unable to save preset",ex.getMessage()+"\n\nReview the files and preview again before continuing.");
+                });
+            }
+        });
+    }
+    private void prettyResetPresetResults() {
+        presetSnapshot=new ArrayList<>();presetProposals=new ArrayList<>();
+        presetPlan=null;
     }
 
     private void updateFolderStatus() {
@@ -559,6 +1053,21 @@ public class MainActivity extends Activity {
         issue = label("", 12, DANGER, false);
         pad(issue, dp(6), 0, 0, dp(6));
         rootView.addView(issue);
+        LinearLayout duplicateRow = horizontal();
+        collisionButton = smallButton("Review duplicates", false);
+        autoNumberButton = smallButton("Number duplicates", false);
+        duplicateRow.addView(collisionButton, new LinearLayout.LayoutParams(0, dp(43), 1));
+        LinearLayout.LayoutParams dl = new LinearLayout.LayoutParams(0, dp(43), 1);
+        dl.leftMargin = dp(9);
+        duplicateRow.addView(autoNumberButton, dl);
+        rootView.addView(duplicateRow, spacing(dp(3), dp(8)));
+        collisionButton.setOnClickListener(v -> showRenameConflicts());
+        autoNumberButton.setOnClickListener(v -> {
+            if (busy) return;
+            int adjusted = RenameCore.numberDuplicateFiles(snapshot, candidates);
+            if (adjusted == 0) toast("There are no duplicate file destinations that can be numbered automatically.");
+            else {adapter.notifyDataSetChanged();replan();}
+        });
         allPathsButton = smallButton("View all affected paths", false);
         rootView.addView(allPathsButton, spacing(dp(2), dp(3)));
         allPathsButton.setOnClickListener(v -> showAllAffectedPaths());
@@ -629,17 +1138,46 @@ public class MainActivity extends Activity {
         summary.setText(snapshot.size() + " paths scanned   ·   " + plan.selectedMatches + " selected " + noun
             + "   ·   " + plan.changedPaths + " affected paths");
         if (!plan.errors.isEmpty()) {
-            issue.setText(plan.errors.size() + " problem(s): " + plan.errors.get(0) + "\nUncheck or edit affected items to proceed.");
+            if (!plan.duplicateDestinations.isEmpty()) {
+                issue.setText(plan.duplicateDestinations.size() + " duplicate destination name(s). "
+                    + "Multiple source files would get the same new filename. Save is blocked so nothing is overwritten. "
+                    + "Review duplicates, number them automatically, or edit individual results.");
+            } else issue.setText(plan.problemCount + " invalid destination(s). Example: "
+                + plan.errors.get(0) + "\nEdit or deselect the affected file before saving.");
         } else if (plan.selectedMatches == 0) {
             issue.setText(candidates.isEmpty() ? "No paths matched the pattern. Go back to edit it." : "Select at least one change to save.");
         } else if (plan.moves.isEmpty()) {
             issue.setText("All selected changes are already covered by their parent folder changes.");
         } else issue.setText("");
+        issue.setTextColor(plan.errors.isEmpty() ? MUTED : DANGER);
         saveButton.setEnabled(!busy && plan.okay());
+        if (collisionButton != null) collisionButton.setVisibility(plan.duplicateDestinations.isEmpty() ? View.GONE : View.VISIBLE);
+        if (autoNumberButton != null) autoNumberButton.setVisibility(plan.duplicateDestinations.isEmpty() ? View.GONE : View.VISIBLE);
         if (allPathsButton != null) {
             allPathsButton.setText("View all " + plan.changedPaths + " affected paths");
             allPathsButton.setEnabled(!busy && plan.changedPaths > 0);
         }
+    }
+
+    private void showRenameConflicts() {
+        if (currentPlan == null || currentPlan.duplicateDestinations.isEmpty()) return;
+        StringBuilder detail = new StringBuilder();
+        int count = 0;
+        for (java.util.Map.Entry<String, List<String>> group : currentPlan.duplicateDestinations.entrySet()) {
+            if (count++ >= 22) {detail.append("\nMore groups are shown in preview.");break;}
+            detail.append("\n\nDESTINATION\n").append(group.getKey()).append("\n");
+            for (String source : group.getValue()) detail.append("  • ").append(source).append("\n");
+        }
+        new AlertDialog.Builder(this)
+            .setTitle(currentPlan.duplicateDestinations.size() + " duplicate destination(s)")
+            .setMessage(detail.toString().trim())
+            .setNegativeButton("Back", null)
+            .setPositiveButton("Number duplicates", (d, w) -> {
+                int n = RenameCore.numberDuplicateFiles(snapshot, candidates);
+                if (n == 0) toast("No duplicate file destinations could be numbered.");
+                if (adapter != null) adapter.notifyDataSetChanged();
+                replan();
+            }).show();
     }
 
     /** Read-only full plan, including files whose paths change through a renamed parent. */
@@ -764,12 +1302,20 @@ public class MainActivity extends Activity {
     }
 
     private void browseFolders(File starting) {
+        browseFolders(starting,chosen->{
+            folder = chosen;
+            getPreferences(MODE_PRIVATE).edit().putString("folder", chosen.getAbsolutePath()).apply();
+            snapshot = new ArrayList<>(); candidates = new ArrayList<>(); currentPlan = null;
+            updateFolderStatus();
+        });
+    }
+    private void browseFolders(File starting, Consumer<File> onSelect) {
         if (!hasFileAccess()) { requestAccess(); return; }
         File base = starting != null && starting.isDirectory() ? starting : Environment.getExternalStorageDirectory();
-        showFolderDialog(base);
+        showFolderDialog(base,onSelect);
     }
 
-    private void showFolderDialog(final File here) {
+    private void showFolderDialog(final File here, Consumer<File> onSelect) {
         File[] listing = here.listFiles();
         if (listing == null) { toast("Cannot open this folder."); return; }
         List<File> dirs = new ArrayList<>();
@@ -785,18 +1331,13 @@ public class MainActivity extends Activity {
         AlertDialog dialog = new AlertDialog.Builder(this)
             .setTitle("Choose folder: " + here.getAbsolutePath())
             .setItems(labels.toArray(new String[0]), (d, which) -> {
-                if (canUp && which == 0) { showFolderDialog(here.getParentFile()); return; }
+                if (canUp && which == 0) { showFolderDialog(here.getParentFile(),onSelect); return; }
                 int index = which - (canUp ? 1 : 0);
-                if (index >= 0 && index < dirs.size()) showFolderDialog(dirs.get(index));
+                if (index >= 0 && index < dirs.size()) showFolderDialog(dirs.get(index),onSelect);
             })
-            .setNeutralButton("Storage", (d, w) -> showVolumeDialog())
+            .setNeutralButton("Storage", (d, w) -> showVolumeDialog(onSelect))
             .setNegativeButton("Cancel", null)
-            .setPositiveButton("Use this folder", (d, w) -> {
-                folder = here;
-                getPreferences(MODE_PRIVATE).edit().putString("folder", here.getAbsolutePath()).apply();
-                snapshot = new ArrayList<>(); candidates = new ArrayList<>(); currentPlan = null;
-                updateFolderStatus();
-            }).create();
+            .setPositiveButton("Use this folder", (d, w) -> onSelect.accept(here)).create();
         dialog.show();
     }
 
@@ -805,7 +1346,7 @@ public class MainActivity extends Activity {
         return path.equals("/storage") || path.startsWith("/storage/");
     }
 
-    private void showVolumeDialog() {
+    private void showVolumeDialog(Consumer<File> onSelect) {
         List<File> volumes = new ArrayList<>();
         volumes.add(Environment.getExternalStorageDirectory());
         File[] scoped = getExternalFilesDirs(null);
@@ -822,7 +1363,7 @@ public class MainActivity extends Activity {
         List<String> labels = new ArrayList<>();
         for (File v : volumes) labels.add(v.getAbsolutePath());
         new AlertDialog.Builder(this).setTitle("Storage locations")
-            .setItems(labels.toArray(new String[0]), (d, which) -> showFolderDialog(volumes.get(which)))
+            .setItems(labels.toArray(new String[0]), (d, which) -> showFolderDialog(volumes.get(which),onSelect))
             .setNegativeButton("Cancel", null).show();
     }
 

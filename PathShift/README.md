@@ -1,30 +1,31 @@
-# PathShift
+# PathShift v0.2.0
 
-PathShift v0.1.4. Native Android metadata-only file finder and batch regex renamer, with separate read-only Find and staged Rename workflows.
+Native, offline Android 11+ file finder and batch renamer. The app only scans file/folder names and metadata, never file contents. It has no network permission, analytics or third-party runtime dependencies. Android's user-granted All files access is required for selected locations.
 
-**Find mode:** Use the separate **Find** tab to search filenames or complete paths relative to the working folder, recursively or top-level only, with Java regex or literal text and optional case-insensitive matching. Include files, folders, or both. Matching paths appear in a scrollable read-only list with totals. Narrow an existing result set with the instant text filter (no rescan), tap a result for its full path, copy the path, or work within its containing folder. **Use in Rename** transfers the search expression and scope to Rename. Find never offers Save or touches files.
+## Screens
 
-**Rename capabilities:** selectable working folder, recursive filename search, full relative-path regex replacements, capture groups, replace first/all, case-insensitive patterns, files/folders filters, per-item destination overrides, batch selection, collision/traversal checks, stale-preview rejection, safe within-volume directory moves, automatic creation of destination folders, stage-before-commit, and best-effort restoration on failure.
+**Find:** Search file/folder names or complete relative paths, with literal or Java regex matches. Filter results on-screen, copy their full paths, or switch the selected working folder. Find has no Save control.
 
-**Privacy:** No internet permission, analytics, cloud service, thumbnail decoding, document opening, or content reads. `Files.walkFileTree` only lists names and filesystem metadata. Saving uses in-volume `Files.move` operations, not content copies. The Android **All files access** permission is needed because the app can rename/move arbitrary paths, including folders. Android may still restrict protected system/application directories.
+**Rename:** Enter a Java regex and replacement, choose filename or full relative path, and choose whether the replacement changes *only the matched text* or sets the *complete resulting destination*. Replacement helpers insert `${filename}` (entire original filename, including extension), `${basename}` (original filename without the final extension), `${ext}` (extension without the dot), `${folder}` (original parent path relative to the selected working folder) and `${path}` (original path relative to the selected working folder). Standard Java replacement references `$0` (entire regex match), `$1`, `$2`, etc. still work. When matching filenames, the new path is relative to each file's current parent. When matching full relative paths, the new destination is relative to the selected working folder. For example, searching `mag` in Filename mode, choosing **Set complete resulting destination**, and specifying `Mag/${filename}` will move `Images/photo_mag_005.jpg` to `Images/Mag/photo_mag_005.jpg` even though `mag` is only a partial match. Leaving the default **Replace matched text** mode preserves traditional Java regex substitution semantics.
 
-**Rename workflow:** Grant file access, browse for a working folder, enter a Java regex and a replacement (e.g. `^IMG_(\\d+)\\.jpg$` → `Photo_$1.jpg`), choose Filename or Full relative path, and tap **Preview changes**. All matches are selected by default. Uncheck any, or tap **Edit** to override the destination relative to your chosen folder. Tap **View all affected paths** to inspect every before-and-after path, including descendants that inherit renamed folder paths. The app validates all final paths, including untouched items and descendants of renamed folders. **Save changes** and confirm to apply. No files change during searching, preview, or manual edits.
+**Presets:** Eight guided actions, all preview-first:
+1. **Move into a new folder**: choose the destination *parent folder* using the in-app folder browser, enter a new folder name, optionally filter filenames (literal or regex), include subfolders and preserve their relative layout.
+2. **Sort by file extension**: choose the destination parent and new container folder; files are grouped into JPG, PNG, PDF and similar subfolders. No extension is grouped under `No extension`.
+3. **Add prefix** to filenames.
+4. **Add suffix** before the extension.
+5. **Number filenames** using a configurable starting number and padding width.
+6. **Find and replace plain text** in filenames, no regex required.
+7. **Lowercase filenames**.
+8. **Convert spaces to underscores**.
 
-**How full-path matching works:** Paths are relative to the selected root, with `/` separators. For example, `^Camera/(.*)\\.jpg$` → `Sorted/$1.jpeg` moves matching files to `Sorted/` under the selected root. Enable **Include folders** to rename directories themselves. Parent folder changes are inherited by descendants automatically, without renaming them twice. Empty source folders are retained unless they were explicitly renamed. When multiple source paths map to the same destination, Save is disabled.
+Presets operate on files, not complete directory trees; the advanced Rename mode still supports folder renaming. Move/Sort presets can target a location *outside the scanned working folder* as long as Android permits both locations and they are on the **same storage volume**. Content copying, cross-volume moves, and bypassing Android's restricted system directories are deliberately unsupported. The chosen *new folder* must not already exist, to avoid merging files into an unknown directory. With recursive processing, choose whether to preserve original subfolders. If flattening would produce duplicate names, the preview blocks Save and offers **Number duplicates**.
 
-**Important limitations:** Use on user-accessible local/shared storage. The app cannot cross storage volumes or bypass Android's restricted directories. A batch is not a filesystem transaction: if Android or another app interrupts it, partial changes may require recovery. The app stages sources in a hidden `.pathshift-stage-*` folder inside the selected root, attempts to restore originals automatically if an operation fails, and keeps any unresolved stage directory for manual recovery. Never force-stop during Save. Android removable-storage/provider behavior can vary. Full device Preview/Save testing is still pending; test on a disposable folder before use on important files. The app applies Android 15 system-bar and keyboard insets to keep its toolbar and action buttons unobstructed.
+## Safety and review
 
-## Build
+Nothing on disk changes during choosing a preset, searching, editing proposed names, changing selection, or previewing. Every change is staged and listed before **Save changes** and the separate **Save now** confirmation. Preset previews show original and absolute target paths. Both advanced Rename and Preset previews group duplicate destinations, disallow overwriting existing files, and offer numbering for conflicting filenames. Invalid destinations, paths outside the allowed working scope (except explicitly chosen preset output folders), and stale metadata block Save. A same-volume temporary staging directory is created *only after Save*; failures trigger best-effort rollback. A multi-file operation is not a true atomic transaction across a power failure or device restart. Test with disposable files before moving important data, and avoid force-closing while a batch is saving. Empty source folders can remain after moving their files.
 
-The app has no third-party dependencies and does not require Gradle. With JDK 17, Python 3, Android SDK platform 35, and build-tools 35.0.0 installed:
+## Build & validation
 
-```sh
-bash tests/run-tests.sh
-bash build.sh
-```
+Run `bash tests/run-tests.sh` for JVM rename and preset regression checks. With Android SDK API 35 and build tools 35.0.0 and JDK 17 installed, run `bash build.sh`. The public GitHub workflow builds and tests with an ephemeral key that is **not uploaded**; private release signing is managed in `to-shreds/ProjectStatus`, using the existing v0.1.4 keystore to preserve upgrade compatibility. Do not put private signing keys or passwords in a public repository.
 
-The APK is signed with an app-specific key saved outside the repository by default. Preserve that keystore and password if you want to install future updates without uninstalling the existing app. The public GitHub Actions workflow signs with an ephemeral test key and never uploads that signing key. The separately managed private release build preserves the release signing key and password in private storage. Keep the release keystore and password private. For subsequent builds, set `PATHSHIFT_KEYSTORE` and `PATHSHIFT_KEYPASS_FILE` to the original key/password. Do not check secrets into this public repository.
-
-## Test matrix
-
-`tests/RenameCoreTest.java` covers Find-only regex/literal searches, flags and scope filtering, plus regex capture groups, case flags, recursive parent mappings, duplicate destinations, traversal rejection, real file swaps, directory renames, and stale-preview rejection. Source code for the local test run never reads file contents; the test harness reads its own fixture files only to check results. The APK build and package-signature verification run in GitHub Actions. The emulator smoke job attempts a real Android 15 launch and Save; read the CI result before claiming that test passed. Physical-device verification remains outstanding.
+GitHub Actions builds a separate APK and runs the emulator UI smoke test, which checks Find, Preview/Save of a regex change, and a move-to-new-folder preset selecting a destination outside the source folder. Actual test results, not test existence, determine whether an APK is ready. Real-phone testing is recommended for manufacturer-specific file permissions and SD cards.

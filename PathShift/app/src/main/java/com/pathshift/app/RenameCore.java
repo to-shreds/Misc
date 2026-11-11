@@ -59,6 +59,8 @@ public final class RenameCore {
         public boolean recursive = true;
         public boolean ignoreCase = false;
         public boolean replaceAll = true;
+        /** Use the replacement as the entire resulting name/path, not as inserted matching text. */
+        public boolean destinationTemplate = false;
     }
 
     public static final class Move {
@@ -72,11 +74,14 @@ public final class RenameCore {
         public final List<Move> moves = new ArrayList<>();
         public final List<String> errors = new ArrayList<>();
         public final Map<String, String> itemErrors = new HashMap<>();
+        public final Map<String, List<String>> duplicateDestinations = new LinkedHashMap<>();
+        public int problemCount = 0;
         public int changedPaths = 0;
         public int selectedMatches = 0;
         public int movedFolders = 0;
         public boolean okay() { return errors.isEmpty() && !moves.isEmpty(); }
         private void fail(String path, String issue) {
+            problemCount++;
             if (errors.size() < 40) errors.add(path + ": " + issue);
             if (!itemErrors.containsKey(path)) itemErrors.put(path, issue);
         }
@@ -146,14 +151,94 @@ public final class RenameCore {
             Matcher matcher = pattern.matcher(old);
             if (!matcher.find()) continue;
             String updated;
-            try { updated = opts.replaceAll ? matcher.replaceAll(replacement) : matcher.replaceFirst(replacement); }
-            catch (IllegalArgumentException ex) { throw new IllegalArgumentException("Invalid replacement: " + ex.getMessage(), ex); }
-            catch (IndexOutOfBoundsException ex) { throw new IllegalArgumentException("Invalid $ group reference: " + ex.getMessage(), ex); }
-            if (old.equals(updated)) continue;
+            String template = expandVariables(replacement, entry);
+            try {
+                if (opts.destinationTemplate) {
+                    // appendReplacement evaluates Java's $0, $1, ${namedGroup} against this
+                    // match. Remove its original prefix, leaving just the destination template.
+                    StringBuffer evaluated = new StringBuffer();
+                    int start = matcher.start();
+                    matcher.appendReplacement(evaluated, template);
+                    updated = evaluated.substring(start);
+                } else updated = opts.replaceAll ? matcher.replaceAll(template) : matcher.replaceFirst(template);
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException("Invalid replacement or capture group: " + ex.getMessage(), ex);
+            } catch (IndexOutOfBoundsException ex) {
+                throw new IllegalArgumentException("Invalid $ group reference: " + ex.getMessage(), ex);
+            }
             String target = opts.fullPath ? updated : join(parent(entry.path), updated);
+            if (entry.path.equals(target)) continue;
             result.add(new Candidate(entry, target));
         }
         return result;
+    }
+
+    /** Expand reserved path variables, escaping their literal values for Java Matcher. */
+    static String expandVariables(String replacement, Entry entry) {
+        String filename = name(entry.path);
+        int dot = filename.lastIndexOf('.');
+        if (dot == 0) dot = -1; // dotfiles do not have an extension
+        String base = dot < 0 ? filename : filename.substring(0, dot);
+        String ext = dot < 0 ? "" : filename.substring(dot + 1);
+        Map<String, String> values = new HashMap<>();
+        values.put("filename", filename);
+        values.put("basename", base);
+        values.put("ext", ext);
+        values.put("folder", parent(entry.path));
+        values.put("path", entry.path);
+        Matcher variables = Pattern.compile("\\$\\{(filename|basename|ext|folder|path)\\}").matcher(replacement);
+        StringBuffer expanded = new StringBuffer();
+        while (variables.find()) {
+            // Double quoteReplacement: one pass to insert literally into the variable
+            // matcher, another to keep $ and backslashes literal in the final regex template.
+            variables.appendReplacement(expanded,
+                Matcher.quoteReplacement(Matcher.quoteReplacement(values.get(variables.group(1)))));
+        }
+        variables.appendTail(expanded);
+        return expanded.toString();
+    }
+
+    /** Add unique numeric suffixes to duplicate FILE targets; never change folders. */
+    public static int numberDuplicateFiles(List<Entry> entries, List<Candidate> candidates) {
+        Plan before = plan(entries, candidates);
+        if (before.duplicateDestinations.isEmpty()) return 0;
+        Set<String> occupied = new HashSet<>();
+        Set<String> selectedFiles = new HashSet<>();
+        for (Candidate candidate : candidates)
+            if (candidate.selected && !candidate.entry.directory) selectedFiles.add(candidate.entry.path);
+        for (Entry entry : entries) {
+            String target = before.destinations.get(entry.path);
+            boolean collides = before.duplicateDestinations.containsKey(target == null ? "" : target.toLowerCase(Locale.ROOT));
+            if (!collides || entry.directory || !selectedFiles.contains(entry.path))
+                occupied.add(target == null ? entry.path.toLowerCase(Locale.ROOT) : target.toLowerCase(Locale.ROOT));
+        }
+        int altered = 0;
+        for (Candidate candidate : candidates) {
+            if (!candidate.selected || candidate.entry.directory) continue;
+            String target = before.destinations.get(candidate.entry.path);
+            if (target == null) continue;
+            String key = target.toLowerCase(Locale.ROOT);
+            if (!before.duplicateDestinations.containsKey(key)) continue;
+            if (occupied.add(key)) continue;
+            int count = 2;
+            String fresh;
+            do {
+                fresh = withNumericSuffix(target, count++);
+            } while (occupied.contains(fresh.toLowerCase(Locale.ROOT)) && count < 1000000);
+            if (count >= 1000000) continue;
+            candidate.requestedTarget = fresh;
+            occupied.add(fresh.toLowerCase(Locale.ROOT));
+            altered++;
+        }
+        return altered;
+    }
+
+    public static String withNumericSuffix(String relative, int index) {
+        String directory = parent(relative);
+        String filename = name(relative);
+        int dot = filename.lastIndexOf('.');
+        if (dot <= 0) dot = filename.length();
+        return join(directory, filename.substring(0, dot) + " (" + index + ")" + filename.substring(dot));
     }
 
     public static Plan plan(List<Entry> entries, List<Candidate> proposed) {
@@ -202,18 +287,22 @@ public final class RenameCore {
         }
         // All scanned items must have distinct destinations. This includes untouched items
         // and unchanged descendants that travel with a renamed directory.
-        Map<String, String> seen = new HashMap<>();
+        Map<String, List<String>> allTargets = new LinkedHashMap<>();
         Map<String, Entry> byDest = new HashMap<>();
         for (Entry e : topDown) {
             String dest = plan.destinations.get(e.path);
             if (validateRelative(dest) != null) continue;
             String normalized = dest.toLowerCase(Locale.ROOT);
-            String prior = seen.put(normalized, e.path);
-            if (prior != null && !prior.equals(e.path)) {
-                plan.fail(e.path, "Destination already used by " + prior);
-                plan.fail(prior, "Destination also used by " + e.path);
-            }
+            if (!allTargets.containsKey(normalized)) allTargets.put(normalized, new ArrayList<>());
+            allTargets.get(normalized).add(e.path);
             byDest.put(normalized, e);
+        }
+        for (Map.Entry<String, List<String>> group : allTargets.entrySet()) {
+            if (group.getValue().size() <= 1) continue;
+            plan.duplicateDestinations.put(group.getKey(), group.getValue());
+            for (String src : group.getValue()) {
+                plan.fail(src, "Multiple files would share " + plan.destinations.get(src));
+            }
         }
         for (Entry e : topDown) {
             String dest = plan.destinations.get(e.path);
