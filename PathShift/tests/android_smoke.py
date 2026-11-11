@@ -130,6 +130,7 @@ files=adb('shell','ls','/sdcard/Download/PathShiftSmoke')
 assert 'renamed_file.txt' in files, files
 assert 'ps_test_file.txt' not in files, files
 capture('04-saved.png')
+tap(by_text('Done'))
 
 print('Check AndroidRuntime fatal errors')
 log=adb('logcat','-d','-s','AndroidRuntime:E')
