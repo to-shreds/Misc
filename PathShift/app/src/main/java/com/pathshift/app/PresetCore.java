@@ -201,9 +201,11 @@ public final class PresetCore {
     public static int numberConflicts(Path root, List<RenameCore.Entry> scan, List<Proposal> proposals) {
         Plan current = plan(root, scan, proposals);
         Set<String> occupied = new HashSet<>();
+        Set<String> selectedSources = new HashSet<>();
+        for (Proposal p : proposals) if (p.selected) selectedSources.add(p.entry.path);
         for (RenameCore.Entry e : scan) {
             Path path = root.resolve(e.path).toAbsolutePath().normalize();
-            if (!selectedSource(proposals,e.path)) occupied.add(lower(path));
+            if (!selectedSources.contains(e.path)) occupied.add(lower(path));
         }
         for (Proposal p : proposals) if (p.selected) {
             if (!current.conflicts.containsKey(lower(p.target)) && !Files.exists(p.target))
@@ -227,10 +229,6 @@ public final class PresetCore {
             altered++;
         }
         return altered;
-    }
-    private static boolean selectedSource(List<Proposal> proposals, String path) {
-        for (Proposal p : proposals) if (p.selected && p.entry.path.equals(path)) return true;
-        return false;
     }
     private static String lower(Path path) { return path.toAbsolutePath().normalize().toString().toLowerCase(Locale.ROOT); }
 }

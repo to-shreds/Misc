@@ -88,6 +88,7 @@ public class MainActivity extends Activity {
     private List<RenameCore.Entry> presetSnapshot = new ArrayList<>();
     private List<PresetCore.Proposal> presetProposals = new ArrayList<>();
     private PresetCore.Plan presetPlan;
+    private long presetPlanRevision = 0;
     private PresetAdapter presetAdapter;
     private Button presetSaveButton, presetFixButton, presetCollisionsButton;
     private TextView presetSummary, presetProblem, presetDestinationLabel;
@@ -618,6 +619,7 @@ public class MainActivity extends Activity {
     }
     private void showPresetPreview() {
         viewingPresetPreview=true;viewingFindResults=false;viewingPreview=false;
+        presetPlanRevision++;
         rootView=vertical();rootView.setBackgroundColor(BG);
         displayRoot(dp(12),dp(8),dp(12),dp(9));
         LinearLayout toolbar=horizontal();
@@ -665,10 +667,27 @@ public class MainActivity extends Activity {
     }
     private void replanPreset() {
         if(!viewingPresetPreview || busy)return;
-        // The plan is metadata-only and recomputes collision groups immediately.
-        presetPlan=PresetCore.plan(folder.toPath(),presetSnapshot,presetProposals);
-        displayPresetPlan();
-        if(presetAdapter!=null)presetAdapter.notifyDataSetChanged();
+        final long revision = ++presetPlanRevision;
+        final Path base = folder.toPath();
+        final List<RenameCore.Entry> entries = presetSnapshot;
+        final List<PresetCore.Proposal> updated = new ArrayList<>();
+        for (PresetCore.Proposal p : presetProposals) {
+            PresetCore.Proposal copy = new PresetCore.Proposal(p.entry,p.originalTarget);
+            copy.target=p.target; copy.selected=p.selected;
+            updated.add(copy);
+        }
+        if(presetSaveButton!=null)presetSaveButton.setEnabled(false);
+        presetProblem.setTextColor(MUTED);
+        presetProblem.setText("Checking destination filenames…");
+        worker.execute(()->{
+            PresetCore.Plan result=PresetCore.plan(base,entries,updated);
+            main.post(()->{
+                if(revision!=presetPlanRevision || !viewingPresetPreview || busy) return;
+                presetPlan=result;
+                displayPresetPlan();
+                if(presetAdapter!=null)presetAdapter.notifyDataSetChanged();
+            });
+        });
     }
     private void displayPresetPlan() {
         if(presetPlan==null || presetSummary==null)return;
