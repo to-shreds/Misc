@@ -8,8 +8,8 @@ BIN="$SDK/build-tools/$TOOLS"
 JAR="$SDK/platforms/android-$API/android.jar"
 OUT=build/android
 DIST=dist
-VERSION="${PATHSHIFT_VERSION:-0.1.3}"
-VERSION_CODE="${PATHSHIFT_VERSION_CODE:-4}"
+VERSION="${PATHSHIFT_VERSION:-0.1.4}"
+VERSION_CODE="${PATHSHIFT_VERSION_CODE:-5}"
 for x in aapt2 d8 zipalign apksigner; do test -x "$BIN/$x" || { echo "Missing $BIN/$x" >&2; exit 1; }; done
 test -f "$JAR" || { echo "Missing $JAR" >&2; exit 1; }
 rm -rf "$OUT"

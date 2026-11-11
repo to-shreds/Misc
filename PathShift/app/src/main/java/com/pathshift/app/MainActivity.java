@@ -178,12 +178,27 @@ public class MainActivity extends Activity {
         showEditor();
     }
 
+    /** Android 15 draws apps behind status/navigation bars unless the content handles insets. */
+    private void displayRoot(int left, int top, int right, int bottom) {
+        if (Build.VERSION.SDK_INT >= 35) {
+            rootView.setOnApplyWindowInsetsListener((view, windowInsets) -> {
+                android.graphics.Insets safe = windowInsets.getInsets(
+                    android.view.WindowInsets.Type.systemBars() | android.view.WindowInsets.Type.ime());
+                view.setPadding(left, top + safe.top, right, bottom + safe.bottom);
+                return windowInsets;
+            });
+        } else {
+            rootView.setPadding(left, top, right, bottom);
+        }
+        setContentView(rootView);
+    }
+
     private void showEditor() {
         viewingPreview = false;
         viewingFindResults = false;
         rootView = vertical();
         rootView.setBackgroundColor(BG);
-        setContentView(rootView);
+        displayRoot(0, 0, 0, 0);
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(false);
         scroll.setVerticalScrollBarEnabled(false);
@@ -369,8 +384,7 @@ public class MainActivity extends Activity {
         filterRevision++;
         rootView = vertical();
         rootView.setBackgroundColor(BG);
-        rootView.setPadding(dp(12), dp(8), dp(12), dp(10));
-        setContentView(rootView);
+        displayRoot(dp(12), dp(8), dp(12), dp(10));
 
         LinearLayout toolbar = horizontal();
         Button back = smallButton("‹ Search", false);
@@ -526,8 +540,7 @@ public class MainActivity extends Activity {
         viewingPreview = true;
         rootView = vertical();
         rootView.setBackgroundColor(BG);
-        rootView.setPadding(dp(12), dp(8), dp(12), dp(10));
-        setContentView(rootView);
+        displayRoot(dp(12), dp(8), dp(12), dp(10));
 
         LinearLayout toolbar = horizontal();
         Button back = smallButton("‹ Edit", false);

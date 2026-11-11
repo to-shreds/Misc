@@ -1,6 +1,6 @@
 # PathShift
 
-PathShift v0.1.3. Native Android metadata-only file finder and batch regex renamer, with separate read-only Find and staged Rename workflows.
+PathShift v0.1.4. Native Android metadata-only file finder and batch regex renamer, with separate read-only Find and staged Rename workflows.
 
 **Find mode:** Use the separate **Find** tab to search filenames or complete paths relative to the working folder, recursively or top-level only, with Java regex or literal text and optional case-insensitive matching. Include files, folders, or both. Matching paths appear in a scrollable read-only list with totals. Narrow an existing result set with the instant text filter (no rescan), tap a result for its full path, copy the path, or work within its containing folder. **Use in Rename** transfers the search expression and scope to Rename. Find never offers Save or touches files.
 
@@ -12,7 +12,7 @@ PathShift v0.1.3. Native Android metadata-only file finder and batch regex renam
 
 **How full-path matching works:** Paths are relative to the selected root, with `/` separators. For example, `^Camera/(.*)\\.jpg$` → `Sorted/$1.jpeg` moves matching files to `Sorted/` under the selected root. Enable **Include folders** to rename directories themselves. Parent folder changes are inherited by descendants automatically, without renaming them twice. Empty source folders are retained unless they were explicitly renamed. When multiple source paths map to the same destination, Save is disabled.
 
-**Important limitations:** Use on user-accessible local/shared storage. The app cannot cross storage volumes or bypass Android's restricted directories. A batch is not a filesystem transaction: if Android or another app interrupts it, partial changes may require recovery. The app stages sources in a hidden `.pathshift-stage-*` folder inside the selected root, attempts to restore originals automatically if an operation fails, and keeps any unresolved stage directory for manual recovery. Never force-stop during Save. Android removable-storage/provider behavior can vary. Full device Preview/Save testing is still pending; test on a disposable folder before use on important files.
+**Important limitations:** Use on user-accessible local/shared storage. The app cannot cross storage volumes or bypass Android's restricted directories. A batch is not a filesystem transaction: if Android or another app interrupts it, partial changes may require recovery. The app stages sources in a hidden `.pathshift-stage-*` folder inside the selected root, attempts to restore originals automatically if an operation fails, and keeps any unresolved stage directory for manual recovery. Never force-stop during Save. Android removable-storage/provider behavior can vary. Full device Preview/Save testing is still pending; test on a disposable folder before use on important files. The app applies Android 15 system-bar and keyboard insets to keep its toolbar and action buttons unobstructed.
 
 ## Build
 

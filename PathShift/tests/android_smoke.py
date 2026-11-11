@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise read-only Find, then regex Preview and Save on a disposable Android emulator."""
 import pathlib
+import atexit
 import re
 import subprocess
 import time
@@ -9,6 +10,18 @@ import xml.etree.ElementTree as ET
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 OUTPUT=ROOT/'device-proof'
 OUTPUT.mkdir(exist_ok=True)
+
+@atexit.register
+def gather_diagnostics():
+    try:
+        with (OUTPUT/'android-runtime-all.txt').open('w') as log:
+            subprocess.run(['adb','logcat','-d','-s','AndroidRuntime:E','ActivityTaskManager:W','WindowManager:W'],
+                           stdout=log,stderr=subprocess.DEVNULL,timeout=20)
+        with (OUTPUT/'last-screen.png').open('wb') as screenshot:
+            subprocess.run(['adb','exec-out','screencap','-p'],
+                           stdout=screenshot,stderr=subprocess.DEVNULL,timeout=20)
+    except Exception:
+        pass
 
 
 def adb(*args, check=True):
@@ -59,7 +72,7 @@ def capture(name):
 
 
 print('Install/launch')
-adb('install','-r',str(ROOT/'dist'/'PathShift-0.1.3.apk'))
+adb('install','-r',str(ROOT/'dist'/'PathShift-0.1.4.apk'))
 adb('shell','appops','set','com.pathshift.app','MANAGE_EXTERNAL_STORAGE','allow')
 adb('shell','mkdir','-p','/sdcard/Download/PathShiftSmoke')
 fixture=OUTPUT/'ps_test_file.txt'
@@ -85,6 +98,7 @@ edits=[n for n in nodes(page) if n.attrib.get('class')=='android.widget.EditText
 assert len(edits)>=1, 'Expected Find expression field'
 tap(edits[0]);adb('shell','input','text','ps_test')
 adb('shell','input','keyevent','4')
+capture('02-find-editor.png')
 tap(by_text('Find matches'))
 by_text('Search results')
 by_text('ps_test_file.txt')
