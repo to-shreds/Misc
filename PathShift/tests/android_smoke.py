@@ -59,7 +59,7 @@ def capture(name):
 
 
 print('Install/launch')
-adb('install','-r',str(ROOT/'dist'/'PathShift-0.1.1.apk'))
+adb('install','-r',str(ROOT/'dist'/'PathShift-0.1.2.apk'))
 adb('shell','appops','set','com.pathshift.app','MANAGE_EXTERNAL_STORAGE','allow')
 adb('shell','mkdir','-p','/sdcard/Download/PathShiftSmoke')
 fixture=OUTPUT/'ps_test_file.txt'

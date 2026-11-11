@@ -516,8 +516,7 @@ public class MainActivity extends Activity {
         for (File dir : dirs) labels.add(dir.getName() + "/");
         if (labels.isEmpty()) labels.add("(No subfolders)");
         AlertDialog dialog = new AlertDialog.Builder(this)
-            .setTitle("Choose folder")
-            .setMessage(here.getAbsolutePath())
+            .setTitle("Choose folder: " + here.getAbsolutePath())
             .setItems(labels.toArray(new String[0]), (d, which) -> {
                 if (canUp && which == 0) { showFolderDialog(here.getParentFile()); return; }
                 int index = which - (canUp ? 1 : 0);

@@ -1,6 +1,6 @@
 # PathShift
 
-Native Android batch regex renamer, with a metadata-only scan and a separate preview/commit step.
+PathShift v0.1.2. Native Android batch regex renamer, with a metadata-only scan and a separate preview/commit step.
 
 **Capabilities:** selectable working folder, recursive filename search, full relative-path regex replacements, capture groups, replace first/all, case-insensitive patterns, files/folders filters, per-item destination overrides, batch selection, collision/traversal checks, stale-preview rejection, safe within-volume directory moves, automatic creation of destination folders, stage-before-commit, and best-effort restoration on failure.
 
