@@ -54,3 +54,33 @@ jobs:
           name: PathShift-signing-backup-KEEP-PRIVATE
           path: ${{ runner.temp }}/pathshift-release/
           retention-days: 90
+
+  android-emulator-smoke:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: PathShift-APK-v0.1.0
+          path: PathShift/dist
+      - name: Launch app and exercise staged regex rename on Android 15
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          cores: 2
+          ram-size: 2048M
+          disk-size: 4096M
+          script: python3 PathShift/tests/android_smoke.py
+      - name: Upload device screenshots and verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PathShift-android-device-proof
+          path: PathShift/device-proof/
+          if-no-files-found: warn
+          retention-days: 30

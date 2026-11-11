@@ -11,3 +11,5 @@ Verification: Run `bash tests/run-tests.sh` locally; build Android APK in GitHub
 Known limitations: All-files permission is broad; storage provider/volume restrictions apply. Filesystem move batches are best-effort with staged rollback, not atomic. Preserve private signing key/ password to update installation. A failed rollback leaves `.pathshift-stage-*` recovery folder. Empty original source folders are retained by default.
 
 Next: Run CI and fix build issues, retrieve signed APK, preserve key and store APK in user Library, then test on actual Android device. After meaningful work, update `ProjectStatus/projects/pathshift/STATUS.md` last.
+
+Android emulator smoke script `tests/android_smoke.py` installs the signed APK, grants All files access via appops, browses to a disposable folder, enters a regex, checks Preview leaves the file unchanged, then confirms Save renames it. CI `android-emulator-smoke` uploads screenshots and UI hierarchy. Do not claim success until its GitHub run completes.
