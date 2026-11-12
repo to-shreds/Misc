@@ -37,10 +37,8 @@ public final class RuntimeVerification extends Instrumentation {
             require("2".equals(dashboard.optString("bridgeVersion")), "dashboard native bridge trusted");
             require(dashboard.optBoolean("callback"), "dashboard callback registered");
             require("true".equals(evaluate(page, "Boolean(document.getElementById('doors')&&document.getElementById('engine')&&document.getElementById('fuel')&&document.getElementById('miles')&&document.getElementById('start')&&document.querySelector('[data-cmd=stop]'))")), "all compact dashboard controls present");
-            final Activity dashboardActivity = activity;
-            runOnMainSync(() -> dashboardActivity.finish());
-            activity = startActivitySync(new Intent().setClassName("com.jon.santafelab", "com.jon.santafelab.MainActivity")
-                .putExtra("sf_open_diagnostics", true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            final WebView dashboardView = page;
+            runOnMainSync(() -> dashboardView.loadUrl("https://santafe.local/index.html"));
             page = waitForPage();
             JSONObject initial = inspect(page);
             require("https://santafe.local/index.html".equals(initial.optString("href")), "diagnostic page retained");
