@@ -185,7 +185,7 @@ public final class MainActivity extends Activity {
             }
         });
         root.addView(view, new FrameLayout.LayoutParams(-1, -1));
-        view.loadUrl(PAGE);
+        view.loadUrl(getIntent().getBooleanExtra("sf_open_diagnostics", false) ? DIAGNOSTIC : PAGE);
     }
 
     private void destroyPage() {
