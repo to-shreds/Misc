@@ -10,8 +10,8 @@ TOOLS_DIR="$SDK_DIR/build-tools/$SDK_BUILD_TOOLS"
 ANDROID_JAR="$SDK_DIR/platforms/android-$SDK_PLATFORM/android.jar"
 BUILD_DIR="$PROJECT_DIR/build/manual"
 OUTPUT_DIR="$PROJECT_DIR/dist"
-VERSION_CODE="${SF_VERSION_CODE:-6}"
-VERSION_NAME="${SF_VERSION_NAME:-0.3.3}"
+VERSION_CODE="${SF_VERSION_CODE:-7}"
+VERSION_NAME="${SF_VERSION_NAME:-1.0.0}"
 # Signing material is private and outside the repository. Preserve it for updates.
 SIGNING_DIR="${SF_SIGNING_DIR:-"${XDG_STATE_HOME:-$HOME/.local/state}/santa-fe-api-lab/signing"}"
 KEYSTORE="${SF_KEYSTORE:-"$SIGNING_DIR/santa-fe-api-lab.jks"}"
@@ -38,7 +38,7 @@ for binary in aapt2 d8 zipalign apksigner; do
     test -x "$TOOLS_DIR/$binary" || { echo "Missing SDK tool: $TOOLS_DIR/$binary" >&2; exit 1; }
 done
 test -f "$ANDROID_JAR" || { echo "Missing Android platform: $ANDROID_JAR" >&2; exit 1; }
-for asset in index.html diagnostic.js diagnostic.css; do
+for asset in index.html diagnostic.js diagnostic.css dashboard.html dashboard.js dashboard.css; do
     test -f "$PROJECT_DIR/../$asset" || { echo "Tester asset is missing: $asset" >&2; exit 1; }
 done
 
@@ -69,7 +69,8 @@ chmod 600 "$KEYSTORE" "$PASSWORD_FILE"
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR/generated" "$BUILD_DIR/classes" "$BUILD_DIR/dex" "$BUILD_DIR/assets"
 # Bundle the same reviewed tester used by GitHub Pages without duplicate source files.
-cp "$PROJECT_DIR/../index.html" "$PROJECT_DIR/../diagnostic.js" "$PROJECT_DIR/../diagnostic.css" "$BUILD_DIR/assets/"
+cp "$PROJECT_DIR/../index.html" "$PROJECT_DIR/../diagnostic.js" "$PROJECT_DIR/../diagnostic.css" \
+  "$PROJECT_DIR/../dashboard.html" "$PROJECT_DIR/../dashboard.js" "$PROJECT_DIR/../dashboard.css" "$BUILD_DIR/assets/"
 "$TOOLS_DIR/aapt2" compile --dir "$PROJECT_DIR/app/src/main/res" -o "$BUILD_DIR/resources.zip"
 "$TOOLS_DIR/aapt2" link -o "$BUILD_DIR/base.apk" -I "$ANDROID_JAR" \
     --manifest "$PROJECT_DIR/app/src/main/AndroidManifest.xml" \
