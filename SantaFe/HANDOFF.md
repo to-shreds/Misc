@@ -1,5 +1,16 @@
 # Santa Fe handoff
 
+## Remote-start confirmation streamlined, Android 1.0.1, November 12, 2026
+
+Jon requested removing the extra checkbox certifying that the car is outdoors when selecting a remote-start preset. In the main Santa Fe dashboard, the outdoors checkbox and both JavaScript checks that required it have been deleted. Start now opens the same Cool (62°F), Normal (72°F), and Warm (81°F) presets; choosing a preset immediately opens the existing final command confirmation. No outdoor checkbox is required for commands initiated from the dashboard, widget, or Tasker action entry point. The older separate diagnostic testing page was deliberately not altered. All Hyundai request recipes, ten-minute duration, existing command confirmation, persistent single-send guard, and uncertain-command recovery remain unchanged.
+
+Changed source: `SantaFe/dashboard.html`, `SantaFe/dashboard.js`, `SantaFe/android/app/src/main/java/com/jon/santafelab/TaskerActionConfig.java`, and `SantaFe/android/build.sh` (version name 1.0.1, version code 8). Added `SantaFe/tests/test_remote_start_ui.cjs` and configured it in the Android CI workflow. Build source commit: `ccb5156ee8341adca6da4743bb1dce38cdd2f1ea`. Existing regression suite and new remote-start checks passed, and Android CI run `43321028453` completed successfully. Android 15 instrumentation returned 61 checks, PASS, with synthetic credentials and no real Hyundai commands.
+
+The APK `SantaFe-Control-1.0.1.apk` is signed with the original private update key, not the temporary CI signing identity. Signatures v2/v3 validated, with the same certificate SHA-256 `90ba911d370453290457ea862344a7cbc4aca6f6f49931725b76a91b599c952d` as the previously installed app. APK SHA-256: `58efd73526c2e290d59751b2ec1797994fe52edf1c8a33d67bf1115718126797`. The final APK was uploaded to and independently verified in Jon's File Library at `/Santa Fe/SantaFe-Control-1.0.1.apk`. It can update 1.0.0 in place without requiring an uninstall. Real-car and Tasker functionality were not exercised by this specific change and remain subject to phone acceptance checks.
+
+The draft branch remains open, and the functioning web/Render controller, original API Lab diagnostics, and older Tasker project were not deployed or replaced. The next action is to install the 1.0.1 Library APK, verify that selecting all three climate presets no longer requires a checkbox, and confirm the usual command authorization and status indications. Preserve the 1.0.0 APK in the Library for reference.
+
+
 ## Santa Fe Control 1.0.0 Android update candidate, 2026-11-12
 
 The compact Android dashboard, optional home-screen widgets, and native Tasker plugin framework are implemented in branch `santafe-control-v1-20261112`, draft PR #5 (`https://github.com/to-shreds/Misc/pull/5`). This branch has not replaced the working main branch, existing emergency website or Render backend. Android package `com.jon.santafelab` remains unchanged, and the existing API Lab diagnostic page still exists at local `/index.html`, reachable from the dashboard Settings. The new default is bundled `dashboard.html`, with portrait and landscape layouts intended to fit without home-screen scrolling.
