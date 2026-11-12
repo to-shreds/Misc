@@ -125,7 +125,6 @@
   async function issueCommand(action) {
     if(busy)return;
     if(!session||!vehicle||!lastStatus){message('Reconnect and check the vehicle status first.');return;}
-    if((action==='cool'||action==='normal'||action==='warm')&&!$('outdoors').checked){message('Confirm the vehicle is outdoors before remote starting.');return;}
     let spec;
     try{spec=commandSpec(action);}catch(e){message(e.message||'Command cannot be prepared.');return;}
     if(legacyPending()||!native.reserveCommand||!native.reserveCommand(action)){message('A command is already pending or unresolved. Check the vehicle first.');return;}
@@ -146,7 +145,7 @@
     }catch(e){message(e.message+' No automatic retry.');}
     finally{setBusy(false);if(!cleared)message($('notice').textContent+' Command locked pending physical check.');}
   }
-  function triggerExternal(action){if(['normal','cool','warm'].includes(action)){$('outdoors').checked=false;$('startDialog').showModal();}else if(['lock','unlock','stop'].includes(action))showCommand(action);}
+  function triggerExternal(action){if(['normal','cool','warm'].includes(action)){$('startDialog').showModal();}else if(['lock','unlock','stop'].includes(action))showCommand(action);}
   window.SantaFeExternal=(action)=>{if(!session||!lastStatus){externalAction=action;return;}triggerExternal(action);};
   function navigateDiagnostic(){location.assign('/index.html');}
   function resolve(){
@@ -160,8 +159,8 @@
     }
   }
   document.querySelectorAll('[data-cmd]').forEach(button=>button.addEventListener('click',()=>showCommand(button.dataset.cmd)));
-  $('start').addEventListener('click',()=>{if(busy)return;$('outdoors').checked=false;$('startDialog').showModal();});
-  document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{if(!$('outdoors').checked){message('Check the outdoors confirmation to remote start.');return;}$('startDialog').close();showCommand(b.dataset.preset);}));
+  $('start').addEventListener('click',()=>{if(busy)return;$('startDialog').showModal();});
+  document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{$('startDialog').close();showCommand(b.dataset.preset);}));
   $('sendCommand').addEventListener('click',()=>{const a=queuedAction;queuedAction=null;if(a)issueCommand(a);});
   $('refresh').addEventListener('click',refresh);
   $('settings').addEventListener('click',()=>$('settingsDialog').showModal());
