@@ -31,10 +31,21 @@ public final class RuntimeVerification extends Instrumentation {
         try {
             activity = startActivitySync(new Intent().setClassName("com.jon.santafelab", "com.jon.santafelab.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             WebView page = waitForPage();
+            JSONObject dashboard = inspect(page);
+            require("https://santafe.local/dashboard.html".equals(dashboard.optString("href")), "dashboard is the installed start page");
+            require("complete".equals(dashboard.optString("ready")), "dashboard HTML loaded");
+            require("2".equals(dashboard.optString("bridgeVersion")), "dashboard native bridge trusted");
+            require(dashboard.optBoolean("callback"), "dashboard callback registered");
+            require("true".equals(evaluate(page, "Boolean(document.getElementById('doors')&&document.getElementById('engine')&&document.getElementById('fuel')&&document.getElementById('miles')&&document.getElementById('start')&&document.getElementById('stop'))")), "all compact dashboard controls present");
+            final Activity dashboardActivity = activity;
+            runOnMainSync(() -> dashboardActivity.finish());
+            activity = startActivitySync(new Intent().setClassName("com.jon.santafelab", "com.jon.santafelab.MainActivity")
+                .putExtra("sf_open_diagnostics", true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            page = waitForPage();
             JSONObject initial = inspect(page);
-            require("https://santafe.local/index.html".equals(initial.optString("href")), "installed asset origin");
+            require("https://santafe.local/index.html".equals(initial.optString("href")), "diagnostic page retained");
             require("complete".equals(initial.optString("ready")), "HTML loaded");
-            require("1".equals(initial.optString("bridgeVersion")), "native bridge trusted");
+            require("2".equals(initial.optString("bridgeVersion")), "native bridge trusted");
             require(initial.optBoolean("callback"), "native callback registered");
             require(!initial.optBoolean("loginDisabled"), "Connect enabled in app");
             require(!initial.optBoolean("emailDisabled"), "credential input enabled in app");
