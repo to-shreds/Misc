@@ -41,6 +41,12 @@ public final class RuntimeVerification extends Instrumentation {
             runOnMainSync(() -> dashboardView.loadUrl("https://santafe.local/index.html"));
             page = waitForPage();
             JSONObject initial = inspect(page);
+            long navigationDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(20);
+            while (!"https://santafe.local/index.html".equals(initial.optString("href")) &&
+                    System.nanoTime() < navigationDeadline) {
+                Thread.sleep(200);
+                initial = inspect(page);
+            }
             require("https://santafe.local/index.html".equals(initial.optString("href")), "diagnostic page retained");
             require("complete".equals(initial.optString("ready")), "HTML loaded");
             require("2".equals(initial.optString("bridgeVersion")), "native bridge trusted");
