@@ -14,12 +14,16 @@ public final class TaskerConditionReceiver extends BroadcastReceiver {
         if(bundle==null){setResultCode(UNKNOWN);return;}
         String event=bundle.getString("event",null);
         if(event!=null){
+            Bundle data=intent.getBundleExtra("net.dinglisch.android.tasker.extras.PASS_THROUGH_DATA");
+            int messageId=data==null?-1:data.getInt("net.dinglisch.android.tasker.MESSAGE_ID",-1);
+            if(messageId<=0){setResultCode(UNKNOWN);return;}
             String id=bundle.getString("id","");
             if(!id.matches("[a-fA-F0-9-]{36}")){setResultCode(UNKNOWN);return;}
             try{
                 String json=StatusStore.recentEvent(context);
                 if(json.isEmpty()){setResultCode(FALSE);return;}
                 JSONObject recent=new JSONObject(json);
+                if(recent.optInt("message_id",-1)!=messageId){setResultCode(UNKNOWN);return;}
                 String kind=recent.optString("kind","");
                 String observed=String.valueOf(recent.optLong("observation_ms",0));
                 boolean matching="any".equals(event)||event.equals(kind);
