@@ -57,7 +57,7 @@ jobs:
         run: python -m pytest tests -q
 
       - name: JavaScript fixture regression tests
-        run: node --test tests/test_diagnostic.cjs tests/test_remote_start_ui.cjs
+        run: node --test tests/test_diagnostic.cjs tests/test_remote_start_ui.cjs tests/test_dashboard_followup.cjs
 
       - name: Native request-policy tests
         run: bash ./android/tests/run-policy-tests.sh

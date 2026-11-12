@@ -6,6 +6,45 @@
   const native=window.SantaFeNative;
   let session=null,vehicle=null,stored=null,lastStatus=null,busy=false,queuedAction=null,command=null,externalAction=null;
   const pending=new Map();
+  const STATUS_CHECK_MS=3000;
+  const MAX_POST_COMMAND_CHECKS=8;
+  let pageActive=true;
+  function observationMillis(value) {
+    const stamp=String(value?.dateTime??'');
+    if(/^\d{14}$/.test(stamp)){
+      const date=Date.UTC(+stamp.slice(0,4),+stamp.slice(4,6)-1,+stamp.slice(6,8),
+        +stamp.slice(8,10),+stamp.slice(10,12),+stamp.slice(12,14));
+      return Number.isFinite(date)?date:null;
+    }
+    const date=Date.parse(stamp);
+    return Number.isFinite(date)?date:null;
+  }
+  function actionAppearsInStatus(action,status,previousObservation) {
+    const timestamp=observationMillis(status);
+    if(timestamp===null||previousObservation===null||timestamp<=previousObservation)return false;
+    if(action==='lock')return status.doorLock===true;
+    if(action==='unlock')return status.doorLock===false;
+    if(action==='normal'||action==='cool'||action==='warm')
+      return status.airCtrlOn===true || status.engine===true;
+    if(action==='stop')
+      return status.airCtrlOn===false || (status.airCtrlOn==null&&status.engine===false);
+    return false;
+  }
+  function observedDescription(action) {
+    if(action==='lock')return 'doors locked';
+    if(action==='unlock')return 'doors unlocked';
+    if(action==='stop')return 'remote climate off';
+    return 'remote climate on';
+  }
+  function progressFromStatus(action,observationBefore,status) {
+    const reflected=actionAppearsInStatus(action,status,observationBefore);
+    $('statusLabel').textContent=reflected?'Updated':'Syncing';
+    $('age').textContent=reflected
+      ? 'Hyundai now reports '+observedDescription(action)+'.'
+      : 'Waiting for a newer vehicle observation. Hyundai may still return cached data.';
+    return reflected;
+  }
+  const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const message=(s)=>{$('notice').textContent=String(s||'').slice(0,240);};
   function setBusy(b,s='') {
     busy=b;$('busyLabel').textContent=b?s||'Working…':'';
@@ -21,6 +60,8 @@
   }
   function renderStatus(s,source='Hyundai') {
     if(!s||typeof s!=='object')return;
+    const oldObservation=observationMillis(lastStatus), incoming=observationMillis(s);
+    if(oldObservation!==null&&incoming!==null&&incoming<oldObservation)return;
     lastStatus=s;
     const doors=s.doorLock===true?'Locked':s.doorLock===false?'Unlocked':'Unknown';
     const engine=s.engine===true?'On':s.engine===false?'Off':'Unknown';
@@ -29,7 +70,8 @@
     $('miles').textContent=Number.isFinite(+s.odometer)&&s.odometer!==null&&s.odometer!==undefined?Math.round(+s.odometer).toLocaleString()+' mi':'Unknown';
     $('updated').textContent=prettyTimestamp(s.dateTime);
     $('statusLabel').textContent=source;
-    $('age').textContent='Vehicle observation, not a live sensor feed. Refresh does not guarantee new data.';
+    $('age').textContent=(s.airCtrlOn===true?'Remote climate on. ':s.airCtrlOn===false?'Remote climate off. ':'')+
+      'Hyundai status may be cached.';
     try{native.reportStatus(JSON.stringify({locked:s.doorLock,engine_running:s.engine,fuel_percent:s.fuelLevel,odometer:s.odometer,updated_at:s.dateTime,source:'hyundai_direct'}));}catch{}
   }
   function request(spec) {
@@ -84,12 +126,15 @@
     }catch(e){message(e.message||'Could not connect.');$('statusLabel').textContent='Unavailable';}
     finally{setBusy(false);}
   }
-  async function readStatus(){
+  async function readStatus({quiet=false,fresh=false}={}){
     if(!session||!vehicle)throw new Error('Connect to Hyundai first.');
-    const r=await call('GET','rcs/rvs/vehicleStatus',null,true);
+    // Cached status is safe to check repeatedly. A forced wake is allowed only once
+    // later in the bounded follow-up, never at every three-second interval.
+    const r=await call('GET','rcs/rvs/vehicleStatus',null,true,true,fresh?{'refresh':'true'}:{});
     if(!r.data?.vehicleStatus||typeof r.data.vehicleStatus!=='object')throw new Error('Hyundai did not return vehicle status.');
     renderStatus(r.data.vehicleStatus);
-    message('Status loaded. The observation time may be older than the HTTP response.');
+    if(!quiet)message('Status loaded. The observation time may be older than the HTTP response.');
+    return lastStatus;
   }
   async function refresh(){
     if(busy)return;
@@ -127,23 +172,81 @@
     if(!session||!vehicle||!lastStatus){message('Reconnect and check the vehicle status first.');return;}
     let spec;
     try{spec=commandSpec(action);}catch(e){message(e.message||'Command cannot be prepared.');return;}
-    if(legacyPending()||!native.reserveCommand||!native.reserveCommand(action)){message('A command is already pending or unresolved. Check the vehicle first.');return;}
-    let cleared=false;setBusy(true,'Sending');
-    $('commandDialog').close();$('startDialog').close();message('Submitting one command to Hyundai. No retries.');
-    try{
-      const r=await call('POST',spec.path,spec.body,true,true,spec.extra);
-      const tid=r.headers.tmstid||r.headers.transactionid||r.headers.xid;
-      if(!tid)throw new Error('Request accepted without transaction ID. Outcome unknown.');
-      const service='REMOTE_POLL';
-      for(let i=0;i<5;i++){
-        if(i)await new Promise(res=>setTimeout(res,2500));
-        const poll=await call('GET','rmt/getRunningStatus',null,true,true,{tid,login_id:session.username,service_type:service});
-        if(poll.data.status==='SUCCESS'){native.completeCommand(true);cleared=true;message('Hyundai confirmed completion. Refresh status to see the reported state.');return;}
-        if(poll.data.status==='ERROR'){native.completeCommand(false);cleared=true;message('Hyundai reported that the command failed.');return;}
+    if(legacyPending()||!native.reserveCommand||!native.reserveCommand(action)){
+      message('A command is already pending or unresolved. Check the vehicle first.');return;
+    }
+    const before=observationMillis(lastStatus);
+    let cleared=false, statusReadsStopped=false, statusErrors=0;
+    setBusy(true,'Sending');
+    $('commandDialog').close();$('startDialog').close();
+    message('Submitting one command to Hyundai. No retries.');
+    async function checkReportedStatus(fresh=false){
+      if(statusReadsStopped||!pageActive)return false;
+      try {
+        const observed=await readStatus({quiet:true,fresh});
+        statusErrors=0;
+        return progressFromStatus(action,before,observed);
+      }catch(e){
+        statusErrors++;
+        if(/rate limit|login expired/i.test(String(e.message))||statusErrors>=2)statusReadsStopped=true;
+        $('statusLabel').textContent='Status pending';
+        $('age').textContent='Hyundai has not returned an updated observation yet.';
+        return false; // A status read failing does not undo a confirmed command.
       }
-      throw new Error('Hyundai has not confirmed the result. Check the car before another command.');
-    }catch(e){message(e.message+' No automatic retry.');}
-    finally{setBusy(false);if(!cleared)message($('notice').textContent+' Command locked pending physical check.');}
+    }
+    try {
+      const submitted=await call('POST',spec.path,spec.body,true,true,spec.extra);
+      const tid=submitted.headers.tmstid||submitted.headers.transactionid||submitted.headers.xid;
+      if(!tid)throw new Error('Request accepted without transaction ID. Outcome unknown.');
+      let reflected=false;
+      for(let i=0;i<5;i++){
+        if(i)await delay(2500);
+        if(!pageActive)throw new Error('App closed during command. Check the car before retrying.');
+        const poll=await call('GET','rmt/getRunningStatus',null,true,true,
+          {tid,login_id:session.username,service_type:'REMOTE_POLL'});
+        const state=poll.data?.status;
+        if(state==='SUCCESS'||state==='ERROR'){
+          if(!native.completeCommand(state==='SUCCESS'))
+            throw new Error('Could not save the command result. Check the car before another command.');
+          cleared=true;
+        }
+        if(state==='ERROR'){
+          message('Hyundai reported that the command failed. No retry was sent.');
+          return;
+        }
+        // Refresh the visible dashboard while the transaction is still pending.
+        // These are read-only GET requests; no vehicle control is resent.
+        reflected=(await checkReportedStatus())||reflected;
+        if(state==='SUCCESS'){
+          if(!reflected&&!statusReadsStopped){
+            message('Hyundai confirmed the command. Checking for updated vehicle status…');
+            for(let attempt=0;attempt<MAX_POST_COMMAND_CHECKS&&pageActive;attempt++){
+              await delay(STATUS_CHECK_MS);
+              if(!pageActive)break;
+              // One forced refresh after several cached reads, never repeated.
+              reflected=await checkReportedStatus(attempt===2);
+              if(reflected||statusReadsStopped)break;
+            }
+          }
+          if(reflected){
+            message('Hyundai confirmed the command. Updated status: '+observedDescription(action)+'.');
+          }else if(statusReadsStopped){
+            message('Hyundai confirmed the command, but status updates are temporarily unavailable.');
+          }else{
+            $('statusLabel').textContent='Cached';
+            $('age').textContent='Hyundai has not returned a newer observation. Last reported status is shown.';
+            message('Hyundai confirmed the command, but the displayed status may still be old.');
+          }
+          return;
+        }
+      }
+      throw new Error('Hyundai has not confirmed the command result. Check the car before another command.');
+    }catch(e){
+      message(e.message+' No automatic retry.');
+    }finally{
+      setBusy(false);
+      if(!cleared)message($('notice').textContent+' Command locked pending physical check.');
+    }
   }
   function triggerExternal(action){if(['normal','cool','warm'].includes(action)){$('startDialog').showModal();}else if(['lock','unlock','stop'].includes(action))showCommand(action);}
   window.SantaFeExternal=(action)=>{if(!session||!lastStatus){externalAction=action;return;}triggerExternal(action);};
@@ -181,6 +284,6 @@
   $('taskerInfo').addEventListener('click',()=>{try{if(!native.notificationPermission())native.askNotificationPermission();}catch{}alert('In Tasker, choose Plugin → Santa Fe Action, Santa Fe Event, or Santa Fe State. Command actions require notification permission and visible confirmation. Vehicle status comes from cached observations, not live Digital Key events.');});
   $('widgetInfo').addEventListener('click',()=>{alert('Long-press a blank space on the Android home screen, select Widgets, then choose one of the Santa Fe widgets.');});
   $('checkCar').addEventListener('click',resolve);
-  window.addEventListener('pagehide',()=>{session=null;stored=null;vehicle=null;lastStatus=null;});
+  window.addEventListener('pagehide',()=>{pageActive=false;session=null;stored=null;vehicle=null;lastStatus=null;});
   if(native&&typeof native.loadAccount==='function')connect();else{message('The Android bridge is unavailable.');$('statusLabel').textContent='Unavailable';}
 })();
