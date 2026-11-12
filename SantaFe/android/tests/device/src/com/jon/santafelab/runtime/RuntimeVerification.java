@@ -42,7 +42,8 @@ public final class RuntimeVerification extends Instrumentation {
             page = waitForPage();
             JSONObject initial = inspect(page);
             long navigationDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(20);
-            while (!"https://santafe.local/index.html".equals(initial.optString("href")) &&
+            while ((! "https://santafe.local/index.html".equals(initial.optString("href")) ||
+                    !"complete".equals(initial.optString("ready")) || !initial.optBoolean("callback")) &&
                     System.nanoTime() < navigationDeadline) {
                 Thread.sleep(200);
                 initial = inspect(page);
