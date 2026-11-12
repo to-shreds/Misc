@@ -32,6 +32,7 @@ public final class TaskerConditionReceiver extends BroadcastReceiver {
                 String key="event-"+id;
                 if(observed.equals(p.getString(key,""))){setResultCode(FALSE);return;}
                 if(!p.edit().putString(key,observed).commit()){setResultCode(UNKNOWN);return;}
+                addVariables(context,recent);
                 setResultCode(TRUE);
             }catch(Exception e){setResultCode(UNKNOWN);}
             return;
@@ -45,7 +46,32 @@ public final class TaskerConditionReceiver extends BroadcastReceiver {
             boolean lock=state.startsWith("doors"),expected=state.endsWith("locked")&&!state.endsWith("unlocked")||state.endsWith("_on");
             Object actual=s.opt(lock?"locked":"engine_running");
             if(!(actual instanceof Boolean)){setResultCode(UNKNOWN);return;}
+            addVariables(context,null);
             setResultCode(((Boolean)actual)==expected?TRUE:FALSE);
         }catch(Exception e){setResultCode(UNKNOWN);}
+    }
+    void addVariables(Context context,JSONObject event){
+        // Tasker treats only lower-case variable names as local variables.
+        // Never include VIN, account information, tokens, coordinates or API responses.
+        Bundle vars=new Bundle();
+        try {
+            JSONObject s=new JSONObject(StatusStore.read(context));
+            Object e=s.opt("engine_running"),locked=s.opt("locked"),fuel=s.opt("fuel_percent"),odometer=s.opt("odometer");
+            vars.putString("%sf_engine",e instanceof Boolean?(((Boolean)e)?"on":"off"):"unknown");
+            vars.putString("%sf_locked",locked instanceof Boolean?(((Boolean)locked)?"true":"false"):"unknown");
+            vars.putString("%sf_fuel",fuel instanceof Number?String.valueOf(fuel):"unknown");
+            vars.putString("%sf_odometer",odometer instanceof Number?String.valueOf(odometer):"unknown");
+            vars.putString("%sf_updated",s.optString("updated_at","unknown"));
+            vars.putString("%sf_source",s.optString("source","unknown"));
+            if(event!=null){
+                vars.putString("%sf_event",event.optString("kind","unknown"));
+                vars.putString("%sf_old",String.valueOf(event.opt("previous")));
+                vars.putString("%sf_new",String.valueOf(event.opt("value")));
+            }
+        }catch(Exception ignored){return;}
+        if(isOrderedBroadcast()){
+            try{getResultExtras(true).putBundle("net.dinglisch.android.tasker.extras.VARIABLES",vars);}
+            catch(Exception ignored){}
+        }
     }
 }
