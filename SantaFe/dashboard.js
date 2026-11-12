@@ -4,7 +4,7 @@
   const base='https://api.telematics.hyundaiusa.com', api=base+'/ac/v2/', loginUrl=base+'/v2/ac/oauth/token';
   const $=id=>document.getElementById(id);
   const native=window.SantaFeNative;
-  let session=null,vehicle=null,stored=null,lastStatus=null,busy=false,queuedAction=null,command=null;
+  let session=null,vehicle=null,stored=null,lastStatus=null,busy=false,queuedAction=null,command=null,externalAction=null;
   const pending=new Map();
   const message=(s)=>{$('notice').textContent=String(s||'').slice(0,240);};
   function setBusy(b,s='') {
@@ -80,6 +80,7 @@
       if(cars.length!==1){message('Vehicle selection is needed. Open Account & diagnostics.');$('statusLabel').textContent='Select vehicle';return;}
       vehicle=cars[0];
       await readStatus();
+      if(externalAction){const action=externalAction;externalAction=null;triggerExternal(action);}
     }catch(e){message(e.message||'Could not connect.');$('statusLabel').textContent='Unavailable';}
     finally{setBusy(false);}
   }
@@ -141,6 +142,8 @@
     }catch(e){message(e.message+' No automatic retry.');}
     finally{setBusy(false);if(!cleared)message($('notice').textContent+' Command locked pending physical check.');}
   }
+  function triggerExternal(action){if(['normal','cool','warm'].includes(action)){$('outdoors').checked=false;$('startDialog').showModal();}else if(['lock','unlock','stop'].includes(action))showCommand(action);}
+  window.SantaFeExternal=(action)=>{if(!session||!lastStatus){externalAction=action;return;}triggerExternal(action);};
   function navigateDiagnostic(){location.assign('/index.html');}
   function resolve(){
     if(!native.isCommandBlocked||!native.isCommandBlocked()){message('There is no unresolved dashboard command.');return;}
