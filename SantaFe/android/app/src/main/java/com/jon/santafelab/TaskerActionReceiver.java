@@ -30,15 +30,8 @@ public final class TaskerActionReceiver extends BroadcastReceiver {
         String action=bundle.getString("action","");
         if("status".equals(action)){StatusJob.enqueue(context);return;}
         if(!action.matches("lock|unlock|stop|normal|cool|warm"))return;
-        if(!TaskerSecurity.enabled(context)){
-            notifyUser(context,"Santa Fe confirmation required","Enable unattended Tasker commands in app settings, or tap to open.",action);
-            return;
-        }
-        if(action.matches("normal|cool|warm")){
-            notifyUser(context,"Remote start needs approval","Tap to verify the vehicle is outdoors before starting.",action);
-            return;
-        }
-        if(!CarCommandJob.enqueue(context,action))
-            notifyUser(context,"Santa Fe command not queued","A command may be pending. Open the app and check the vehicle.",null);
+        // Background launch is restricted by Android. The user must visibly confirm every command.
+        notifyUser(context,"Santa Fe action requested",
+            "Tap to authorize "+action+". Nothing has been sent to the car.",action);
     }
 }
