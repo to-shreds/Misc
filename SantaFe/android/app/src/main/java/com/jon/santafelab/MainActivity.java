@@ -41,7 +41,10 @@ import java.util.concurrent.Executors;
 
 /** Only the three installed HTML assets can access the native bridge. No remote page is loaded. */
 public final class MainActivity extends Activity {
-    static final String PAGE = "https://santafe.local/index.html";
+    static final String PAGE = "https://santafe.local/dashboard.html";
+    static final String DIAGNOSTIC = "https://santafe.local/index.html";
+    private static boolean allowedDoc(String u) { return PAGE.equals(u) || DIAGNOSTIC.equals(u); }
+    private String incomingAction;
     private static final int EXPORT = 301;
     private static final int MAX_EXPORT_BYTES = 8 * 1024 * 1024;
     private FrameLayout root;
@@ -77,6 +80,8 @@ public final class MainActivity extends Activity {
         });
         setContentView(root);
         accountStore = new AccountStore(getApplicationContext());
+        String action=getIntent().getStringExtra("santa_fe_action");
+        if(action!=null && action.matches("lock|unlock|normal|cool|warm|stop")) incomingAction=action;
     }
 
     @Override public void onStart() {
@@ -135,17 +140,17 @@ public final class MainActivity extends Activity {
         view.addJavascriptInterface(new Bridge(view, nativeTransport), "SantaFeNative");
         view.setWebViewClient(new WebViewClient() {
             @Override public void onPageStarted(WebView webView, String url, android.graphics.Bitmap icon) {
-                trustedPage = page == view && PAGE.equals(url);
+                trustedPage = page == view && allowedDoc(url);
                 loaded = false;
             }
             @Override public void onPageFinished(WebView webView, String url) {
-                loaded = page == view && trustedPage && PAGE.equals(url);
-                if (loaded) notifyExport();
+                loaded = page == view && trustedPage && allowedDoc(url);
+                if (loaded) { notifyExport(); deliverActionIfPossible(view); }
             }
             @Override public boolean shouldOverrideUrlLoading(WebView webView, WebResourceRequest request) {
-                return true; // Links, redirects, external apps and other pages are never opened here.
+                return !request.isForMainFrame() || !allowedDoc(request.getUrl().toString()); // Only two installed documents can navigate.
             }
-            @Override public boolean shouldOverrideUrlLoading(WebView webView, String url) { return true; }
+            @Override public boolean shouldOverrideUrlLoading(WebView webView, String url) { return !allowedDoc(url); }
             @Override public WebResourceResponse shouldInterceptRequest(WebView webView, WebResourceRequest request) {
                 return bundledAsset(request);
             }
@@ -210,9 +215,9 @@ public final class MainActivity extends Activity {
             uri.getEncodedFragment() != null) return blocked();
         final String path = uri.getEncodedPath();
         String mime;
-        if ("/index.html".equals(path)) mime = "text/html";
-        else if ("/diagnostic.js".equals(path)) mime = "application/javascript";
-        else if ("/diagnostic.css".equals(path)) mime = "text/css";
+        if ("/index.html".equals(path) || "/dashboard.html".equals(path)) mime = "text/html";
+        else if ("/diagnostic.js".equals(path) || "/dashboard.js".equals(path)) mime = "application/javascript";
+        else if ("/diagnostic.css".equals(path) || "/dashboard.css".equals(path)) mime = "text/css";
         else return blocked();
         try {
             InputStream stream = getAssets().open(path.substring(1));
@@ -232,7 +237,13 @@ public final class MainActivity extends Activity {
         private final NativeTransport connection;
         Bridge(WebView view, NativeTransport connection) { this.view = view; this.connection = connection; }
         private boolean trusted() { return trustedPage && page == view; }
-        @JavascriptInterface public String getVersion() { return trusted() ? "1" : ""; }
+        @JavascriptInterface public String getVersion() { return trusted() ? "2" : ""; }
+        @JavascriptInterface public boolean reserveCommand(String action) { return trusted() && CommandGuard.reserve(getApplicationContext(),action); }
+        @JavascriptInterface public boolean completeCommand(boolean terminal) { return trusted() && CommandGuard.complete(getApplicationContext()); }
+        @JavascriptInterface public boolean isCommandBlocked() { return trusted() && CommandGuard.blocked(getApplicationContext()); }
+        @JavascriptInterface public boolean acknowledgeCommand() { return trusted() && CommandGuard.complete(getApplicationContext()); }
+        @JavascriptInterface public boolean reportStatus(String json) { return trusted() && StatusStore.accept(getApplicationContext(),json); }
+        @JavascriptInterface public String lastStatus() { return trusted() ? StatusStore.read(getApplicationContext()) : ""; }
         @JavascriptInterface public String loadAccount() {
             return trusted() ? accountStore.loadAccount() : "{\"saved\":false}";
         }
@@ -310,5 +321,22 @@ public final class MainActivity extends Activity {
         exportMessage = null;
     }
 
-    @Override public void onBackPressed() { finish(); }
+    private void deliverActionIfPossible(WebView view) {
+        if (incomingAction == null || !PAGE.equals(view.getUrl())) return;
+        String action=incomingAction; incomingAction=null;
+        view.evaluateJavascript("window.SantaFeExternal&&window.SantaFeExternal("+JSONObject.quote(action)+")",null);
+    }
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent); setIntent(intent);
+        String action=intent.getStringExtra("santa_fe_action");
+        if(action!=null && action.matches("lock|unlock|normal|cool|warm|stop")) {
+            incomingAction=action;
+            if(page!=null && PAGE.equals(page.getUrl())) deliverActionIfPossible(page);
+            else if(page!=null) page.loadUrl(PAGE);
+        }
+    }
+    @Override public void onBackPressed() {
+        if(page!=null && DIAGNOSTIC.equals(page.getUrl())) {page.loadUrl(PAGE);return;}
+        finish();
+    }
 }
