@@ -11,7 +11,9 @@ final class CommandGuard {
     }
     static boolean reserve(Context c,String action) {
         if(!("lock".equals(action)||"unlock".equals(action)||"stop".equals(action)||
-            "normal".equals(action)||"cool".equals(action)||"warm".equals(action)))return false;
+            "normal".equals(action)||"cool".equals(action)||"warm".equals(action)||
+            "climate_start".equals(action)||"climate_stop".equals(action)||
+            "lights".equals(action)||"horn_lights".equals(action)))return false;
         synchronized(LOCK){
             SharedPreferences p=c.getSharedPreferences(PREF,0);
             if(p.getBoolean("pending",false))return false;
