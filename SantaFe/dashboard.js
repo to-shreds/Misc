@@ -124,11 +124,13 @@
     if(busy)return;
     if(!session||!vehicle||!lastStatus){message('Reconnect and check the vehicle status first.');return;}
     if((action==='cool'||action==='normal'||action==='warm')&&!$('outdoors').checked){message('Confirm the vehicle is outdoors before remote starting.');return;}
+    let spec;
+    try{spec=commandSpec(action);}catch(e){message(e.message||'Command cannot be prepared.');return;}
     if(!native.reserveCommand||!native.reserveCommand(action)){message('A command is already pending or unresolved. Check the vehicle first.');return;}
     let cleared=false;setBusy(true,'Sending');
     $('commandDialog').close();$('startDialog').close();message('Submitting one command to Hyundai. No retries.');
     try{
-      const spec=commandSpec(action),r=await call('POST',spec.path,spec.body,true,true,spec.extra);
+      const r=await call('POST',spec.path,spec.body,true,true,spec.extra);
       const tid=r.headers.tmstid||r.headers.transactionid||r.headers.xid;
       if(!tid)throw new Error('Request accepted without transaction ID. Outcome unknown.');
       const service='REMOTE_POLL';
