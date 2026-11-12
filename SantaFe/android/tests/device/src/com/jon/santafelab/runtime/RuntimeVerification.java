@@ -114,7 +114,7 @@ public final class RuntimeVerification extends Instrumentation {
 
             Activity oldActivity = activity;
             ActivityMonitor replacement = addMonitor("com.jon.santafelab.MainActivity", null, false);
-            runOnMainSync(() -> oldActivity.recreate());
+            runOnMainSync(() -> { oldActivity.getIntent().putExtra("sf_open_diagnostics", true); oldActivity.recreate(); });
             Activity recreated = waitForMonitorWithTimeout(replacement, 15000);
             removeMonitor(replacement);
             require(recreated != null && recreated != oldActivity, "Activity recreated");
