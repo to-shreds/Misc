@@ -173,7 +173,7 @@
   });
   $('settings').addEventListener('click',monitorLabel);
   $('more').addEventListener('click',monitorLabel);
-  $('taskerInfo').addEventListener('click',()=>{alert('In Tasker, choose Plugin → Santa Fe Action, Santa Fe Event, or Santa Fe State. Background status updates are cached observations, not live vehicle pushes.');});
+  $('taskerInfo').addEventListener('click',()=>{try{if(!native.notificationPermission())native.askNotificationPermission();}catch{}alert('In Tasker, choose Plugin → Santa Fe Action, Santa Fe Event, or Santa Fe State. Command actions require notification permission and visible confirmation. Vehicle status comes from cached observations, not live Digital Key events.');});
   $('widgetInfo').addEventListener('click',()=>{alert('Long-press a blank space on the Android home screen, select Widgets, then choose one of the Santa Fe widgets.');});
   $('checkCar').addEventListener('click',resolve);
   window.addEventListener('pagehide',()=>{session=null;stored=null;vehicle=null;lastStatus=null;});
