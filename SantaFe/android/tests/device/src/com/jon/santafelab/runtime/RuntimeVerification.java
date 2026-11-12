@@ -36,7 +36,7 @@ public final class RuntimeVerification extends Instrumentation {
             require("complete".equals(dashboard.optString("ready")), "dashboard HTML loaded");
             require("2".equals(dashboard.optString("bridgeVersion")), "dashboard native bridge trusted");
             require(dashboard.optBoolean("callback"), "dashboard callback registered");
-            require("true".equals(evaluate(page, "Boolean(document.getElementById('doors')&&document.getElementById('engine')&&document.getElementById('fuel')&&document.getElementById('miles')&&document.getElementById('start')&&document.getElementById('stop'))")), "all compact dashboard controls present");
+            require("true".equals(evaluate(page, "Boolean(document.getElementById('doors')&&document.getElementById('engine')&&document.getElementById('fuel')&&document.getElementById('miles')&&document.getElementById('start')&&document.querySelector('[data-cmd=stop]'))")), "all compact dashboard controls present");
             final Activity dashboardActivity = activity;
             runOnMainSync(() -> dashboardActivity.finish());
             activity = startActivitySync(new Intent().setClassName("com.jon.santafelab", "com.jon.santafelab.MainActivity")
