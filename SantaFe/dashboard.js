@@ -110,10 +110,12 @@
     if(vehicle.evStatus==='E')return {path:'evc/fatc/start',body:{airCtrl:1,airTemp:{unit:1,value:String(temperature)},defrost,heating1:0,igniOnDuration:duration,seatHeaterVentInfo:seat},extra:{}};
     return {path:'rcs/rsc/start',body:{Ims:0,airCtrl:1,airTemp:{unit:1,value:temperature},defrost,heating1:0,igniOnDuration:duration,seatHeaterVentInfo:seat,username:session.username,vin:vehicle.regid},extra:{}};
   }
+  const OLD_GUARD='santafe-pending-command-v1';
+  function legacyPending(){try{return localStorage.getItem(OLD_GUARD)!==null;}catch{return true;}}
   function showCommand(action) {
     if(busy)return;
     if(!session||!vehicle||!lastStatus){message('Read vehicle status before sending a command.');return;}
-    if(native.isCommandBlocked&&native.isCommandBlocked()){message('An earlier command has an unknown result. Check the vehicle before trying again.');return;}
+    if(legacyPending()||(native.isCommandBlocked&&native.isCommandBlocked())){message('An earlier command has an unknown result. Check the vehicle before trying again.');return;}
     queuedAction=action;
     const words={lock:'Lock doors',unlock:'Unlock doors',stop:'Stop remote start',cool:'Cool to 62°F',normal:'Start at 72°F',warm:'Warm to 81°F'};
     $('confirmTitle').textContent=words[action]||'Confirm command';
@@ -126,7 +128,7 @@
     if((action==='cool'||action==='normal'||action==='warm')&&!$('outdoors').checked){message('Confirm the vehicle is outdoors before remote starting.');return;}
     let spec;
     try{spec=commandSpec(action);}catch(e){message(e.message||'Command cannot be prepared.');return;}
-    if(!native.reserveCommand||!native.reserveCommand(action)){message('A command is already pending or unresolved. Check the vehicle first.');return;}
+    if(legacyPending()||!native.reserveCommand||!native.reserveCommand(action)){message('A command is already pending or unresolved. Check the vehicle first.');return;}
     let cleared=false;setBusy(true,'Sending');
     $('commandDialog').close();$('startDialog').close();message('Submitting one command to Hyundai. No retries.');
     try{
@@ -148,9 +150,13 @@
   window.SantaFeExternal=(action)=>{if(!session||!lastStatus){externalAction=action;return;}triggerExternal(action);};
   function navigateDiagnostic(){location.assign('/index.html');}
   function resolve(){
-    if(!native.isCommandBlocked||!native.isCommandBlocked()){message('There is no unresolved dashboard command.');return;}
+    const blockedNative=!!(native.isCommandBlocked&&native.isCommandBlocked());
+    const blockedLegacy=legacyPending();
+    if(!blockedNative&&!blockedLegacy){message('There is no unresolved command.');return;}
     if(confirm('Have you physically checked the vehicle and verified its present condition? This does not establish whether the previous command succeeded.')){
-      if(native.acknowledgeCommand())message('The previous command was acknowledged after your physical check.');else message('Could not clear the pending command.');
+      if(blockedNative&&(!native.acknowledgeCommand||!native.acknowledgeCommand())){message('Could not clear the native pending command.');return;}
+      if(blockedLegacy)try{localStorage.removeItem(OLD_GUARD);if(legacyPending())throw Error();}catch{message('Could not clear the older pending command.');return;}
+      message('The previous command was acknowledged after your physical check. No command was sent.');
     }
   }
   document.querySelectorAll('[data-cmd]').forEach(button=>button.addEventListener('click',()=>showCommand(button.dataset.cmd)));
