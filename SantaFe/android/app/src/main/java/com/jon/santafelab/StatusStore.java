@@ -2,6 +2,9 @@ package com.jon.santafelab;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import java.security.SecureRandom;
+import java.time.OffsetDateTime;
 import android.content.SharedPreferences;
 import org.json.JSONObject;
 import java.time.Instant;
@@ -21,7 +24,8 @@ final class StatusStore {
             if(raw.matches("[0-9]{14}"))
                 return LocalDateTime.parse(raw,DateTimeFormatter.ofPattern("yyyyMMddHHmmss",Locale.US))
                     .toInstant(ZoneOffset.UTC).toEpochMilli();
-            return Instant.parse(raw).toEpochMilli();
+            try { return Instant.parse(raw).toEpochMilli(); }
+            catch(Exception ignored) { return OffsetDateTime.parse(raw).toInstant().toEpochMilli(); }
         } catch(Exception e){return -1;}
     }
     static boolean accept(Context c,String json){
@@ -69,9 +73,11 @@ final class StatusStore {
                 }
                 SharedPreferences.Editor ed=pref.edit().putString("snapshot",safe.toString())
                    .putLong("observed_ms",time);
+                int messageId=event==null?-1:1+new SecureRandom().nextInt(Integer.MAX_VALUE-1);
+                if(event!=null)event.put("message_id",messageId);
                 if(event!=null)ed.putString("event",event.toString()).putLong("event_received_ms",System.currentTimeMillis());
                 if(!ed.commit())return false;
-                if(event!=null)notifyTasker(c);
+                notifyTasker(c,event==null?-1:messageId);
                 notifyWidgets(c);
                 return true;
             }
@@ -83,11 +89,16 @@ final class StatusStore {
         if(System.currentTimeMillis()-at>120000)return "";
         return p.getString("event","");
     }
-    static void notifyTasker(Context c) {
+    static void notifyTasker(Context c,int messageId) {
         Intent i=new Intent("com.twofortyfouram.locale.intent.action.REQUEST_QUERY");
         i.setPackage("net.dinglisch.android.taskerm");
         i.putExtra("com.twofortyfouram.locale.intent.extra.ACTIVITY_CLASS_NAME",TaskerEventConfig.class.getName());
-        try{c.sendBroadcast(i);}catch(Exception ignored){}
+        if(messageId>0) {
+            Bundle pass=new Bundle();
+            pass.putInt("net.dinglisch.android.tasker.MESSAGE_ID",messageId);
+            i.putExtra("net.dinglisch.android.tasker.extras.PASS_THROUGH_DATA",pass);
+            try{c.sendBroadcast(i);}catch(Exception ignored){}
+        }
         Intent state=new Intent("com.twofortyfouram.locale.intent.action.REQUEST_QUERY");
         state.setPackage("net.dinglisch.android.taskerm");
         state.putExtra("com.twofortyfouram.locale.intent.extra.ACTIVITY_CLASS_NAME",TaskerStateConfig.class.getName());
