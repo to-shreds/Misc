@@ -18,7 +18,7 @@ public final class TaskerActionConfig extends Activity {
         LinearLayout root=new LinearLayout(this);root.setPadding(24,24,24,24);root.setOrientation(LinearLayout.VERTICAL);
         TextView title=new TextView(this);title.setText("Santa Fe Tasker action");title.setTextSize(20);root.addView(title);
         TextView info=new TextView(this);
-        info.setText("Status checks run in the background. Lock, unlock and stop require enabling unattended actions in Santa Fe settings. Remote starts require visible confirmation that the car is outdoors.");
+        info.setText("Cached status checks run in the background. Vehicle commands open a confirmation notification; remote starts also require confirming the car is outdoors.");
         root.addView(info);
         Spinner choices=new Spinner(this);choices.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,NAMES));
         root.addView(choices);
