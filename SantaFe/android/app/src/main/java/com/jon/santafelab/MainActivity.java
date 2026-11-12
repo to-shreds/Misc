@@ -244,6 +244,18 @@ public final class MainActivity extends Activity {
         @JavascriptInterface public boolean acknowledgeCommand() { return trusted() && CommandGuard.complete(getApplicationContext()); }
         @JavascriptInterface public boolean reportStatus(String json) { return trusted() && StatusStore.accept(getApplicationContext(),json); }
         @JavascriptInterface public String lastStatus() { return trusted() ? StatusStore.read(getApplicationContext()) : ""; }
+        @JavascriptInterface public boolean notificationPermission() {
+            return trusted() && (android.os.Build.VERSION.SDK_INT < 33 ||
+                checkSelfPermission("android.permission.POST_NOTIFICATIONS") == android.content.pm.PackageManager.PERMISSION_GRANTED);
+        }
+        @JavascriptInterface public void askNotificationPermission() {
+            if(!trusted())return;
+            runOnUiThread(() -> {
+                if(android.os.Build.VERSION.SDK_INT >= 33 &&
+                    checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED)
+                    requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 455);
+            });
+        }
         @JavascriptInterface public boolean monitorEnabled() { return trusted() && StatusJob.monitoring(getApplicationContext()); }
         @JavascriptInterface public boolean enableMonitor(boolean enabled) {
             if(!trusted())return false;
