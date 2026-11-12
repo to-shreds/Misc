@@ -105,7 +105,18 @@ jobs:
         shell: bash
         run: |
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager             "platform-tools"             "emulator"             "platforms;android-35"             "build-tools;35.0.0"             "system-images;android-35;google_apis;x86_64"
+          sdkmanager "platform-tools" "emulator" "platforms;android-35" "build-tools;35.0.0"
+          image="system-images;android-35;google_apis;x86_64"
+          for attempt in 1 2; do
+            if sdkmanager "$image"; then break; fi
+            rm -rf "$ANDROID_SDK_ROOT/system-images/android-35/google_apis/x86_64"
+            if [ "$attempt" = 2 ]; then
+              image="system-images;android-35;default;x86_64"
+              sdkmanager "$image"
+            fi
+            sleep 4
+          done
+          echo "SF_ANDROID_IMAGE=$image" >> "$GITHUB_ENV"
 
       - name: Build CI-only APK and runtime verifier
         id: build
@@ -154,7 +165,7 @@ jobs:
         run: |
           echo "no" | avdmanager create avd \
             --force --name santafe-ci \
-            --package "system-images;android-35;google_apis;x86_64" \
+            --package "$SF_ANDROID_IMAGE" \
             --device "pixel_6" --path "$ANDROID_AVD_HOME/santafe-ci.avd"
           test -f "$ANDROID_AVD_HOME/santafe-ci.ini"
           avdmanager list avd
