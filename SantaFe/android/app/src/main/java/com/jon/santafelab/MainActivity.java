@@ -244,6 +244,12 @@ public final class MainActivity extends Activity {
         @JavascriptInterface public boolean acknowledgeCommand() { return trusted() && CommandGuard.complete(getApplicationContext()); }
         @JavascriptInterface public boolean reportStatus(String json) { return trusted() && StatusStore.accept(getApplicationContext(),json); }
         @JavascriptInterface public String lastStatus() { return trusted() ? StatusStore.read(getApplicationContext()) : ""; }
+        @JavascriptInterface public boolean monitorEnabled() { return trusted() && StatusJob.monitoring(getApplicationContext()); }
+        @JavascriptInterface public boolean enableMonitor(boolean enabled) {
+            if(!trusted())return false;
+            StatusJob.monitor(getApplicationContext(),enabled);
+            return StatusJob.monitoring(getApplicationContext())==enabled;
+        }
         @JavascriptInterface public String loadAccount() {
             return trusted() ? accountStore.loadAccount() : "{\"saved\":false}";
         }
