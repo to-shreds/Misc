@@ -159,6 +159,18 @@
   $('settings').addEventListener('click',()=>$('settingsDialog').showModal());
   $('more').addEventListener('click',()=>$('settingsDialog').showModal());
   $('diagnostics').addEventListener('click',navigateDiagnostic);
+  function monitorLabel(){
+    try{$('toggleMonitor').firstChild.textContent='Background monitoring: '+(native.monitorEnabled()?'On (15 min)':'Off')+' ';}catch{}
+  }
+  $('toggleMonitor').addEventListener('click',()=>{
+    try{
+      const next=!native.monitorEnabled();
+      if(!native.enableMonitor(next))throw new Error('Android rejected the monitoring change.');
+      monitorLabel();message(next?'15-minute monitoring enabled. Hyundai reports may remain stale.':'Background monitoring disabled.');
+    }catch(e){message(e.message||'Could not change monitoring.');}
+  });
+  $('settings').addEventListener('click',monitorLabel);
+  $('more').addEventListener('click',monitorLabel);
   $('taskerInfo').addEventListener('click',()=>{alert('In Tasker, choose Plugin → Santa Fe Action, Santa Fe Event, or Santa Fe State. Background status updates are cached observations, not live vehicle pushes.');});
   $('widgetInfo').addEventListener('click',()=>{alert('Long-press a blank space on the Android home screen, select Widgets, then choose one of the Santa Fe widgets.');});
   $('checkCar').addEventListener('click',resolve);
