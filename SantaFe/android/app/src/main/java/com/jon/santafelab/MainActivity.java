@@ -89,6 +89,7 @@ public final class MainActivity extends Activity {
         if (page == null) createPage();
         page.resumeTimers();
         page.onResume();
+        SantaFeWidgetProvider.redrawIfInstalled(getApplicationContext());
     }
 
     @Override public void onStop() {
