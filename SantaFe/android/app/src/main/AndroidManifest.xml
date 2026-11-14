@@ -25,7 +25,9 @@
         </receiver>
         <receiver android:name=".SantaFeWidgetProvider$Dashboard" android:exported="true">
           <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-          <action android:name="com.jon.santafelab.WIDGET_REFRESH" /></intent-filter>
+          <action android:name="com.jon.santafelab.WIDGET_REFRESH" />
+          <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+          <action android:name="android.intent.action.BOOT_COMPLETED" /></intent-filter>
           <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_dashboard"/>
         </receiver>
         <service android:name=".StatusJob" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="false"/>
