@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101820">
+<title>Santa Fe</title><link rel="stylesheet" href="/dashboard.css"><script src="/dashboard.js" defer></script></head>
+<body>
+<div class="shell">
+<header><div class="identity"><div class="mark">SF</div><div><h1>Santa Fe</h1><p id="updated">Connecting…</p></div></div><div class="header-actions"><button id="refresh" aria-label="Refresh status" title="Refresh cached status">↻</button><button id="settings" aria-label="Settings">⚙</button></div></header>
+<main class="home" id="home">
+<section class="status" aria-label="Vehicle status">
+<div class="section-title">VEHICLE STATUS <span id="statusLabel">Loading</span></div>
+<div class="tiles">
+<div class="tile"><span class="tile-label">DOORS</span><strong id="doors">Loading…</strong></div>
+<div class="tile"><span class="tile-label">ENGINE</span><strong id="engine">Loading…</strong></div>
+<div class="tile"><span class="tile-label">FUEL</span><strong id="fuel">Loading…</strong></div>
+<div class="tile"><span class="tile-label">ODOMETER</span><strong id="miles">Loading…</strong></div>
+</div><p id="age" class="age">Hyundai's vehicle timestamp determines freshness.</p>
+</section>
+<section class="controls" aria-label="Vehicle controls">
+<div class="section-title">QUICK CONTROLS <span id="busyLabel"></span></div>
+<div class="buttons">
+<button class="control" data-cmd="lock"><span class="glyph">▣</span>Lock</button>
+<button class="control" data-cmd="unlock"><span class="glyph">▢</span>Unlock</button>
+<button class="control" id="start"><span class="glyph">⏻</span>Start</button>
+<button class="control stop" data-cmd="stop"><span class="glyph">■</span>Stop</button>
+</div>
+<button class="more" id="more">More controls &amp; tools</button>
+</section>
+</main>
+<p id="notice" class="notice" role="status" aria-live="polite">Connecting using the saved account. No command is being sent.</p>
+</div>
+<dialog id="startDialog"><form method="dialog"><h2>Remote start</h2><p class="hint">Choose the 10-minute climate preset.</p><div class="presets"><button type="button" data-preset="cool">❄<strong>62°F</strong><small>Cool</small></button><button type="button" data-preset="normal">◉<strong>72°F</strong><small>Normal</small></button><button type="button" data-preset="warm">☀<strong>81°F</strong><small>Warm</small></button></div><div class="dialog-actions"><button value="cancel">Cancel</button></div></form></dialog>
+<dialog id="commandDialog"><form method="dialog"><h2 id="confirmTitle">Confirm command</h2><p id="confirmText" class="hint"></p><div class="dialog-actions"><button value="cancel">Cancel</button><button type="button" id="sendCommand" class="primary">Send</button></div></form></dialog>
+<dialog id="settingsDialog"><form method="dialog"><h2>Settings &amp; tools</h2><p class="hint">Technical and account functions are kept out of the main dashboard.</p>
+<button class="menu-row" type="button" id="diagnostics">Account &amp; diagnostics <span>›</span></button>
+<button class="menu-row" type="button" id="taskerInfo">Tasker integration <span>›</span></button>
+<button class="menu-row" type="button" id="toggleMonitor">Background monitoring: Off <span>›</span></button>
+<button class="menu-row" type="button" id="widgetInfo">Home screen widgets <span>›</span></button>
+<button class="menu-row" type="button" id="checkCar">Resolve unknown command <span>›</span></button>
+<div class="dialog-actions"><button value="cancel">Close</button></div></form></dialog>
+</body></html>

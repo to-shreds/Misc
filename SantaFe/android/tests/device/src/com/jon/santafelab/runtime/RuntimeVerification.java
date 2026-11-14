@@ -1,6 +1,10 @@
 package com.jon.santafelab.runtime;
 
 import android.app.Activity;
+import android.app.PendingIntent;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import java.lang.reflect.Method;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
@@ -31,10 +35,26 @@ public final class RuntimeVerification extends Instrumentation {
         try {
             activity = startActivitySync(new Intent().setClassName("com.jon.santafelab", "com.jon.santafelab.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             WebView page = waitForPage();
+            JSONObject dashboard = inspect(page);
+            require("https://santafe.local/dashboard.html".equals(dashboard.optString("href")), "dashboard is the installed start page");
+            require("complete".equals(dashboard.optString("ready")), "dashboard HTML loaded");
+            require("2".equals(dashboard.optString("bridgeVersion")), "dashboard native bridge trusted");
+            require(dashboard.optBoolean("callback"), "dashboard callback registered");
+            require("true".equals(evaluate(page, "Boolean(document.getElementById('doors')&&document.getElementById('engine')&&document.getElementById('fuel')&&document.getElementById('miles')&&document.getElementById('start')&&document.querySelector('[data-cmd=stop]'))")), "all compact dashboard controls present");
+            final WebView dashboardView = page;
+            runOnMainSync(() -> dashboardView.loadUrl("https://santafe.local/index.html"));
+            page = waitForPage();
             JSONObject initial = inspect(page);
-            require("https://santafe.local/index.html".equals(initial.optString("href")), "installed asset origin");
+            long navigationDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(20);
+            while ((! "https://santafe.local/index.html".equals(initial.optString("href")) ||
+                    !"complete".equals(initial.optString("ready")) || !initial.optBoolean("callback")) &&
+                    System.nanoTime() < navigationDeadline) {
+                Thread.sleep(200);
+                initial = inspect(page);
+            }
+            require("https://santafe.local/index.html".equals(initial.optString("href")), "diagnostic page retained");
             require("complete".equals(initial.optString("ready")), "HTML loaded");
-            require("1".equals(initial.optString("bridgeVersion")), "native bridge trusted");
+            require("2".equals(initial.optString("bridgeVersion")), "native bridge trusted");
             require(initial.optBoolean("callback"), "native callback registered");
             require(!initial.optBoolean("loginDisabled"), "Connect enabled in app");
             require(!initial.optBoolean("emailDisabled"), "credential input enabled in app");
@@ -91,6 +111,7 @@ public final class RuntimeVerification extends Instrumentation {
             require("DONT_SEND_FIXTURE_PASSWORD".equals(savedAccount.optString("password")), "saved synthetic password matches");
             require("1234".equals(savedAccount.optString("pin")), "saved synthetic PIN matches");
             Context target = getTargetContext();
+            verifyWidgetBindings(target);
             File stored = new File(target.getNoBackupFilesDir(), "saved-account-v1.bin");
             require(stored.isFile(), "encrypted record stored in no-backup directory");
             byte[] encrypted = Files.readAllBytes(stored.toPath());
@@ -105,7 +126,7 @@ public final class RuntimeVerification extends Instrumentation {
 
             Activity oldActivity = activity;
             ActivityMonitor replacement = addMonitor("com.jon.santafelab.MainActivity", null, false);
-            runOnMainSync(() -> oldActivity.recreate());
+            runOnMainSync(() -> { oldActivity.getIntent().putExtra("sf_open_diagnostics", true); oldActivity.recreate(); });
             Activity recreated = waitForMonitorWithTimeout(replacement, 15000);
             removeMonitor(replacement);
             require(recreated != null && recreated != oldActivity, "Activity recreated");
@@ -147,6 +168,54 @@ public final class RuntimeVerification extends Instrumentation {
             result.putString("error", failure.toString());
             finish(Activity.RESULT_CANCELED, result);
         }
+    }
+
+    /** Real framework PendingIntents and JobScheduler, with no widget tap or Hyundai requests. */
+    private void verifyWidgetBindings(Context target) throws Exception {
+        Class<?> widget=target.getClassLoader().loadClass("com.jon.santafelab.SantaFeWidgetProvider");
+        Method open=widget.getDeclaredMethod("open",Context.class,String.class,int.class,int.class);
+        Method refresh=widget.getDeclaredMethod("refresh",Context.class,int.class);
+        open.setAccessible(true);
+        refresh.setAccessible(true);
+        PendingIntent dashboard=(PendingIntent)open.invoke(null,target,"dashboard",15001,1);
+        PendingIntent dashboardAgain=(PendingIntent)open.invoke(null,target,"dashboard",15001,1);
+        PendingIntent lock=(PendingIntent)open.invoke(null,target,"lock",15001,3);
+        PendingIntent otherLock=(PendingIntent)open.invoke(null,target,"lock",15002,3);
+        PendingIntent reload=(PendingIntent)refresh.invoke(null,target,15001);
+        PendingIntent otherReload=(PendingIntent)refresh.invoke(null,target,15002);
+        require(dashboard.isActivity()&&lock.isActivity(),"widget launch controls are activity intents");
+        require(reload.isBroadcast(),"widget refresh is a native explicit broadcast");
+        require(dashboard.isImmutable()&&lock.isImmutable()&&reload.isImmutable(),"widget intents are immutable");
+        require("com.jon.santafelab".equals(dashboard.getCreatorPackage()),"widget uses the installed app identity");
+        require(dashboard.equals(dashboardAgain),"widget same-ID rebind preserves existing PendingIntent");
+        require(!dashboard.equals(lock),"open and vehicle action controls remain distinct");
+        require(!lock.equals(otherLock),"different widget instances have independent command controls");
+        require(!reload.equals(otherReload),"different widget instances have independent refresh controls");
+
+        Class<?> status=target.getClassLoader().loadClass("com.jon.santafelab.StatusJob");
+        Method maintain=status.getDeclaredMethod("maintainWidgets",Context.class,boolean.class);
+        maintain.setAccessible(true);
+        maintain.invoke(null,target,true);
+        JobScheduler scheduler=(JobScheduler)target.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        JobInfo repair=null;
+        for(JobInfo job:scheduler.getAllPendingJobs())if(job.getId()==92343)repair=job;
+        require(repair!=null,"widget repair job registered without enabling vehicle status polling");
+        require(repair.isPersisted(),"widget repair job survives ordinary reboot");
+        require(repair.getIntervalMillis()>=15L*60*1000,"widget repair uses Android's periodic minimum");
+        maintain.invoke(null,target,false);
+        boolean stillScheduled=false;
+        for(JobInfo job:scheduler.getAllPendingJobs())if(job.getId()==92343)stillScheduled=true;
+        require(!stillScheduled,"widget repair removed when no widget is installed");
+
+        Method requested=status.getDeclaredMethod("manualRefreshRequested",Context.class);
+        Method feedback=status.getDeclaredMethod("widgetFeedback",Context.class,String.class);
+        Method complete=status.getDeclaredMethod("finishManualRefresh",Context.class,boolean.class);
+        requested.setAccessible(true);feedback.setAccessible(true);complete.setAccessible(true);
+        requested.invoke(null,target);
+        require(((String)feedback.invoke(null,target,"Cached car status")).startsWith("Refreshing"),"tap acknowledgment precedes network response");
+        complete.invoke(null,target,false);
+        require(((String)feedback.invoke(null,target,"Cached car status")).startsWith("Refresh failed"),"network failure is visible");
+        target.getSharedPreferences("sf-widget-feedback-v1",0).edit().clear().commit();
     }
 
     private void require(boolean ok, String label) {
