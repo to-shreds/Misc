@@ -1,6 +1,10 @@
 package com.jon.santafelab.runtime;
 
 import android.app.Activity;
+import android.app.PendingIntent;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import java.lang.reflect.Method;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
@@ -107,6 +111,7 @@ public final class RuntimeVerification extends Instrumentation {
             require("DONT_SEND_FIXTURE_PASSWORD".equals(savedAccount.optString("password")), "saved synthetic password matches");
             require("1234".equals(savedAccount.optString("pin")), "saved synthetic PIN matches");
             Context target = getTargetContext();
+            verifyWidgetBindings(target);
             File stored = new File(target.getNoBackupFilesDir(), "saved-account-v1.bin");
             require(stored.isFile(), "encrypted record stored in no-backup directory");
             byte[] encrypted = Files.readAllBytes(stored.toPath());
@@ -163,6 +168,54 @@ public final class RuntimeVerification extends Instrumentation {
             result.putString("error", failure.toString());
             finish(Activity.RESULT_CANCELED, result);
         }
+    }
+
+    /** Real framework PendingIntents and JobScheduler, with no widget tap or Hyundai requests. */
+    private void verifyWidgetBindings(Context target) throws Exception {
+        Class<?> widget=target.getClassLoader().loadClass("com.jon.santafelab.SantaFeWidgetProvider");
+        Method open=widget.getDeclaredMethod("open",Context.class,String.class,int.class,int.class);
+        Method refresh=widget.getDeclaredMethod("refresh",Context.class,int.class);
+        open.setAccessible(true);
+        refresh.setAccessible(true);
+        PendingIntent dashboard=(PendingIntent)open.invoke(null,target,"dashboard",15001,1);
+        PendingIntent dashboardAgain=(PendingIntent)open.invoke(null,target,"dashboard",15001,1);
+        PendingIntent lock=(PendingIntent)open.invoke(null,target,"lock",15001,3);
+        PendingIntent otherLock=(PendingIntent)open.invoke(null,target,"lock",15002,3);
+        PendingIntent reload=(PendingIntent)refresh.invoke(null,target,15001);
+        PendingIntent otherReload=(PendingIntent)refresh.invoke(null,target,15002);
+        require(dashboard.isActivity()&&lock.isActivity(),"widget launch controls are activity intents");
+        require(reload.isBroadcast(),"widget refresh is a native explicit broadcast");
+        require(dashboard.isImmutable()&&lock.isImmutable()&&reload.isImmutable(),"widget intents are immutable");
+        require("com.jon.santafelab".equals(dashboard.getCreatorPackage()),"widget uses the installed app identity");
+        require(dashboard.equals(dashboardAgain),"widget same-ID rebind preserves existing PendingIntent");
+        require(!dashboard.equals(lock),"open and vehicle action controls remain distinct");
+        require(!lock.equals(otherLock),"different widget instances have independent command controls");
+        require(!reload.equals(otherReload),"different widget instances have independent refresh controls");
+
+        Class<?> status=target.getClassLoader().loadClass("com.jon.santafelab.StatusJob");
+        Method maintain=status.getDeclaredMethod("maintainWidgets",Context.class,boolean.class);
+        maintain.setAccessible(true);
+        maintain.invoke(null,target,true);
+        JobScheduler scheduler=(JobScheduler)target.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        JobInfo repair=null;
+        for(JobInfo job:scheduler.getAllPendingJobs())if(job.getId()==92343)repair=job;
+        require(repair!=null,"widget repair job registered without enabling vehicle status polling");
+        require(repair.isPersisted(),"widget repair job survives ordinary reboot");
+        require(repair.getIntervalMillis()>=15L*60*1000,"widget repair uses Android's periodic minimum");
+        maintain.invoke(null,target,false);
+        boolean stillScheduled=false;
+        for(JobInfo job:scheduler.getAllPendingJobs())if(job.getId()==92343)stillScheduled=true;
+        require(!stillScheduled,"widget repair removed when no widget is installed");
+
+        Method requested=status.getDeclaredMethod("manualRefreshRequested",Context.class);
+        Method feedback=status.getDeclaredMethod("widgetFeedback",Context.class,String.class);
+        Method complete=status.getDeclaredMethod("finishManualRefresh",Context.class,boolean.class);
+        requested.setAccessible(true);feedback.setAccessible(true);complete.setAccessible(true);
+        requested.invoke(null,target);
+        require(((String)feedback.invoke(null,target,"Cached car status")).startsWith("Refreshing"),"tap acknowledgment precedes network response");
+        complete.invoke(null,target,false);
+        require(((String)feedback.invoke(null,target,"Cached car status")).startsWith("Refresh failed"),"network failure is visible");
+        target.getSharedPreferences("sf-widget-feedback-v1",0).edit().clear().commit();
     }
 
     private void require(boolean ok, String label) {
