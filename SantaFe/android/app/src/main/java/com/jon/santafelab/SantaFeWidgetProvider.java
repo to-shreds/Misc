@@ -1,51 +1,106 @@
 package com.jon.santafelab;
 
 import android.app.PendingIntent;
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.PersistableBundle;
+import android.net.Uri;
+import android.os.Bundle;
 import android.widget.RemoteViews;
 import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/** Three home-screen sizes; all read the same timestamped cache. */
+/** Native widget views and immutable Android-host click targets, independent of the WebView process. */
 public class SantaFeWidgetProvider extends AppWidgetProvider {
-    static final String REFRESH="com.jon.santafelab.WIDGET_REFRESH";
+    static final String REFRESH = "com.jon.santafelab.WIDGET_REFRESH";
     public static final class Compact extends SantaFeWidgetProvider {}
     public static final class Controls extends SantaFeWidgetProvider {}
     public static final class Dashboard extends SantaFeWidgetProvider {}
-    @Override public void onUpdate(Context context,AppWidgetManager manager,int[] ids){
-        redrawAll(context);StatusJob.enqueue(context);
+
+    @Override public void onUpdate(Context c,AppWidgetManager manager,int[] ids) {
+        redrawAll(c);
+        StatusJob.maintainWidgets(c,true);
+        StatusJob.enqueue(c);
     }
-    @Override public void onReceive(Context c,Intent intent){
+
+    @Override public void onEnabled(Context c) {
+        StatusJob.maintainWidgets(c,true);
+        redrawAll(c);
+    }
+
+    @Override public void onDisabled(Context c) {
+        if(!hasWidgets(c))StatusJob.maintainWidgets(c,false);
+    }
+
+    @Override public void onRestored(Context c,int[] oldIds,int[] newIds) {
+        redrawIfInstalled(c);
+    }
+
+    @Override public void onAppWidgetOptionsChanged(Context c,AppWidgetManager am,int widgetId,Bundle options) {
+        redrawAll(c);
+    }
+
+    @Override public void onReceive(Context c,Intent intent) {
         super.onReceive(c,intent);
-        if(REFRESH.equals(intent.getAction())){StatusJob.enqueue(c);redrawAll(c);}
+        if(intent==null)return;
+        String action=intent.getAction();
+        if(REFRESH.equals(action)) {
+            StatusJob.manualRefreshRequested(c);
+            redrawAll(c); // Acknowledge the tap before starting a potentially delayed network job.
+            StatusJob.enqueue(c); // Read-only: cannot issue a Hyundai command.
+        } else if(Intent.ACTION_MY_PACKAGE_REPLACED.equals(action) ||
+                  Intent.ACTION_BOOT_COMPLETED.equals(action)) {
+            redrawIfInstalled(c); // Repair all stored PendingIntents after package/launcher restoration.
+        }
     }
-    private static PendingIntent action(Context ctx,String action,int requestId){
-        Intent intent=new Intent(ctx,MainActivity.class);
-        intent.setAction("com.jon.santafelab.OPEN_"+action.toUpperCase(Locale.US));
-        if(!"dashboard".equals(action))intent.putExtra("santa_fe_action",action);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        return PendingIntent.getActivity(ctx,requestId,intent,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+
+    static boolean hasWidgets(Context c) {
+        AppWidgetManager am=AppWidgetManager.getInstance(c);
+        for(Class<?> type:new Class<?>[]{Compact.class,Controls.class,Dashboard.class}) {
+            if(am.getAppWidgetIds(new ComponentName(c,type)).length>0)return true;
+        }
+        return false;
     }
-    private static PendingIntent refresh(Context ctx,int requestId){
-        Intent intent=new Intent(ctx,SantaFeWidgetProvider.Dashboard.class).setAction(REFRESH);
-        return PendingIntent.getBroadcast(ctx,requestId,intent,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+
+    static void redrawIfInstalled(Context c) {
+        if(!hasWidgets(c))return;
+        StatusJob.maintainWidgets(c,true);
+        redrawAll(c);
     }
+
+    // An individual widget instance owns its immutable intents, so deleting an old instance
+    // does not reuse its controls when a launcher later rebinds or recreates another one.
+    private static int code(int widgetId,int operation) { return (widgetId<<4)|operation; }
+
+    private static PendingIntent open(Context c,String operation,int widgetId,int operationId) {
+        Intent i=new Intent(c,MainActivity.class);
+        i.setAction("com.jon.santafelab.OPEN_"+operation.toUpperCase(Locale.US));
+        i.setData(Uri.parse("santafe-widget://open/"+widgetId+"/"+operationId));
+        if(!"dashboard".equals(operation))i.putExtra("santa_fe_action",operation);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        return PendingIntent.getActivity(c,code(widgetId,operationId),i,
+                PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    private static PendingIntent refresh(Context c,int widgetId) {
+        Intent i=new Intent(c,Dashboard.class).setAction(REFRESH);
+        i.setData(Uri.parse("santafe-widget://refresh/"+widgetId));
+        return PendingIntent.getBroadcast(c,code(widgetId,2),i,
+                PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+    }
+
     static void redrawAll(Context c) {
-        AppWidgetManager manager=AppWidgetManager.getInstance(c);
-        drawType(c,manager,Compact.class,R.layout.widget_compact,1);
-        drawType(c,manager,Controls.class,R.layout.widget_controls,2);
-        drawType(c,manager,Dashboard.class,R.layout.widget_dashboard,3);
+        AppWidgetManager am=AppWidgetManager.getInstance(c);
+        drawType(c,am,Compact.class,R.layout.widget_compact,1);
+        drawType(c,am,Controls.class,R.layout.widget_controls,2);
+        drawType(c,am,Dashboard.class,R.layout.widget_dashboard,3);
     }
-    private static void drawType(Context c,AppWidgetManager am,Class<?> type,int layout,int kind){
+
+    private static void drawType(Context c,AppWidgetManager am,Class<?> type,int layout,int kind) {
         int[] ids=am.getAppWidgetIds(new ComponentName(c,type));
         if(ids==null||ids.length==0)return;
         JSONObject data=null;
@@ -62,7 +117,8 @@ public class SantaFeWidgetProvider extends AppWidgetProvider {
                 if(System.currentTimeMillis()-at>1800000)updated+=" (cached)";
             }
         }
-        for(int id:ids) {
+        updated=StatusJob.widgetFeedback(c,updated);
+        for(int widgetId:ids) {
             RemoteViews views=new RemoteViews(c.getPackageName(),layout);
             if(kind==1||kind==3){
                 views.setTextViewText(R.id.w_doors,doors);
@@ -71,15 +127,17 @@ public class SantaFeWidgetProvider extends AppWidgetProvider {
                 views.setTextViewText(R.id.w_updated,updated);
             }
             if(kind==3)views.setTextViewText(R.id.w_odometer,odometer);
-            views.setOnClickPendingIntent(R.id.w_open,action(c,"dashboard",100+kind));
-            views.setOnClickPendingIntent(R.id.w_refresh,refresh(c,200+kind));
+            PendingIntent dashboard=open(c,"dashboard",widgetId,1);
+            views.setOnClickPendingIntent(R.id.widget_root,dashboard);
+            views.setOnClickPendingIntent(R.id.w_open,dashboard);
+            views.setOnClickPendingIntent(R.id.w_refresh,refresh(c,widgetId));
             if(kind!=1){
-                views.setOnClickPendingIntent(R.id.w_lock,action(c,"lock",300+kind));
-                views.setOnClickPendingIntent(R.id.w_unlock,action(c,"unlock",400+kind));
-                views.setOnClickPendingIntent(R.id.w_start,action(c,"normal",500+kind));
-                views.setOnClickPendingIntent(R.id.w_stop,action(c,"stop",600+kind));
+                views.setOnClickPendingIntent(R.id.w_lock,open(c,"lock",widgetId,3));
+                views.setOnClickPendingIntent(R.id.w_unlock,open(c,"unlock",widgetId,4));
+                views.setOnClickPendingIntent(R.id.w_start,open(c,"normal",widgetId,5));
+                views.setOnClickPendingIntent(R.id.w_stop,open(c,"stop",widgetId,6));
             }
-            am.updateAppWidget(id,views);
+            am.updateAppWidget(widgetId,views); // Complete RemoteViews, including every click binding.
         }
     }
 }
