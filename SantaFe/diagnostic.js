@@ -379,7 +379,16 @@
     const spec=buildCommand(action);$('confirmCommand').checked=false;
     if(!window.confirm(`Send ${action.replaceAll('_',' ')} to ${selected.nickName||selected.modelCode||'the selected vehicle'}, VIN ending ${String(selected.vin).slice(-4)}?`))return;
     const submittedAt=new Date().toISOString(),marker=JSON.stringify({action,at:submittedAt});
-    try{localStorage.setItem(COMMAND_KEY,marker);if(localStorage.getItem(COMMAND_KEY)!==marker)throw new Error();}catch{throw new Error('The app could not save the pending-command guard. No command was sent. Enable local storage before testing controls.');}
+    let nativeReserved=false;
+    if(nativeAvailable && typeof nativeBridge.reserveCommand==='function') {
+      nativeReserved=nativeBridge.reserveCommand(action);
+      if(!nativeReserved)throw new Error('Another command has an unresolved result. Check the vehicle before sending a new command.');
+    }
+    try{localStorage.setItem(COMMAND_KEY,marker);if(localStorage.getItem(COMMAND_KEY)!==marker)throw new Error();}
+    catch{
+      if(nativeReserved)try{nativeBridge.completeCommand(false);}catch{}
+      throw new Error('The app could not save the pending-command guard. No command was sent. Enable local storage before testing controls.');
+    }
     log({at:submittedAt,label:'Command: '+action,outcome:'Submission starting; outcome unresolved',request:{method:'POST',path:'/ac/v2/'+spec.path},interpretation:'This record is saved before transmission. It does not confirm acceptance or completion. No automatic retry.'});
     transaction={id:null,action,vehicle:selected,done:false,submitted_at:submittedAt,service:action==='lights'?'LIGHTS_ONLY':action==='horn_lights'?'HORN_AND_LIGHTS':'REMOTE_POLL'};
     let r;
@@ -397,13 +406,13 @@
     if(transaction.vehicle.regid!==selected?.regid || transaction.vehicle.vin!==selected?.vin)throw new Error('Return to the vehicle that received the command before checking the result.');
     const r=await request('Command result: '+transaction.action,'GET',API+'rmt/getRunningStatus',null,{tid:transaction.id,login_id:session.username,service_type:transaction.service},true);
     const state=r.data?.status;
-    if(state==='SUCCESS'){transaction.done=true;clearCommandMarker();result('Command confirmed','Hyundai reported SUCCESS. Refresh status separately or observe the vehicle to confirm its current state.');notice('Hyundai confirmed command completion.','success');evidence.push({test:transaction.action,at:new Date().toISOString(),scope:'Hyundai transaction reported SUCCESS; current physical state not independently observed'});}
-    else if(state==='ERROR'){transaction.done=true;clearCommandMarker();result('Command failed','Hyundai reported ERROR. No retry was sent.','error');}
+    if(state==='SUCCESS'){transaction.done=true;clearCommandMarker();if(nativeAvailable && nativeBridge.completeCommand)nativeBridge.completeCommand(true);result('Command confirmed','Hyundai reported SUCCESS. Refresh status separately or observe the vehicle to confirm its current state.');notice('Hyundai confirmed command completion.','success');evidence.push({test:transaction.action,at:new Date().toISOString(),scope:'Hyundai transaction reported SUCCESS; current physical state not independently observed'});}
+    else if(state==='ERROR'){transaction.done=true;clearCommandMarker();if(nativeAvailable && nativeBridge.completeCommand)nativeBridge.completeCommand(false);result('Command failed','Hyundai reported ERROR. No retry was sent.','error');}
     else {result('Command pending or unknown',`Hyundai returned ${state || 'an empty/unknown result'}. No new command was sent.`,'warning');}
   }
   function disconnect() {
     if(transaction&&!transaction.done&&!window.confirm('A command outcome is unresolved. Signing out cannot cancel it. Have you checked the vehicle and want to end this session?'))return;
-    if(transaction&&!transaction.done){clearCommandMarker();log({at:new Date().toISOString(),label:'Unresolved command acknowledged',outcome:'User confirmed checking the vehicle before signing out',interpretation:'The API outcome remains unknown. This is a local acknowledgement, not command completion.'});}
+    if(transaction&&!transaction.done){clearCommandMarker();if(nativeAvailable&&nativeBridge.acknowledgeCommand)nativeBridge.acknowledgeCommand();log({at:new Date().toISOString(),label:'Unresolved command acknowledged',outcome:'User confirmed checking the vehicle before signing out',interpretation:'The API outcome remains unknown. This is a local acknowledgement, not command completion.'});}
     resetSession();
     if(accountSaved)try{const saved=readSavedAccount();if(saved)$('email').value=saved.username;else accountSaved=false;}catch{accountLoadProblem=true;}
     if(!accountSaved)$('accountSettings').open=true;
@@ -428,6 +437,7 @@
     if(busy || !restoredCommand)return;
     if(!window.confirm('Have you physically checked the vehicle and want to allow a new command? The previous API outcome remains unknown, and it will not be retried automatically.'))return;
     if(!clearCommandMarker()){notice('The saved pending-command guard could not be cleared. No new command is allowed.','error');return;}
+    if(nativeAvailable&&nativeBridge.acknowledgeCommand&&!nativeBridge.acknowledgeCommand()){notice('The native pending-command guard could not be cleared. Check the vehicle and try again.','error');return;}
     restoredCommand=null;log({at:new Date().toISOString(),label:'Interrupted command acknowledged',outcome:'User confirmed physically checking the vehicle',interpretation:'The previous API outcome remains unknown. This acknowledgement allows deliberate new commands; it does not confirm completion.'});updateSession();notice('Acknowledged. No command was sent or retried.','warning');
   });
   $('connectionTestBtn').addEventListener('click',()=>{ping();if(nativePage?!nativeAvailable:!helperAvailable && $('transportMode').value!=='direct'){setupNotice();return;}task(async()=>{const r=await request('Connection check (no login)','GET',LOGIN,null,{},false,false,true);result('Connection response',`Hyundai returned HTTP ${r.status}. This checks whether a response is readable, not whether your credentials work.`);notice('Connection check logged.');});});
